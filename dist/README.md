@@ -22,15 +22,15 @@ The kit is made up of two xml files and one directory.
 ### Install
  1. Open a Caché Terminal
    - On Windows machines, this can be done by selecting the Caché cube on the bottom right of the screen and choosing "Terminal" from the popup menu.
-   - On Unix machines, this can be done by running the command "csession INSTANCE"
+   - On Unix machines, this can be done by running the command `csession INSTANCE`
      - INSTANCE is the name of the Caché instance
  2. Change to the %SYS Namespace
-   - zn "%SYS"
+   - `zn "%SYS"`
  3. Import DashboardInstaller.xml
-   - set status = $System.OBJ.Load(PATH TO DASHBOARDINSTALLER.XML, "ck")
+   - `set status = $System.OBJ.Load(PATH TO DASHBOARDINSTALLER.XML, "ck")`
       - example PATH TO DASHBOARDINSTALLER.XM: C:/Users/user/Desktop/kit/DashbaordInstaller.xml
  4. Install the System Monitor Dashboard
-   - set status = ##class(User.Dashboard.Installer).Install(PATH TO KIT)
+   - `set status = ##class(User.Dashboard.Installer).Install(PATH TO KIT)`
      - example PATH TO KIT: C:/Users/user/Desktop/kit/
  5. Wait for the installation to complete.
    - "Successfully Installed the Dashboard" will be printed if the installation was successful
