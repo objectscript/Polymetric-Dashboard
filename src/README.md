@@ -16,4 +16,4 @@ The code that makes the System Monitor Dashboard work.
   - This directory contains all the custom css styles, fonts, and 3rd party libraries used by the application.
 
 ## Instruction
-Instructions detailing [installation using the source code](https://github.com/CDTiernan/SystemMonitorDashboard/blob/master/docs/InstallUsingSourceCode.md) are located in the docs/ directory.
+Instructions detailing [installation using the source code](https://github.com/CDTiernan/SystemMonitorDashboard/blob/master/docs/InstallUsingSourceCode.md) are located in the *docs/* directory.

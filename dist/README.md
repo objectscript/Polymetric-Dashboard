@@ -6,7 +6,7 @@ The kit is made up of two xml files and one directory.
 
 ##### DashboardInstaller.xml
   - This xml file is the only file you will need to interact with to install the System Monitor Dashboard. It automatically sets up all necessary functionality for you.
-  
+
 ##### DashboardSupport.xml
   - This xml file is an export of all the Caché code needed for monitoring the Caché environment.
 
@@ -19,7 +19,7 @@ The kit is made up of two xml files and one directory.
  1. Download kit.zip
  2. Extract kit.zip
    - Remember the full path to the extracted kit, it will be used later.
-     - example:  C:/Users/user/Desktop/kit/
+     - example:  *C:/Users/user/Desktop/kit/*
 
 ### Install
  1. Open a Caché Terminal
@@ -30,13 +30,13 @@ The kit is made up of two xml files and one directory.
    - `zn "%SYS"`
  3. Import DashboardInstaller.xml
    - `set status = $System.OBJ.Load(PATH TO DASHBOARDINSTALLER.XML, "ck")`
-      - example PATH TO DASHBOARDINSTALLER.XM: C:/Users/user/Desktop/kit/DashbaordInstaller.xml
+      - example PATH TO DASHBOARDINSTALLER.XM: *C:/Users/user/Desktop/kit/DashbaordInstaller.xml*
  4. Install the System Monitor Dashboard
    - `set status = ##class(User.Dashboard.Installer).Install(PATH TO KIT)`
-     - example PATH TO KIT: C:/Users/user/Desktop/kit/
+     - example PATH TO KIT: *C:/Users/user/Desktop/kit/*
  5. Wait for the installation to complete.
-   - "Successfully Installed the Dashboard" will be printed if the installation was successful
-   - "Failed to Install the Dashboard. Check for errors printed above, and returned by the Install Method" will be printed along with the errors encountered if unsuccessful.
+   - *"Successfully Installed the Dashboard"* will be printed if the installation was successful
+   - *"Failed to Install the Dashboard. Check for errors printed above, and returned by the Install Method"* will be printed along with the errors encountered if unsuccessful.
 
 ### Use
  1. Go to the System Management Portal using a web browser (preferably Google Chrome)
