@@ -1,0 +1,36 @@
+<md-content style="height:100%;overflow:hidden;">
+  <!-- TAB STRUCTURE -->
+  <md-tabs class="md-primary" md-selected="content.selectedIndex" md-enable-disconnect="true">
+    <!-- Tab content directives are held within an array in the content controller and built dynamically here -->
+    <md-tab ng-repeat="tab in tabs" id="{{tab.id}}" md-on-select="content.selectedIndexChange($index)">
+      <md-tab-label>{{tab.title}}</md-tab-label>
+      <md-tab-body>
+        <md-content bind-html-compile="tab.content" class="md-padding transparent-fill" flex="{{tab.width}}" flex-offset="{{(100-tab.width) / 2}}">
+        </md-content>
+      </md-tab-body>
+    </md-tab>
+  </md-tabs>
+
+  <!-- CHART SETTINGS FAB -->
+  <md-button class="md-fab md-primary" ng-click="showSettingsDialog($event)"  style="position:fixed;bottom:1em;left:1em;">
+    <md-tooltip md-direction="right">Settings</md-tooltip>
+    <md-icon
+      aria-label="Settings"
+      class="material-icons step white-text"
+      md-svg-src="assets/icons/ic_build_24px.svg"
+    >
+    </md-icon>
+  </md-button>
+
+  <!-- BACK TO SYSTEM DASHBOARD FAB -->
+  <md-button class="white-text md-no-ink" href="/csp/sys/op/UtilDashboard.csp"  style="position:fixed;top:0;right:0;min-width:0;">
+    <md-tooltip md-direction="bottom">Back to Origional System Dashboard</md-tooltip>
+    <md-icon
+      aria-label="Settings"
+      class="material-icons step white-text"
+      md-svg-src="assets/icons/ic_keyboard_backspace_24px.svg"
+    >
+    </md-icon>
+  </md-button>
+
+</md-content>

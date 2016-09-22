@@ -1,0 +1,98 @@
+<md-dialog id="settingsDialog" aria-label="Settings" class="dialogBody">
+  <!-- Header -->
+  <md-toolbar>
+      <div layout="row" class="primary-hue1-fill white-text">
+        <div flex="100" align="left" layout-padding>
+          <p class="md-headline no-margin">Settings</p>
+        </div>
+      </div>
+  </md-toolbar>
+
+  <!-- Content -->
+  <md-dialog-content class="background-fill">
+
+    <md-tabs class="md-primary" md-dynamic-height>
+      <md-tab label="Chart Properties">
+        <md-content flex="100" layout="row" layout-align="center center" layout-padding>
+          <!-- Chart Window -->
+          <div flex="50" layout="row" layout-wrap layout-align="start center">
+            <div layout="row" flex="100">
+              <h2 class="md-headline smpHeader">Chart Window</h2>
+            </div>
+            <md-input-container flex="95" flex-offset="5" layout-padding style="display: block">
+              <md-select flex="95" class="white-fill" md-whiteframe="1" ng-model="chartWindow" aria-label="Set Chart Window">
+                <md-option ng-repeat="cW in chartWindows" value="{{cW}}">{{getDisplayString(cW)}}</md-option>
+              </md-select>
+            </md-input-container>
+          </div>
+          <!-- Sample Period -->
+          <div flex="50" layout="row" layout-wrap layout-align="start center">
+            <div layout="row" flex="100">
+              <h2 class="md-headline smpHeader">Sample Period</h2>
+            </div>
+            <div layout="row" flex="95" flex-offset="5">
+              <md-input-container flex="95" flex-offset="5" layout-padding style="display: block">
+                <md-select flex="95" class="white-fill" md-whiteframe="1" ng-model="samplePeriod" aria-label="Set Sample Period">
+                  <md-option ng-repeat="sP in availableSamplePeriods()" value="{{sP}}">{{getDisplayString(sP)}}</md-option>
+                </md-select>
+              </md-input-container>
+            </div>
+          </div>
+        </md-content>
+      </md-tab>
+
+      <md-tab label="Advanced">
+        <md-content class="md-padding">
+          <!-- Time Zone -->
+          <div layout="row" flex="90" flex-offset="5">
+            <h2 class="md-headline smpHeader">Time Zone</h2>
+          </div>
+          <div layout="row" layout-wrap flex="80" flex-offset="10" class="md-padding">
+            <form flex="100" ng-submit="selectedTimezoneChange(undefined, $event);">
+              <md-autocomplete
+                id="TimezoneSearch"
+                md-no-cache="true"
+                flex="100"
+                md-selected-item="selectedTimezone"
+                md-search-text="searchTimezone"
+                md-items="tz in getTZ(searchTimezone)"
+                md-item-text="tz"
+                md-min-length="0"
+                placeholder="Search for a Timezone."
+                md-selected-item-change="selectedTimezoneChange(tz)"
+                md-match-case-insensitive="true"
+                md-autoselect"true">
+                <md-item-template>
+                  <span flex="100" layout="row" class="orange-border-hover">
+                    <span
+                      md-highlight-text="searchTimezone"
+                      class="searchResult"
+                      md-highlight-flags="^i">
+                      {{tz}}
+                    </span>
+                  </span>
+                  <md-not-found> No timezones matching "{{searchTimezone}}" were found. </md-not-found>
+                </md-item-template>
+              </md-autocomplete>
+            </form>
+          </div>
+          <!-- Debug Flags -->
+          <div layout="row" flex="95" flex-offset="5">
+            <h2 class="md-headline smpHeader">Print to Console</h2>
+          </div>
+          <div layout="row" flex="20" flex-offset="10">
+            <md-checkbox flex="100" aria-label="Toggle Debug REST" ng-click="toggleDebug('rest')" ng-checked="debug.rest">Debug REST</md-checkbox>
+          </div>
+        </md-content>
+      </md-tab>
+    </md-tabs>
+  </md-dialog-content>
+
+  <!-- Dialog Actions (cancel, or save) -->
+  <md-dialog-actions layout="row">
+    <span flex></span>
+    <md-button ng-click="closeDialog()" class="primary-text">Cancel</md-button>
+    <md-button class="md-raised md-primary" ng-click="applyChanges()" >Apply</md-button>
+  </md-dialog-actions>
+
+</md-dialog>

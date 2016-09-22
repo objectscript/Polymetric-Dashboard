@@ -1,0 +1,44 @@
+<div class="smpMetadata hidden" md-whiteframe="2" ng-style="pos">
+  <md-content layout="column">
+    <div>
+      <!-- Tooltip header -->
+      <div flex="100" layout="row" class="primary-fill white-text md-subhead">
+        <div><p class="no-margin" layout-padding style="opacity: 0.82;">[{{namespace}}]</p></div>
+        <div><p class="no-margin" layout-padding>{{sensor}},</p></div>
+        <div><p class="no-margin" layout-padding>{{item}}</p></div>
+      </div>
+
+      <!-- Tooltip content -->
+      <div layout="column" flex="100" layout-padding  class="md-body-1 white-fill" style="opacity:.9">
+        <div>
+          <div flex="100" layout="row" class="white-fill">
+            <div flex="auto">
+              <p class="no-margin blend-text">Warning Value</p>
+            </div>
+            <div flex="auto">
+              <p class="no-margin primary-text">{{warnVal}}</p>
+            </div>
+            <div flex="auto" flex-offset="10">
+              <p class="no-margin blend-text">Alert Value</p>
+            </div>
+            <div flex="auto">
+              <p class="no-margin primary-text">{{critVal}}</p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div flex="100" layout="row" class="white-fill">
+            <div flex="auto">
+              <p class="no-margin blend-text">Description</p>
+            </div>
+          </div>
+          <div flex="100" layout="row" class="white-fill">
+            <div flex="auto" flex-offset="5">
+              <p class="no-margin primary-text">{{desc}}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </md-content>
+</div>

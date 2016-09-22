@@ -1,0 +1,12 @@
+<div layout="column" layout-align="center center">
+  <!-- Simple three bar display of a sensors state -->
+  <div>
+    <div class="stateBar" ng-class="stateIcon.state === 2 ? 'zone-a-fill' : 'background-hue1-fill'"></div> <!-- Top bar is red if in alert state (grey otherwise) -->
+    <div class="stateBar" ng-class="stateIcon.state === 1 ? 'zone-b-fill' : 'background-hue1-fill'"></div> <!-- Middle bar is yellow if in alert state (grey otherwise) -->
+    <div class="stateBar" ng-class="stateIcon.state === 0 ? 'zone-c-fill' : 'background-hue1-fill'"></div> <!-- Bottom bar is green if in normal state (grey otherwise) -->
+    <!-- If no data is avaiable for the state icon all bars are grey -->
+
+    <!-- tooltip that explicitily shows the state string -->
+    <md-tooltip md-direction="left">{{stateIcon.state === 2 ? 'Alert' : stateIcon.state === 1 ? 'Warning' : stateIcon.state === 0 ? 'Normal' : stateIcon.state ? 'No Data' : 'Unknown'}}</md-tooltip>
+  </div>
+</div>

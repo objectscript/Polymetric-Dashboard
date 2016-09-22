@@ -1,0 +1,23 @@
+<div layout="row" flex="100" layout-wrap style="height:100%;min-height:100%;" layout-align="center center">
+  <!-- Meta data directive that is only shown if specified to do so -->
+  <smp-metadata ng-if="showMetadata" namespace="{{namespace}}" sensor="{{sensor}}" item="{{item}}"></smp-metadata>
+
+  <!-- div defining one cell of the sensor display, repeated over every element to be shown on the display -->
+  <div flex="{{elem.width}}" ng-repeat="elem in elems" layout="column" ng-class="elem.class" style="height: 100%">
+    <!-- The label of the metric (can be shown or hidden) -->
+    <div flex="{{showLabel === 'true' ? 50 : 0}}" ng-if="showLabel === 'true'" class="md-padding">
+      <p class="no-margin" style="opacity: .5">{{elem.metric}}</p>
+    </div>
+    <!-- The metric -->
+    <div flex="{{showLabel === 'true' ? 50 : 100}}" layout-align="{{elem.metric === 'state' ? 'center center' : 'left center'}}" ng-class="elem.metric !== 'state' ? 'md-padding' : 'putInCenter'">
+      <!-- the span used for everything but the sensor and state cells -->
+      <span ng-if="['state', 'sensor'].indexOf(elem.metric) === -1" class="md-body-1" style="{{elem.val === undefined || elem.val === 'Not Set' ? 'opacity: .5;' : 'opacity: 1;'}}"> {{getElemValDisplay(elem, $index)}}</span>
+      <!-- Sensor has a special cell because they are a combination of [namespace] SensorName, ItemName -->
+      <span ng-if="elem.metric === 'sensor'">
+        <span ng-repeat="el in elem.val" class="{{el.class}}" style="{{el.style}}">{{el.display}}</span>
+      </span>
+      <!-- State has a special because it is a directive itself (the three bars)-->
+      <smp-state-icon layout-padding ng-if="elem.metric === 'state'" state="{{elem.val}}" style="height:49px;"/>
+    </div>
+  </div>
+</div>

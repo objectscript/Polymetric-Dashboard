@@ -1,0 +1,43 @@
+<div flex="100" class="background-fill allSensorsRow" layout="row" layout-wrap>
+  <!-- Sensor Rows are used in the AllSensors Tab, and are a combination of a sensor display, a sparkline chart, and a button to show and hide the sparkline chart -->
+  <div flex="95" style="height:48px;">
+    <!-- The sensor display is always shown -->
+    <smp-sensor-display
+      namespace="{{namespace}}"
+      sensor="{{sensor}}"
+      item="{{item}}"
+      units="{{units}}"
+      show-label="false"
+      metrics="state,sensor,value,max,min,mean,stdDev"
+      widths="5,45,10,10,10,10,10"
+      classes="background-fill, primary-hue1-fill white-text,white-fill,white-fill,white-fill,white-fill,white-fill"
+      icon-class="stateBarContainer"
+      show-unit="true"
+      show-metadata="true"
+    ></<smp-sensor-display>
+  </div>
+
+  <!-- Button to toggle if the sparkline chart is shown -->
+  <div flex="5" class="background-fill" style="height:48px;">
+    <md-button class="md-icon-button" ng-model="showSparkline" ng-value="false" ng-click="showSparkline = !showSparkline">
+      <md-tooltip md-direction="top">{{showSparkline ? 'Hide Sparkline' : 'Show Sparkline'}}</md-tooltip>
+      <md-icon ng-class="['material-icons', showSparkline ? 'accent-text' : 'icon-default']" md-svg-src="assets/icons/ic_show_chart_24px.svg"></md-icon>
+    </md-button>
+  </div>
+
+  <!-- Sparkline charts are hidden by default using ng-if (ng-if acutally removes/adds them to the DOM) because having a lot of these on screen
+  can cause performance issues -->
+  <div ng-if="showSparkline" class="expando-if" flex="95">
+    <div flex="95" flex-offset="5" class="">
+      <smp-nvd3-chart
+        type="sparklineChart"
+        id="{{chartId}}"
+        namespace="{{namespace}}"
+        sensor="{{sensor}}"
+        item="{{item}}"
+        units="{{units}}"
+        height="48"
+      />
+    </div>
+  </div>
+</div>

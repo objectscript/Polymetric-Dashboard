@@ -1,0 +1,29 @@
+.smp-code{
+    background-color: #0c2238;
+    font-size: 1.2em;
+}
+.smp-text {
+  color: #b2ccd6;
+}
+.smp-funct {
+  color: #c792ea;
+}
+.smp-str {
+  color: #c3e88d;
+}
+.smp-int, .smp-bool, .smp-elem {
+  color: #ff535e;
+
+}
+.smp-call, .smp-punct {
+  color: #82aaff;
+}
+.smp-cmt {
+  color: #456361;
+}
+.smp-attr {
+  color: #ffcb6b;
+}
+.smp-arg {
+  color: #f0f0f0;
+}

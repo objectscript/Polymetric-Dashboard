@@ -1,0 +1,85 @@
+.primary-fill{
+  background-color: #356B8D !important;
+}
+.primary-text{
+  color: #356B8E !important;
+}
+.primary-hue1-fill{
+  background-color: #1C5274 !important;
+}
+.primary-hue1-text{
+  color: #1C5274 !important;
+}
+.accent-fill{
+  background-color: #FF9800 !important;
+}
+.accent-text{
+  color: #FF9800 !important;
+}
+.warn-fill{
+  background-color: #F44336 !important;
+}
+.warn-text{
+  color: #F44336 !important;
+}
+.background-fill{
+  background-color: #EDECEC !important;
+}
+.background-text{
+  color: #EDECEC !important;
+}
+.background-hue1-fill{
+  background-color: #E0E0E0 !important;
+}
+.background-hue1-text{
+  color: #E0E0E0 !important;
+}
+.black-fill {
+  background-color: #000 !important;
+}
+.black-text {
+  color:#000 !important;
+}
+.white-fill {
+  background-color: #fff !important;
+}
+.white-text {
+  color: #fff !important;
+}
+.faded-fill {
+  background-color: rgba(255,255,255,0.35) !important;
+}
+.faded-text {
+  color: rgba(255,255,255,0.35) !important;
+}
+.blend-text {
+  color: #6d6c6c !important;
+}
+.blend-hue1-text {
+  color: rgba(197,197,197,0.85) !important;
+}
+.transparent-fill {
+  background-color: transparent !important;
+}
+.icon-default {
+  color: rgba(0,0,0,0.54) !important;
+}
+
+.zone-c-text{
+  color: #4CAF50 !important;
+}
+.zone-c-fill{
+  background-color: #4CAF50 !important;
+}
+.zone-b-text{
+  color: #FFC107 !important;
+}
+.zone-b-fill{
+  background-color: #FFC107 !important;
+}
+.zone-a-text{
+  color: #F44336 !important;
+}
+.zone-a-fill{
+  background-color: #F44336 !important;
+}

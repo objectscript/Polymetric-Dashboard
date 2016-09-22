@@ -1,0 +1,91 @@
+<md-list class="background-fill blend-text widgetMenu" md-whiteframe="2">
+  <!-- Type Select for Widget -->
+  <md-list-item class="no-padding">
+    <md-tooltip ng-if="widgetMenu.errorType === 'Type'" md-visible="true" md-direction="right">{{widgetMenu.errorMsg}}</md-tooltip>
+    <md-input-container flex="90" flex-offset="5" layout-padding class="widgetMenuSelect no-padding">
+      <label style="padding-bottom:0">Type</label>
+      <md-select id="widgetMenuTypeSelect" ng-model="widgetMenu.type" class="white-fill"  md-whiteframe="1" style="display: block; padding-top: 0;">
+        <md-option ng-repeat="type in widgetMenu.types" value="{{type}}">
+          {{type}}
+        </md-option>
+      </md-select>
+    </md-input-container>
+  </md-list-item>
+
+  <!-- Namespace Select for Widget -->
+  <md-list-item class="no-padding">
+    <md-input-container flex="90" flex-offset="5" layout-padding class="widgetMenuSelect no-padding">
+      <md-tooltip ng-if="widgetMenu.errorType === 'Namespace'" md-visible="true" md-direction="right">{{widgetMenu.errorMsg}}</md-tooltip>
+      <label style="padding-bottom:0">Namespace</label>
+      <md-select id="widgetMenuNamespaceSelect" ng-disabled="widgetMenu.type === 'Text'" ng-model="widgetMenu.namespace" class="white-fill"  md-whiteframe="1" style="display: block; padding-top: 0;">
+        <md-option ng-repeat="(namespace, sensors) in widgetMenu.sensors" value="{{namespace}}" ng-click="widgetMenu.selectedNamespaceIdx = $index; widgetMenu.sensor = ''; widgetMenu.item = ''">
+          {{namespace}}
+        </md-option>
+      </md-select>
+    </md-input-container>
+  </md-list-item>
+
+  <!-- Sensor Select for Widget -->
+  <md-list-item class="no-padding">
+    <md-input-container flex="90" flex-offset="5" layout-padding class="widgetMenuSelect no-padding">
+      <md-tooltip ng-if="widgetMenu.errorType === 'Sensor'" md-visible="true" md-direction="right">{{widgetMenu.errorMsg}}</md-tooltip>
+      <label style="padding-bottom:0">Sensor</label>
+      <md-select id="widgetMenuSensorSelect" ng-disabled="widgetMenu.selectedNamespaceIdx === -1 || widgetMenu.type === 'Text'" ng-model="widgetMenu.sensor" class="white-fill"  md-whiteframe="1" style="display: block; padding-top: 0;">
+        <md-option ng-repeat="(sensor, props) in widgetMenu.sensors[widgetMenu.namespace]" value="{{sensor}}" ng-click="widgetMenu.selectedSensorIdx = $index; widgetMenu.item = ''">
+          {{sensor}}
+        </md-option>
+      </md-select>
+    </md-input-container>
+  </md-list-item>
+
+  <!-- Item Select for Widget -->
+  <md-list-item class="no-padding">
+    <md-input-container flex="90" flex-offset="5" layout-padding class="widgetMenuSelect no-padding">
+      <md-tooltip ng-if="widgetMenu.errorType === 'Item'" md-visible="true" md-direction="right">{{widgetMenu.errorMsg}}</md-tooltip>
+      <label style="padding-bottom:0">Item</label>
+      <md-select id="widgetMenuItemSelect" ng-disabled="widgetMenu.selectedSensorIdx === -1 || widgetMenu.selectedNamespaceIdx === -1 || widgetMenu.type === 'Text'" ng-model="widgetMenu.item" class="white-fill"  md-whiteframe="1" style="display: block; padding-top: 0;">
+        <md-option ng-repeat="item in widgetMenu.sensors[widgetMenu.namespace][widgetMenu.sensor].items" value="{{item}}" ng-click="widgetMenu.selectedItemIdx = $index;">
+          {{item}}
+        </md-option>
+      </md-select>
+    </md-input-container>
+  </md-list-item>
+
+  <!-- Advanced Settings -->
+  <md-list-item class="no-padding">
+    <div flex="90" flex-offset="5" class="">
+      <md-tooltip ng-if="widgetMenu.errorType === 'Text'" md-visible="true" md-direction="right">{{widgetMenu.errorMsg}}</md-tooltip>
+      <md-button id="widgetMenuAdvancedButton" ng-disabled="widgetMenu.type === '' || widgetMenu.type === 'Sensor Row'" ng-click="widgetMenu.openAdvMenu($event)" class="widgetMenuBtn">
+        Advanced
+      </md-button>
+    </div>
+  </md-list-item>
+
+  <md-divider layout-margin></md-divider>
+
+  <!-- Lock/Unlock Widget -->
+  <md-list-item class="">
+    <div flex="90" flex-offset="5" class="">
+      <md-button ng-click="widgetMenu.locked = !widgetMenu.locked" class="widgetMenuBtn">
+        {{widgetMenu.locked ? 'Unl' : 'L'}}ock Widget
+      </md-button>
+    </div>
+  </md-list-item>
+
+  <!-- Remove Widget -->
+  <md-list-item class="">
+    <div flex="90" flex-offset="5" class="">
+      <md-button ng-click="widgetMenu.remove = !widgetMenu.remove" class="widgetMenuBtn warn-text">{{widgetMenu.remove ? 'Keep' : 'Remove'}} Widget</md-button>
+    </div>
+  </md-list-item>
+
+  <!-- Buttons to close the menu or save the new widget data -->
+  <md-list-item flex="100" layout="row" layout-align="center center" class="white-fill">
+    <div flex="50" layout="row" layout-align="center center">
+      <md-button ng-click="widgetMenu.cancel()" class="primary-text">Cancel</md-button>
+    </div>
+    <div flex="50" layout="row" layout-align="center center">
+      <md-button ng-mouseover="widgetMenu.validate()" ng-click="widgetMenu.apply()" class="md-raised md-primary">Apply</md-button>
+    </div>
+  </md-list-item>
+</md-list>

@@ -1,0 +1,201 @@
+<div layout="row" layout-align="left center" flex="100" class="md-padding">
+  <h2 class="md-display-1 no-margin">Sensor Display</h2>
+</div>
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - DEMO - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<div>
+  <smp-expando open="true" target="showcaseSensorDemo">
+    <div smp-expando-toggle layout="row" layout-align="left center" flex="100" class="white-text primary-hue1-fill md-padding doesAction" md-whiteframe="2">
+      <h2 class="md-headline no-margin">Demo</h2>
+    </div>
+    <div smp-expando-content="showcaseSensorDemo">
+      <div class="contentContainer">
+        <div class="md-padding">
+          <div ng-if="scSensorDisplay.showSensorDisplay" class="white-fill" ng-style="scSensorDisplay.sensorDisplayStyle">
+            <!-- Demo Sensor Display -->
+            <smp-sensor-display
+              namespace="{{scSensorDisplay.namespace}}"
+              sensor="{{scSensorDisplay.sensor}}"
+              item="{{scSensorDisplay.item}}"
+              units="{{scSensorDisplay.unit}}"
+              metrics="{{scSensorDisplay.metrics}}"
+              show-label="{{scSensorDisplay.labels}}"
+              icon-class="stateBarContainer"
+            ></<smp-sensor-display>
+          </div>
+
+          <div layout="row" layout-wrap flex="100" layout-align="center center" layout-margin layout-padding>
+            <!-- Namespace Select for Widget -->
+            <div flex="30">
+              <md-input-container flex="90" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
+                <label style="padding-bottom:0">Widget Namespace</label>
+                <md-select
+                  ng-model="scSensorDisplay.namespace"
+                  ng-change="scSensorDisplay.sensor = ''; scSensorDisplay.item = ''"
+                  class="white-fill"
+                  md-whiteframe="1"
+                  aria-label="showcase line chart namespace select"
+                  style="display: block; padding-top: 0;">
+                  <md-option ng-repeat="(namespace, sensors) in scSensorDisplay.sensors" value="{{namespace}}" >
+                    {{namespace}}
+                  </md-option>
+                </md-select>
+              </md-input-container>
+            </div>
+
+            <!-- Sensor Select for Widget -->
+            <div flex="30">
+              <md-input-container flex="90" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
+                <label style="padding-bottom:0">Widget Sensor</label>
+                <md-select
+                  ng-disabled="!scSensorDisplay.namespace"
+                  ng-model="scSensorDisplay.sensor"
+                  ng-change="scSensorDisplay.item = ''"
+                  class="white-fill"
+                  md-whiteframe="1"
+                  aria-label="showcase line chart sensor select"
+                  style="display: block; padding-top: 0;">
+                  <md-option ng-repeat="(sensor, props) in scSensorDisplay.sensors[scSensorDisplay.namespace]" value="{{sensor}}" >
+                    {{sensor}}
+                  </md-option>
+                </md-select>
+              </md-input-container>
+            </div>
+
+            <!-- Item Select for Widget -->
+            <div flex="30">
+              <md-input-container flex="90" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
+                <label style="padding-bottom:0">Widget Item</label>
+                <md-select
+                  ng-disabled="!scSensorDisplay.sensor || !scSensorDisplay.namespace"
+                  ng-model="scSensorDisplay.item"
+                  class="white-fill"
+                  md-whiteframe="1"
+                  aria-label="showcase line chart item select"
+                  style="display: block; padding-top: 0;">
+                  <md-option ng-repeat="item in scSensorDisplay.sensors[scSensorDisplay.namespace][scSensorDisplay.sensor].items" value="{{item}}">
+                    {{item}}
+                  </md-option>
+                </md-select>
+              </md-input-container>
+            </div>
+          </div>
+
+          <div layout="row" flex="100">
+            <div layout="row" flex="" layout-align="left center">
+              <h6 flex="none" class="md-title no-margin">Metrics</h6>
+            </div>
+            <div flex="" >
+            </div>
+            <div layout="row" flex="none" layout-align="right center">
+              <md-switch aria-label="sensor" ng-model="scSensorDisplay.showLabels" class="md-accent"> Show Labels</md-switch>
+            </div>
+          </div>
+
+          <!-- Metric checkboxes -->
+            <div layout="row" flex="" layout-wrap layout-align="start center">
+              <md-checkbox
+                ng-repeat = "metric in scSensorDisplay.metricOptions"
+                flex="20"
+                aria-label="{{metric.display}}"
+                ng-click="scSensorDisplay.toggleMetric(metric.value)"
+                ng-checked="scSensorDisplay.isShown(metric.value) !== -1">
+                {{metric.display}}
+              </md-checkbox>
+            </div>
+
+          <!-- Apply the Settings -->
+          <div layout="row" layout-align="center center">
+            <md-button aria-label="Apply" ng-click="scSensorDisplay.update()" class="md-raised primary-fill white-text">Apply</md-button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </smp-expando>
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - HTML - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<div>
+  <smp-expando open="true" target="showcaseSensorHtml">
+    <div smp-expando-toggle layout="row" layout-align="left center" flex="100" class="white-text primary-hue1-fill md-padding doesAction" md-whiteframe="2">
+      <h2 class="md-headline no-margin">HTML</h2>
+    </div>
+
+    <div smp-expando-content="showcaseSensorHtml" md-whiteframe="2">
+      <div class="contentContainer">
+        <div layout="row" layout-align="left center" flex="100"  class="smp-code">
+<pre>
+  <code class="smp-text">
+    <span class="smp-punct">&lt;</span><span class="smp-elem">smp-sensor-display</span>
+      <span class="smp-attr">namespace</span> <span class="smp-punct">=</span> <span class="smp-str">"{{scSensorDisplay.namespace}}"</span>
+      <span class="smp-attr">sensor</span> <span class="smp-punct">=</span> <span class="smp-str">"{{scSensorDisplay.sensor}}"</span>
+      <span class="smp-attr">item</span> <span class="smp-punct">=</span> <span class="smp-str">"{{scSensorDisplay.item}}"</span>
+      <span class="smp-attr">units</spam> <span class="smp-punct">=</span> <span class="smp-str">"{{scSensorDisplay.unit}}"</span>
+      <span class="smp-attr">metrics</span> <span class="smp-punct">=</span> <span class="smp-str">"{{scSensorDisplay.metrics}}"</span>
+      <span class="smp-attr">show-label</span> <span class="smp-punct">=</span> <span class="smp-str">"{{scSensorDisplay.showLabels}}"</span>
+    <span class="smp-punct">&gt; &lt;/</span><span class="smp-elem">smp-sensor-display</span><span class="smp-punct">&gt;</span>
+  </code>
+</pre>
+        </div>
+      </div>
+    </div>
+  </smp-expando>
+</div>
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - Use - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<div>
+  <smp-expando open="true" target="showcaseSensorOptions">
+    <div smp-expando-toggle layout="row" layout-align="left center" flex="100" class="white-text primary-hue1-fill md-padding doesAction" md-whiteframe="2">
+      <h2 class="md-headline no-margin">Options</h2>
+    </div>
+    <div smp-expando-content="showcaseSensorOptions" class="white-fill" md-whiteframe="2">
+      <div class="contentContainer">
+        <div layout="column" flex="100" class="">
+          <md-list>
+            <md-subheader class="md-no-sticky accent-text">Required</md-subheader>
+            <md-list-item layout="row" class="md-offset">
+              <p layout="row" flex="100">
+                <span flex="15" style="font-weight:bold;" class="md-subhead">Attribute</span>
+                <span flex="10" style="font-weight:bold;" class="md-subhead">Type</span>
+                <span flex="" style="font-weight:bold;" class="md-subhead">Description</span>
+                <span flex="10" style="font-weight:bold;" class="md-subhead">Default</span>
+              </p>
+            </md-list-item>
+            <md-list-item layout="row" class="md-offset" ng-repeat="attr in scSensorDisplay.sensorAttributes.Required">
+              <p layout="row" flex="100">
+                <span flex="15" class="md-body-1">{{attr.attr}}</span>
+                <span flex="10" class="md-body-1">{{attr.type}}</span>
+                <span flex="" class="md-body-1">{{attr.desc}}</span>
+                <span flex="10" class="md-body-1">{{attr.default}}</span>
+              </p>
+            </md-list-item>
+            <md-divider></md-divider>
+
+            <md-subheader class="md-no-sticky">Optional</md-subheader>
+            <md-list-item layout="row" class="md-offset">
+              <p layout="row" flex="100">
+                <span flex="15" style="font-weight:bold;" class="md-subhead">Attribute</span>
+                <span flex="10" style="font-weight:bold;" class="md-subhead">Type</span>
+                <span flex="" style="font-weight:bold;" class="md-subhead">Description</span>
+                <span flex="10" style="font-weight:bold;" class="md-subhead">Default</span>
+              </p>
+            </md-list-item>
+            <md-list-item layout="row" class="md-offset" ng-repeat="attr in scSensorDisplay.sensorAttributes.Optional">
+              <p layout="row" flex="100">
+                <span flex="15" class="md-body-1">{{attr.attr}}</span>
+                <span flex="10" class="md-body-1">{{attr.type}}</span>
+                <span flex="" class="md-body-1">{{attr.desc}}</span>
+                <span flex="10" class="md-body-1">{{attr.default}}</span>
+              </p>
+            </md-list-item>
+
+          </md-list>
+        </div>
+      </div>
+    </div>
+  </smp-expando>
+</div>

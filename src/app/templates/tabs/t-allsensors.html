@@ -1,0 +1,88 @@
+<!-- Div containing all the currently applied filters to the sensor results -->
+<div flex="100" layout="row" layout-align="start center" layout-wrap="true">
+  <div ng-repeat="filter in allsensors.filters" flex="none" layout="row" class="primary-hue1-fill filter-chip" md-whiteframe="1">
+    <p class="md-caption no-margin white-text">{{filter}}</p>
+    <md-button ng-click="allsensors.filterChange(filter, 'remove')" class="md-icon-button md-caption no-margin no-padding filter-chip-remove-btn">
+      <md-icon
+        aria-label="Remove Filter"
+        class="material-icons step accent-text filter-chip-remove-icn"
+        md-svg-src="assets/icons/ic_close_24px.svg"
+      >
+      </md-icon>
+    </md-button>
+  </div>
+</div>
+
+<!-- Autocomplete form allowing search through all the senosrs -->
+<form ng-submit="allsensors.selectedSensorChange(allsensors.searchText)">
+  <md-autocomplete
+    id="allsensorsSearchBar"
+    md-items="sensor in allsensors.querySearch(allsensors.searchText) | orderBy: 'sensor'"
+    md-selected-item="allsensors.selectedSensor"
+    md-search-text="allsensors.searchText"
+    md-selected-item-change="allsensors.selectedSensorChange(sensor)"
+    md-item-text="allsensors.getSensorText(sensor)"
+    md-menu-class="allsensorsSearchMenu"
+    md-min-length="0"
+    placeholder="Search for a Sensor"
+    ng-disabled="false"
+    md-no-cache="true"
+    md-match-case-insensitive="true"
+  >
+    <!-- Definition of how to display the sensors within the autocomplete menu -->
+    <md-item-template>
+      <span flex="100" layout="row" class="orange-border-hover">
+        <span md-highlight-text="allsensors.searchText" class="searchResult" md-highlight-flags="i">[{{sensor.namespace}}]</span>
+        <span md-highlight-text="allsensors.searchText" class="searchResult" md-highlight-flags="i" style="word-spacing:1em;"> {{sensor.sensor}}, </span>
+        <span md-highlight-text="allsensors.searchText" class="searchResult" md-highlight-flags="i">{{sensor.item}}</span>
+      </span>
+    </md-item-template>
+
+    <!-- Definition of what to show if no sensors match the query -->
+    <md-not-found>
+      No sensors matching "{{allsensors.searchText}}" were found.
+    </md-not-found>
+  </md-autocomplete>
+</form>
+
+<!-- Result Table Header -->
+<div flex="95" layout="row" layout-align="start end" layout-padding style="padding-bottom:0;">
+  <div flex="5" layout="row" layout-align="center center">
+  </div>
+  <div flex="45" class="no-padding">
+    <h2 class="md-headline blend-text no-margin">Sensor</h2>
+    <md-tooltip md-direction="left" md-delay="500">
+      [namespace] sensor, item
+    </md-tooltip>
+  </div>
+  <div flex="10" class="no-padding"> <h2 class="md-headline blend-text no-margin">Value</h2></div>
+  <div flex="10" class="no-padding"> <h2 class="md-headline blend-text no-margin">Max</h2></div>
+  <div flex="10" class="no-padding"> <h2 class="md-headline blend-text no-margin">Min</h2></div>
+  <div flex="10" class="no-padding"> <h2 class="md-headline blend-text no-margin">Mean</h2></div>
+  <div flex="10" class="no-padding"> <h2 class="md-headline blend-text no-margin">Std Dev</h2></div>
+</div>
+
+<!-- Result Table -->
+<div flex="100" layout="column" layout-padding style="padding-top:0;">
+  <div
+    ng-repeat="sensor in allsensors.resultSensors | orderBy: 'sensor' | startFrom: (startIndex ? startIndex : 0) | limitTo: 10"
+    class="no-padding"
+  >
+    <smp-sensor-row
+      namespace="{{sensor.namespace}}"
+      sensor="{{sensor.sensor}}"
+      item="{{sensor.item}}"
+      units="{{sensor.units}}"
+      desc="{{sensor.description}}"
+      class="orange-border-hover"
+      ></smp-sensor-row>
+    </div>
+</div>
+
+<!-- Text to show if no sensors were found -->
+<div ng-if="allsensors.resultSensors.length === 0" flex="100" layout="row" layout-align="center center">
+  <h2 class="md-headline">No results <span ng-if="allsensors.searchText">matching "{{allsensors.searchText}}"</span> were found.</h2>
+</div>
+
+<!-- Pagination for the sensor results -->
+<smp-pagination flex="100" num-items="allsensors.resultSensors.length" start-index="startIndex" cur-page="allsensors.curPage" rendering="allsensors.rendering"></smp-pagination>

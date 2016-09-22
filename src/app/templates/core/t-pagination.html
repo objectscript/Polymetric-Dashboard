@@ -1,0 +1,46 @@
+<div ng-if="numItems !== 0" flex="100" layout="row" layout-align="center center" class="background-fill">
+  <div flex="100" layout="row" layout-align="center center">
+    <!-- NAVIGATE BACKWARDS BUTTONS -->
+    <md-button class="pagination-button no-margin" ng-click="gotoPage('first')" aria-label="First Page">
+      <md-tooltip md-direction="top">
+        First Page
+      </md-tooltip>
+      <md-icon md-svg-src="assets\icons\ic_first_page_24px.svg"></md-icon>
+    </md-button>
+    <md-button class="pagination-button no-margin" ng-click="gotoPage('previous')" aria-label="Previous Page">
+      <md-tooltip md-direction="top">
+        Previous Page
+      </md-tooltip>
+      <md-icon md-svg-src="assets\icons\ic_navigate_before_24px.svg"></md-icon>
+    </md-button>
+    <!-- NAVIGATE TO PAGE BUTTONS -->
+    <span class="page-button-container">
+      <md-button
+        ng-repeat="pageNum in btns"
+        ng-click="gotoPage(pageNum)"
+        class="pagination-button no-margin"
+        ng-class="(pageNum === curPage) ? 'accent-text' : 'blend-text'"
+        layout-padding aria-label="Go To Page {{pageNum}}"
+      >
+        {{pageNum}}
+      </md-button>
+    </span>
+    <!-- NAVIGATE FORWARDS BUTTONS -->
+    <md-button class="pagination-button no-margin" ng-click="gotoPage('next')" aria-label="Next Page">
+      <md-tooltip md-direction="top">
+        Next Page
+      </md-tooltip>
+      <md-icon md-svg-src="assets\icons\ic_navigate_next_24px.svg"></md-icon>
+    </md-button>
+    <md-button class="pagination-button no-margin" ng-click="gotoPage('last')" aria-label="Last Page">
+      <md-tooltip md-direction="top">
+        Last Page
+      </md-tooltip>
+      <md-icon md-svg-src="assets\icons\ic_last_page_24px.svg"></md-icon>
+    </md-button>
+  </div>
+</div>
+<!-- Give total number of items and the indecies of items being shown -->
+<div flex="100" layout="row" layout-align="center center" class="background-fill">
+  <p class="md-caption blend-text no-margin" style="text-align: center;">{{startIndex + 1}} - {{endIndex}} of {{numItems}}</p>
+</div>

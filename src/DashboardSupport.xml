@@ -1,0 +1,4949 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="%Api.Dashboard">
+<Description>
+Routing class for the New System Dashboard REST services</Description>
+<Super>%Dashboard.REST</Super>
+<TimeCreated>64146,39740.012319</TimeCreated>
+
+<Parameter name="CHARSET">
+<Description><![CDATA[
+Specifies the default character set for the page.  This can be overriden using the
+&lt;CSP:CONTENT CHARSET=&gt; tag, or by setting the <b>%response</b>.CharSet property
+in the <method>OnPreHTTP</method> method.  If this parameter is not specified, then
+for the default charset is utf-8.]]></Description>
+<Default>utf-8</Default>
+</Parameter>
+
+<Parameter name="CONVERTINPUTSTREAM">
+<Description>
+Specifies if input %request.Content or %request.MimeData values are converted from their
+original character set on input. By default (0) we do not modify these and receive them
+as a binary stream which may need to be converted manually later. If 1 then if there
+is a 'charset' value in the request Content-Type or mime section we will convert from this
+charset when the input data is text based. For either json or xml data with no charset
+this will convert from utf-8 or honor the BOM if one is present.</Description>
+<Default>1</Default>
+</Parameter>
+
+<Parameter name="CONTENTTYPE">
+<Description><![CDATA[
+Specifies the default content type for the page.  This can be overriden using the
+&lt;CSP:CONTENT TYPE=&gt; tag, or by setting the <b>%response</b>.ContentType property
+in the <method>OnPreHTTP</method> method.  The default value if this parameter is
+not set is text/html.]]></Description>
+<Default>application/json</Default>
+</Parameter>
+
+<Parameter name="HandleCorsRequest">
+<Description>
+This parameter influences the CORS support. The default is an empty string meaning 'not specified'.
+If set to true (1) then CORS processing is ON. If set to false (0) then CORS processing is OFF.
+If left unset "" then the decision to process CORS is delegated to the setting on the URL map route.</Description>
+<Default>0</Default>
+</Parameter>
+
+<Parameter name="UseSession">
+<Description><![CDATA[
+This parameter controls the CSP session support. By default the CSP session will be
+ended after each request in accordance with the spirit of REST. However this CAN be
+overridden by the user. To use a session, it's necessary to manage the CSPSESSION cookie.
+Browsers do this automatically but command line tools such as CURL require the setting of
+options.<p>
+Note that if you choose to use a session then this will use a CSP license until the session
+is ended or expires and the grace period has been satisfied. If you use the default of no
+session then this will be the same behavior as SOAP requests of holding a license for ten
+seconds.]]></Description>
+<Type>Integer</Type>
+<Default>1</Default>
+</Parameter>
+
+<XData name="UrlMap">
+<XMLNamespace>http://www.intersystems.com/urlmap</XMLNamespace>
+<Data><![CDATA[
+<Routes>
+<Map Prefix="/v2" Forward="%Api.Dashboard.v2"/>
+<Map Prefix="/v3" Forward="%Api.Dashboard.v3"/>
+</Routes>
+]]></Data>
+</XData>
+</Class>
+
+
+<Class name="%Api.Dashboard.v3">
+<Description>
+%Api.Dashboard.v3 provides version 3 API for Dashboard</Description>
+<IncludeCode>%sySystem</IncludeCode>
+<Super>%Dashboard.REST</Super>
+<TimeCreated>64145,53210.084641</TimeCreated>
+
+<XData name="UrlMap">
+<XMLNamespace>http://www.intersystems.com/urlmap</XMLNamespace>
+<Data><![CDATA[
+<Routes>
+	<!-- Get All of the Sensor Objects (namespace, sensorID, itemID, critVal, warnVal, units, desc)-->
+	<Route Url="/Sensors"										Method="GET" 		Call="GetSensors" />
+	<!-- Get A Single Sensor Object (critVal, warnVal, units desc)-->
+	<Route Url="/Sensors/:sensor/Items/:item" 					Method="GET" 		Call="GetSensor" />
+	
+	<!-- Get Sensor Chart Data (val, timestamp) -->
+	<Route Url="/Sensors/:sensor/ChartData/:item" 				Method="GET" 		Call="GetChartData" />
+	<!-- Get Sesnor Calculated Data (min, max, mean, stdDev, state) -->
+	<Route Url="/Sensors/:sensor/CalculatedData/:item" 			Method="GET" 		Call="GetCalculatedData" />
+</Routes>
+]]></Data>
+</XData>
+
+<Method name="GetChartData">
+<Description>
+-----------------------------------------------------------------------------------------------------------------------------------------///
+---------------------------------------------------- Method to Get a Sensor's Chart Data ------------------------------------------------///
+-----------------------------------------------------------------------------------------------------------------------------------------///</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>sid:%String,iid:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	#dim tSC, sC As %Status = $$$OK
+    #dim e As %Exception.AbstractException
+    
+    Set dataArray = ##class(%ListOfObjects).%New()
+    Set error = ##class(%ZEN.proxyObject).%New()
+    Set error.code = 200
+    
+    Set debug=0
+    Try{
+	   	// Get query params
+	    Set encryption = %request.Get("encryption", "")
+    	Set sTime = %request.Get("startTime")
+    	Set sPer = %request.Get("samplePeriod")
+    	Set ns = %request.Get("namespace")
+    	
+    	// decode if encryption is used
+    	If (encryption = "base64") {
+    		Set ns = $SYSTEM.Encryption.Base64Decode(ns)
+    		Set sid = $SYSTEM.Encryption.Base64Decode(sid)
+    		Set iid = $SYSTEM.Encryption.Base64Decode(iid)
+    		Set sTime = $SYSTEM.Encryption.Base64Decode(sTime)
+    		Set sPer = $SYSTEM.Encryption.Base64Decode(sPer)
+    	}
+    	
+    	// Validate the request args
+    	Set tSC = ..ValidateDataRequest("chartData", encryption, ns, sTime, sPer, .error)
+    	
+
+    	If ($$$ISOK(tSC)){
+	    	If +$g(^SYS("MONITOR","Dashboard","Debug")) {
+		    	Set debugFile=$zu(12)_"Dashboard.log"
+		    	Open debugFile:"waes":1
+				If '$t $$$WarnError("Unable to open Dashboard log file.")
+				Else  Set debug=1,debugIO=$IO
+	    	}
+	    	If debug {
+		    	Use debugFile
+		    	Write !,$zdatetime($h)," - GetChartData() called with sid=",sid,", iid=",iid,", start=",sTime
+		    	Use debugIO
+	    	}
+			If $g(ns)'="",ns'="%SYS" ZN ns
+			
+			// Query the db
+			Set rs = ##class(%ResultSet).%New("%SYS.Monitor.Reading:ListSensorUTC")
+			Set sC = rs.Execute(sid, iid, sTime)
+			
+			Set gotData = 0
+			If $$$ISOK(sC) {
+				// Initialize flags
+				Set newInterval = 1
+				
+				While (rs.Next(.sC)) {
+					// Get all data needed from query row
+					Set sampleValue = rs.Data("Value")
+					Set readTime = rs.Data("ReadTime")
+					Set iTime = $zdth(readTime,3)
+					Set sampleDay = $p(iTime,",",1)
+					Set sampleTime = $p(iTime,",",2)
+					// If this is not the first row of the query (or a new interval)
+					If (newInterval = 0){
+						// If the new point is outside the current interval time bounds put store the computed averages into the sensor data proxy
+						If (..OutsideIntervalWindow(sampleTime, sampleDay, intervalStartTime, intervalStartDay, sPer)){
+							Set externalTime = $ZDATETIME(intervalStartDay_","_intervalStartTime, 3)
+							
+    						Set dataObject = ##class(%ZEN.proxyObject).%New()
+    
+							Set dataObject.value = valueAvg
+							Set dataObject.timestamp = externalTime
+							If debug {
+				    			Use debugFile
+				    			Write !,"    ChartData for : ",sid," at ",externalTime," = ",valueAvg
+				    			Use debugIO
+							}
+							Do dataArray.Insert(dataObject)
+							
+							Set gotData = 1
+							// Set new interval flag to true (in essence) set up for new itnerval
+							Set newInterval = 1
+						}
+						// Otherwise compute an average of the data values that are averaged
+						Else {
+							// count samples in interval (used to calculate average)
+							Set samplesInInterval = samplesInInterval + 1
+				
+							// compute a rolling average of the averaged values (rolling allows me not to store sums)
+							Set valueAvg = ..RollingAverage(valueAvg, sampleValue, samplesInInterval)
+						}
+					}
+					
+					// If it is a new interval (or the first row in the query) initialize the data values
+					If (newInterval = 1) {
+						Set samplesInInterval = 1
+
+						// base case of average (avg num = num)
+						Set valueAvg = sampleValue
+						
+						Set intervalStartTime = sampleTime
+						Set intervalStartDay = sampleDay			
+						
+						// it isn't a new interval anymore because the base case was completed
+						Set newInterval = 0
+					}
+				}
+			}
+			If (gotData = 0){
+				Set error.code = 204
+			}
+    	}
+	} Catch (e) {
+		Set error.code = 500
+		Set error.message = "Internal Server Error Getting Sensor Chart Data"
+		Set error.error =  e.DisplayString()
+	}
+	
+	Do ..Respond(dataArray, error)
+	
+	If $Namespace'="%SYS" ZN "%SYS"
+	If debug Close debugFile
+
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="OutsideIntervalWindow">
+<Description>
+Calculates if the new data point is within the bounds of the current interval</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>sampTime:%Numeric,sampDay:%Numeric,intervalStartTime:%Numeric,intervalStartDay:%Numeric,samplePeriod:%Integer</FormalSpec>
+<Implementation><![CDATA[
+	Set secondsPerDay = 86400
+
+	Set newInterval = 0
+	If (samplePeriod >=  secondsPerDay) {
+		If (sampDay < (intervalStartDay - samplePeriod / secondsPerDay)){
+			Set newInterval = 1
+		}
+		If (sampDay = (intervalStartDay - samplePeriod / secondsPerDay)){
+			If (sampTime <= intervalStartTime){
+				Set newInterval = 1
+			}
+		}
+	}Else {
+		Set lastTime = intervalStartTime - samplePeriod
+		Set lastDay = intervalStartDay
+		If (lastTime < 0){
+			Set lastDay = lastDay - 1
+			Set lastTime = $ZTIMEH("23:59:59") + lastTime
+		}
+		
+		If (sampDay < lastDay){
+			Set newInterval = 1
+		}
+		If (sampDay = lastDay){
+			If (sampTime <= lastTime){
+				Set newInterval = 1
+			}
+		}
+	}
+	
+	Return newInterval
+]]></Implementation>
+</Method>
+
+<Method name="RollingAverage">
+<Description>
+Calculates a running average, allowing for no sums to be stored</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>curAvg:%Numeric,newValue:%Numeric,numValues:%Integer</FormalSpec>
+<Implementation><![CDATA[	Return curAvg + ( (newValue - curAvg ) / numValues )
+]]></Implementation>
+</Method>
+
+<Method name="GetCalculatedData">
+<Description>
+-----------------------------------------------------------------------------------------------------------------------------------------///
+------------------------------------------------ Method to Get a Sensor's Calculated Data -----------------------------------------------///
+-----------------------------------------------------------------------------------------------------------------------------------------///</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>sid:%String,iid:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	#dim tSC, sC As %Status = $$$OK
+    #dim e As %Exception.AbstractException
+    
+    Set dataObject = ##class(%ZEN.proxyObject).%New()
+    Set error = ##class(%ZEN.proxyObject).%New()
+    Set error.code = 200
+    
+    Try {
+	   	// Get query params
+	    Set encryption = %request.Get("encryption", "")
+    	Set sTime = %request.Get("startTime")
+    	Set ns = %request.Get("namespace") 	
+    	
+    	// decode if encryption is used
+    	If (encryption = "base64") {
+    		Set ns = $SYSTEM.Encryption.Base64Decode(ns)
+    		Set sid = $SYSTEM.Encryption.Base64Decode(sid)
+    		Set iid = $SYSTEM.Encryption.Base64Decode(iid)
+    		Set sTime = $SYSTEM.Encryption.Base64Decode(sTime)
+    	}
+    	
+    	// Validate the request args
+    	Set tSC = ..ValidateDataRequest("calcData", encryption, ns, sTime, , .error)
+    	
+    	If ($$$ISOK(tSC)){
+	    	If $g(ns)'="",ns'="%SYS" ZN ns
+			// Fetch the calulated values
+			If ##class(%SYS.Monitor.Reading).GetCalculatedValues(sid, iid, sTime, .values) {
+				Set dataObject.state = values("state")
+				Set dataObject.max = values("max")
+				Set dataObject.min = values("min")
+				Set dataObject.mean = values("mean")
+				Set dataObject.stdDev = values("stdDev")
+			} Else {
+				Set error.code = 204
+			}
+    	}
+	} Catch (e) {
+		Set error.code = 500
+		Set error.message = "Internal Server Error Getting Sensor Calculated Data"
+		Set error.error =  e.DisplayString()
+	}
+	
+	Do ..Respond(dataObject, error)
+	
+	If $Namespace'="%SYS" ZN "%SYS"
+	
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetSensors">
+<Description>
+-----------------------------------------------------------------------------------------------------------------------------------------///
+--------------------------------------------------------- Method to Get All Sensors -----------------------------------------------------///
+-----------------------------------------------------------------------------------------------------------------------------------------///</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	#dim tSC, sC As %Status = $$$OK
+    #dim e As %Exception.AbstractException
+    
+   	Set sensorArray = ##class(%ListOfObjects).%New()
+    Set error = ##class(%ZEN.proxyObject).%New()
+    Set error.code = 200
+   	
+   	Set debug=0
+   	Try{
+	   	// Get query params
+	    Set encryption = %request.Get("encryption", "")
+	    Set ns = %request.Get("namespace", "")
+	    
+    	// decode if encryption is used
+    	If (encryption = "base64") {
+    		Set ns = $SYSTEM.Encryption.Base64Decode(ns)
+    	}
+    	
+    	// Validate the request args
+    	Set tSC = ..ValidateDataRequest("sensors", encryption, , , , .error)
+
+    	If ($$$ISOK(tSC)){
+	    	If +$g(^SYS("MONITOR","Dashboard","Debug")) {
+		    	Set debugFile=$zu(12)_"Dashboard.log"
+		    	Open debugFile:"waes":1
+				If '$t $$$WarnError("Unable to open Dashboard log file.")
+				Else  Set debug=1,debugIO=$IO
+	    	}
+	    	If debug {
+		    	Use debugFile
+		    	Write !,$zdatetime($h)," - GetSensors() called"
+		    	Use debugIO
+	    	}
+	    	#; this query steps through all registered "Startup Namespaces" to fetch user-defined Sensors too
+	   		Set rs = ##class(%ResultSet).%New("%SYS.Monitor.Sensor:AllDashboardSensors")
+			Set sC = rs.Execute()
+			Set count = 0
+			If $$$ISOK(sC) {
+				While rs.Next(.sC) {
+    				Set sensorObject = ##class(%ZEN.proxyObject).%New()
+    				
+					Set sensorObject.sensor = rs.Data("Name")
+					Set sensorObject.item = rs.Data("Item")
+					Set sensorObject.namespace = rs.Data("Namespace")
+					Set sensorObject.criticalValue = rs.Data("CriticalValue")
+					Set sensorObject.warningValue = rs.Data("WarningValue")
+					Set sensorObject.units = rs.Data("Units")
+					Set sensorObject.operator = rs.Data("Operator")
+					Set sensorObject.description = rs.Data("Description")						 
+					
+					Do sensorArray.Insert(sensorObject)
+					Set count = count + 1
+					If debug {
+				    	Use debugFile
+				    	Write !,"    Add Sensor: ",rs.Data("Name"),".",rs.Data("Item")
+				    	Use debugIO
+					}
+				}
+			}
+			If (count = 0){
+				Set error.code = 204
+			}
+    	}	
+   	} Catch (e) {
+	   	Set error.code = 500
+		Set error.message = "Internal Server Error Getting Sensors"
+		Set error.error =  e.DisplayString()
+   	}
+	Do ..Respond(sensorArray, error)
+					
+	If debug Close debugFile
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetSensor">
+<Description>
+-----------------------------------------------------------------------------------------------------------------------------------------///
+---------------------------------------------------------- Method to Get A Sensor -------------------------------------------------------///
+-----------------------------------------------------------------------------------------------------------------------------------------///</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>sid:%String,iid:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	#dim tSC As %Status = $$$OK
+    #dim e As %Exception.AbstractException
+    
+    Set sensorObject = ##class(%ZEN.proxyObject).%New()
+    Set error = ##class(%ZEN.proxyObject).%New()
+    Set error.code = 200
+    
+   	Try{
+	   	// Get query params
+	    Set encryption = %request.Get("encryption", "")
+    	Set ns = %request.Get("namespace")
+    	
+	   	// decrypt the ids
+		If (encryption = "base64") {
+		   	Set ns = $SYSTEM.Encryption.Base64Decode(ns)
+		   	Set sid = $SYSTEM.Encryption.Base64Decode(sid)
+		   	Set iid = $SYSTEM.Encryption.Base64Decode(iid)
+		}
+	    
+    	// Validate the request args
+    	Set tSC = ..ValidateDataRequest("sensor", encryption, ns, , , .error)
+    	If ($$$ISOK(tSC)){
+	    	If $g(ns)'="",ns'="%SYS" ZN ns
+		    Kill prop				
+			Set sc = ##class(%SYS.Monitor.Sensor).GetInherited(sid, iid, .prop)
+			If $$$ISOK(sc) {
+				Set sensorObject.criticalValue = prop("CriticalValue")
+				Set sensorObject.warningValue = prop("WarningValue")
+				Set sensorObject.units = prop("Units")
+				Set sensorObject.operator = prop("Operator")
+				Set sensorObject.description = prop("Description")
+				
+			} Else {
+				Set error.code = 204
+			}
+    	}	
+   	} Catch (e) {
+	   	Set error.code = 500
+		Set error.message = "Internal Server Error Getting Sensors"
+		Set error.error =  e.DisplayString()
+   	}
+   	
+	Do ..Respond(sensorObject, error)
+	
+	If $Namespace'="%SYS" ZN "%SYS"   	
+	
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="ValidateDataRequest">
+<Description>
+-----------------------------------------------------------------------------------------------------------------------------------------///
+-------------------------------------------------------- Methods to Validate URI --------------------------------------------------------///
+-----------------------------------------------------------------------------------------------------------------------------------------///</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[type:%String="data",encryption:%String,ns:%String,sTime:%String,sPer:%Integer,&error:%ZEN.proxyObject]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    Set fields = ##class(%ListOfDataTypes).%New()
+	Set tSC = $$$OK
+	
+	// Chart Data Requests must have startTime, samplePeriod and namespace as Query Params
+	If (type = "chartData"){
+		If (sTime = "") { Do fields.Insert("startTime") }
+	    If (sPer = "") { Do fields.Insert("samplePeriod") }
+	    If (ns = "") { Do fields.Insert("namespace") }
+	}
+	
+	// Calculated Data Requests must have startTime and namespace as Query Params
+	If (type = "calcData"){
+		If (sTime = "") { Do fields.Insert("startTime") }
+	    If (ns = "") { Do fields.Insert("namespace") }
+	}
+	
+	// (A) Sensor Requests must have namespace as Query Params
+	If (type = "sensor") {
+	    If (ns = "") { Do fields.Insert("namespace") }
+	}
+	
+	// All Requests must specify an encryption type
+    If ((encryption '= "base64") && (encryption '= "none")) { Do fields.Insert("encryption") }
+    
+    // if Any of the query params are missing, they are added to the fields list. Thus if field has 
+    // a length larger than 0, there is an error.
+    If (fields.Size > 0) {
+	    Set msg = "Missing Required Query Parameters"
+		Set tSC = $$$ERROR(msg)
+		Set error.code = 400
+		Set error.message = msg
+		Set error.error = fields
+    }
+    
+    Quit tSC
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="%Dashboard.REST">
+<Description>
+This class implements a custom response format and serves as the basis for all
+Atelier REST APIs</Description>
+<Super>%CSP.REST</Super>
+<TimeCreated>64145,53270.683917</TimeCreated>
+
+<Parameter name="DOMAIN">
+<Description>
+%Dashboard.REST classes are unlikely to actually define messages with $$$Text
+%Utility seems like a catch-all, and should have all languages defined,
+so the %session/%response language can be set properly.</Description>
+<Default>%Utility</Default>
+</Parameter>
+
+<Method name="Respond">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>resp,error:%ZEN.proxyObject</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    // Prevent Caching for all responses
+    Do %response.SetHeader("Cache-Control", "no-cache, no-store, must-revalidate") // HTTP 1.1
+    Do %response.SetHeader("Pragma", "no-cache") // HTTP 1.0
+    Do %response.SetHeader("Expires", "0") // Proxies
+    
+    Set %response.CharSet = "utf-8"
+    Set %response.ContentType = "application/json"
+    
+    Try {
+	    Set stream = ##class(%Stream.GlobalCharacter).%New()
+	    
+	    // HTTP200 - SUCCESS
+	    If (error.code = 200){
+		    Set %response.Status = ..#HTTP200OK
+		    
+			Do ##class(%ZEN.Auxiliary.jsonProvider).%WriteJSONStreamFromObject(stream, resp)	    	
+	   	// HTTP204 - No Content
+	    } ElseIf (error.code = 204) {
+		    Set %response.Status = ..#HTTP204NOCONTENT
+	    // HTTP400 - BAD REQUEST
+	    } ElseIf (error.code = 400) {
+		    Set %response.Status = ..#HTTP400BADREQUEST
+
+			Do ##class(%ZEN.Auxiliary.jsonProvider).%WriteJSONStreamFromObject(stream, error)
+	    // HTTP500 - INTERNAL SEVER ERRROR
+	    } Else {
+	    	Set %response.Status = ..#HTTP500INTERNALSERVERERROR
+		    
+			Do ##class(%ZEN.Auxiliary.jsonProvider).%WriteJSONStreamFromObject(stream, error)
+	    }
+	// IF BREAKS WHILE RESPONDING ALSO HTTP500 - INTERNAL SERVER ERROR
+    } Catch {
+   		Set %response.Status = ..#HTTP500INTERNALSERVERERROR
+	    	
+	    Set error.code = 500
+		Set error.message = "Internal Server Error Sending Response Object"
+		Set error.error =  e.DisplayString()
+		
+		Do ##class(%ZEN.Auxiliary.jsonProvider).%WriteJSONStreamFromObject(stream, error)
+    }
+    
+    // Write the response to the output device
+	Write stream.Read(stream.Size)	
+	    
+    Quit $$$OK
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="%SYS.Monitor.AbstractDashboard">
+<Description><![CDATA[
+Abstract definition of a Sensor collector for a Dashboard. This a special instance of a Sensor,
+which will collect the Sensors defined by calling CreateSensor() and then store the collected values
+in %SYS.Monitor.Sensor.Readings. The graphic Dashboard API will then be able to fetch the Sensor data
+from there for display.
+<br><br>
+User may implement Dashboard Sensors by inheriting from this class and implementing the Start() method
+(to create the Sensor definitions) and the GetSensors() method (to store the data).]]></Description>
+<Super>%SYS.Monitor.AbstractSensor</Super>
+<TimeCreated>64140,56791.572329</TimeCreated>
+
+<Method name="SetSensor">
+<Description>
+For Dashboard sensors we just save the sample Value in %SYS.Monitor.Sensor.Reading</Description>
+<Final>1</Final>
+<Internal>1</Internal>
+<FormalSpec>Sensor:%String,Value:%String,Item:%String=""</FormalSpec>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+	Try {
+		s return=##class(%SYS.Monitor.Reading).AddDashboardEntry(Sensor,Value,Item,.Alert)
+		i $g(Alert) d ..Alert(Sensor,Item,Value)
+	} Catch {
+		s return=0
+	}
+	Q return
+]]></Implementation>
+</Method>
+
+<Method name="CreateSensor">
+<Description>
+Create (or update) a Dashboard Sensor definition. User-defined Sensors should call this in Start().
+See %SYS.Monitor.Sensor for an explanation of each argument (property), but users should call here
+rather than use the class API so the Sensor is correctly associated with their Dashboard collector Class.
+This only creates the Sensor if it doesn't already exist. Updating Critical/Warning Values or other
+properties can be done through the Class API once the Sensor is created.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>Sensor:%String,Item:%String="",CriticalValue:%String="",WarningValue:%String="",Alert:%String="",Units:%String="",Operator:%String="",Description:%String=""</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s sc=##class(%SYS.Monitor.Sensor).CreateDashboardSensor(Sensor,Item,CriticalValue,WarningValue,Alert,Units,Operator,Description,..%ClassName(1))
+	q sc
+]]></Implementation>
+</Method>
+
+<Method name="Alert">
+<Description>
+Sensors which have reached their CriticalValue will call here to post an Alert.
+By default this will post a message to cconsole.log, which will trigger an alert by the Cache System Monitor.
+User-defined Sensors may override that behavior by replacing this method.</Description>
+<FormalSpec>Sensor:%String,Item:%String,Value:%String</FormalSpec>
+<Implementation><![CDATA[
+	s sev=##class(%Monitor.Manager).AlertLevel()
+	s:Item="" Item="-" s sensor=Sensor_$s(Item="-":"",1:"("_Item_")")
+	s msg="Dashboard Sensor "_sensor_" has exceeded its Critical value."
+	d ..LogCon(msg,sev)
+]]></Implementation>
+</Method>
+
+<Method name="Purge">
+<Description>
+Check to see if any Dashboard history needs to be purged. 
+This should be called once a day by %SYS.Monitor.Control.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	Try {
+		Set days=##class(%SYS.Monitor).KeepDashboardDays()
+		Set time=$zdt($h-days,3)
+		Set sc=##class(%SYS.Monitor.Reading).Purge(time)
+		If $$$ISERR(sc) {
+			Set msg="Error purging Dashboard history in "_$Namespace_": "_$System.Status.GetErrorText(sc)
+			Set class=..%New() Do class.LogMsg(msg)
+		}
+	} Catch {
+		Set msg="Unexpected error purging Dashboard history in "_$Namespace_": "_$ze
+		Set class=..%New() Do class.LogMsg(msg)
+	}
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="%SYS.Monitor.AbstractSensor">
+<Description><![CDATA[
+Abstract class for a Sensor<p>
+User classes inherit from this class to become a Sensor for System Monitor.]]></Description>
+<Abstract>1</Abstract>
+<IncludeCode>%syMonitor</IncludeCode>
+<Super>%RegisteredObject</Super>
+<System>3</System>
+<TimeCreated>62139,29321.026735</TimeCreated>
+
+<Property name="Logfile">
+<Description>
+logfile</Description>
+<Type>%String</Type>
+<Internal>1</Internal>
+<InitialExpression>$zu(12)_"SystemMonitor.log"</InitialExpression>
+</Property>
+
+<Property name="SensorReading">
+<Description>
+Array of sensor name / value pairs</Description>
+<Internal>1</Internal>
+<MultiDimensional>1</MultiDimensional>
+</Property>
+
+<Property name="SensorMaxValue">
+<Description>
+Array of sensor name / high water mark value pairs [deprecated]</Description>
+<Internal>1</Internal>
+<MultiDimensional>1</MultiDimensional>
+</Property>
+
+<Property name="State">
+<Description>
+Runtime state</Description>
+<Type>%String</Type>
+<InitialExpression>" "</InitialExpression>
+</Property>
+
+<Property name="Notifications">
+<MultiDimensional>1</MultiDimensional>
+</Property>
+
+<Method name="Start">
+<Description><![CDATA[
+USER MAY IMPLEMENT THIS CLASS<p>
+The System Monitor Controller calls this method once when it starts.
+The user may initialize the properties, counters, etc.<p>
+A return code of $$$OK indicates there were no errors.
+A return code of 0 indicates a failure.]]></Description>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[	Q $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetSensors">
+<Description><![CDATA[
+USER MUST IMPLEMENT THIS CLASS<p>
+The System Monitor Controller calls this method to get sensor readings. It is called every 10 seconds by default.<p>
+Users may return readings for multiple sensors (but only one reading per sensor on each call).
+User calls SetSensor(sensorname, value[,type]) for every sensor reading. The sensors are kept in the property SensorReading(sensor)=value,
+and SensorType(sensor)=type.
+The controller picks up the sensors and their values after the return from GetSensors().<p>
+A return code of $$$OK indicates there were no errors.
+A return code of 0 indicates a failure.]]></Description>
+<Abstract>1</Abstract>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="SetSensor">
+<Description><![CDATA[
+USER DOES NOT IMPLEMENT THIS CLASS
+The user must call this method to set a sensor reading. Readings are picked up by the controller after GetSensors() returns.<p>]]></Description>
+<FormalSpec>Sensor:%String,Value:%String,Qualifier:%String=""</FormalSpec>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+	s $zt="SetErr"
+	i Qualifier="" {
+		s ..SensorReading(Sensor) = Value
+	} else {
+		s ..SensorReading(Sensor,Qualifier) = Value
+	}
+	Q $$$OK
+SetErr
+	Q 0
+]]></Implementation>
+</Method>
+
+<Method name="ClearSensors">
+<Description>
+USER DOES NOT IMPLEMENT THIS CLASS
+The controller calls this to initialize the SensorReadings array.</Description>
+<Final>1</Final>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+	k ..SensorReading
+	Q $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="ClearNotifications">
+<Description>
+USER DOES NOT IMPLEMENT THIS CLASS
+This method is called to clear notifications for the SYS.Monitor Controller</Description>
+<Final>1</Final>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+	k ..Notifications
+	Q $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="Notify">
+<Description>
+USER DOES NOT IMPLEMENT THIS CLASS
+This method is called to post a notification</Description>
+<Final>1</Final>
+<FormalSpec>Sensor:%String,Severity:%Integer,Msg:%String</FormalSpec>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+	s ..Notifications(Sensor,$$$NOTIFYSEV) = Severity
+	s ..Notifications(Sensor,$$$NOTIFYMSG) = Msg
+	Q $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="OpenLog">
+<Description><![CDATA[
+USER DOES NOT IMPLEMENT THIS CLASS<p>]]></Description>
+<Final>1</Final>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s $zt="OpenLogErr"
+	s filesize=$zu(140,1,..Logfile)
+	i filesize>2097152 {
+		s oldlog=..Logfile_".old"
+		#; delete the old log if exists
+		o oldlog:"AW":0
+		c oldlog:"D"
+		#; rename the current log to oldlog
+		o ..Logfile:"AW":0
+		c ..Logfile:("R":oldlog)
+	}
+	o ..Logfile:"AW":0
+	q $$$OK
+OpenLogErr
+	;ignore errors.  If can't log, nothing we can do
+	s $zt=""
+	c ..Logfile
+	q 0
+]]></Implementation>
+</Method>
+
+<Method name="LogMsg">
+<Description><![CDATA[
+USER DOES NOT IMPLEMENT THIS CLASS<p>
+User may call this method to log information to the SystemMonitor.log file in the mgr directory.]]></Description>
+<Final>1</Final>
+<FormalSpec>msg:%String=""</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s $zt="LogMsgErr"
+	d ..OpenLog()
+
+	s dt = $H
+	s time = $ZDate(dt,1,,2)_"-"_$ZTime($p(dt,",",2))
+	U ..Logfile w time," ",msg,!
+	c ..Logfile
+	q $$$OK
+LogMsgErr
+	;ignore errors.  If can't log, nothing we can do
+	s $zt=""
+	c ..Logfile
+	q 0
+]]></Implementation>
+</Method>
+
+<Method name="LogCon">
+<Description><![CDATA[
+USER DOES NOT IMPLEMENT THIS CLASS<p>
+User may call this method to post alerts directly to the cconsole.log file.]]></Description>
+<Final>1</Final>
+<FormalSpec>Msg:%String="",Severity:%Integer=0</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s Msg = "[SYSTEM MONITOR] "_Msg
+	d $zu(9,"",Msg,0,Severity)
+	d ..LogMsg(Msg)
+	q $$$OK
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="%SYS.Monitor">
+<Description>
+Controling class for Ssystem Monitor. Used to start and stop System Monitor process.</Description>
+<Hidden>1</Hidden>
+<IncludeCode>%syMonitor,%syPidtab,%sySystem,%occErrors</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>%RegisteredObject</Super>
+<System>3</System>
+<TimeCreated>62139,29913.554785</TimeCreated>
+
+<Method name="Start">
+<Description>
+Main classmethod</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s $ZT="Error"
+	i $system.Event.Defined($$$SYSTEMMONITORCMD) q -1
+	Job ##class(%SYS.Monitor.Control).Start():(:10):10
+	Q $TEST
+Error s $zt=""
+	Q 0
+]]></Implementation>
+</Method>
+
+<Method name="Stop">
+<Description>
+Stop the System monitor</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+	s $ZT="Error"
+
+	i '$system.Event.Defined($$$SYSTEMMONITORCMD) q -1
+	s status = $system.Event.Signal($$$SYSTEMMONITORCMD,$$$SYSTEMMONITORHALT)
+	h 1
+	#; remove lingering events
+	d ##class(%SYS.Monitor).ClearEvents()
+	q 1
+Error s $zt=""
+	i $ze'["<UNDEFINED>" q 0
+	q 1
+]]></Implementation>
+</Method>
+
+<Method name="InitializeDB">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s $ZT="RunErr"
+	
+	#; check if AppMon Sensors active
+	s sclass = "%SYS.Monitor.AppMonSensor"
+	i '##class(%SYS.Monitor).IsComponent(sclass) {
+	 	s CC=##class(%SYS.Monitor.ComponentClass).%New(sclass,"Cache Application Monitor sensor",$$$SENSORCLASS)
+	 	i '$IsObject(CC) s $ze=$System.Status.GetErrorText(%objlasterror) goto RunErr
+	 	s status=CC.%Save()
+	 	i status'=$$$OK s $ze=$System.Status.GetErrorText(status) goto RunErr
+	 	k CC
+	}
+	#; if not in %SYS, done
+	i $ZNSPACE'="%SYS" Q $$$OK
+	
+	#; Set the system sensors
+	s sclass = "SYS.Monitor.SystemSensors"
+	i '##class(%SYS.Monitor).IsComponent(sclass) {
+	 	s CC=##class(%SYS.Monitor.ComponentClass).%New(sclass,"Cache system sensors",$$$SENSORCLASS)
+	 	i '$IsObject(CC) s $ze=$System.Status.GetErrorText(%objlasterror) goto RunErr
+	 	s status=CC.%Save()
+	 	i status'=$$$OK s $ze=$System.Status.GetErrorText(status) goto RunErr
+	 	k CC
+	}
+	#; In initialization of System Monitor, remove Health Monitor Charts and disable
+	d ##class(SYS.Monitor.Health.Chart).%DeleteExtent()
+	d ##class(SYS.Monitor.Health.Control).Version($zv)
+	d ##class(%SYS.Monitor).RemoveComponentClass("SYS.Monitor.Health.Control")
+
+	#; get Health Monitor sensor classes if any
+	s Sset = ##class(%ResultSet).%New("SYS.Monitor.Health.SensorClass:SensorClasses")
+	i '$IsObject(Sset) s $ze=$System.Status.GetErrorText(%objlasterror) goto RunErr
+	d Sset.Execute()
+	while Sset.Next() {
+		s sclass = Sset.GetData(1)
+		i sclass="SYS.Monitor.SystemSensors" continue
+		s desc=Sset.GetData(2)
+	 	s CC=##class(%SYS.Monitor.ComponentClass).%New(sclass,desc,$$$SENSORCLASS)
+	 	i '$IsObject(CC) s $ze=$System.Status.GetErrorText(%objlasterror) goto RunErr
+	 	s status=CC.%Save()
+	 	i status'=$$$OK s $ze=$System.Status.GetErrorText(status) goto RunErr
+	 	k CC
+	}
+	k Sset
+	#; Subscriber Classes
+	s sclass = "SYS.Monitor.SystemSubscriber"
+	i '##class(%SYS.Monitor).IsComponent(sclass) {
+	 	s CC=##class(%SYS.Monitor.ComponentClass).%New(sclass,"Cache System subscriber",$$$SUBSCRIBERCLASS)
+	 	i '$IsObject(CC) s $ze=$System.Status.GetErrorText(%objlasterror) goto RunErr
+	 	s status=CC.%Save()
+	 	i status'=$$$OK s $ze=$System.Status.GetErrorText(status) goto RunErr
+	 	k CC
+	}
+	#; Notify Classes
+	s sclass = "SYS.Monitor.SystemNotify"
+	i '##class(%SYS.Monitor).IsComponent(sclass) {
+	 	s CC=##class(%SYS.Monitor.ComponentClass).%New(sclass,"Cache System Notification",$$$NOTIFYCLASS)
+	 	i '$IsObject(CC) s $ze=$System.Status.GetErrorText(%objlasterror) goto RunErr
+	 	s status=CC.%Save()
+	 	i status'=$$$OK s $ze=$System.Status.GetErrorText(status) goto RunErr
+	 	k CC
+	}
+	Q $$$OK
+RunErr
+	s $zt=""
+	Q $$$ERROR($$$CacheError,$ze)
+]]></Implementation>
+</Method>
+
+<Method name="AddComponentClass">
+<Description>
+Add class to Monitor</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>Sclass:%String,Desc:%String=""</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s $zt = "RunErr"
+	
+	s Obj = ##class(%Dictionary.CompiledClass).%OpenId(Sclass)
+	i '$ISOBJECT(Obj) q %objlasterror
+	s type = 0
+	f i=1:1:$length(Obj.Super,",") {
+		i $p(Obj.Super,",",i)="%SYS.Monitor.AbstractSensor" s type=$$$SENSORCLASS goto classok
+		i $p(Obj.Super,",",i)="%SYS.Monitor.AbstractDashboard" s type=$$$SENSORCLASS goto classok
+		i $p(Obj.Super,",",i)="%SYS.Monitor.AbstractSubscriber" s type=$$$SUBSCRIBERCLASS goto classok
+		i $p(Obj.Super,",",i)="%SYS.Monitor.AbstractNotification" s type=$$$NOTIFYCLASS goto classok
+		i $p(Obj.Super,",",i)="%SYS.Monitor.AbstractNotificationFilter" s type=$$$NOTIFYFILTERCLASS goto classok
+	}
+	s $ze="ERROR: Class '"_Sclass_"' does not extend a %SYS.Monitor abstract class" goto RunErr
+classok
+	k Obj
+	#; add the class
+	s CC = ##class(%SYS.Monitor.ComponentClass).%New(Sclass,Desc,type)
+	i '$IsObject(CC) s $ze = $System.Status.GetErrorText(%objlasterror) goto RunErr
+	s status = CC.%Save()
+	i status'=$$$OK s $ze=$System.Status.GetErrorText(status) goto RunErr
+	k CC
+ 	Q $$$OK
+RunErr
+	s $zt=""
+	Q $$$ERROR($$$CacheError,$ze)
+]]></Implementation>
+</Method>
+
+<Method name="RemoveComponentClass">
+<Description>
+Remove component class from Monitor</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>Sclass:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s $zt = "RunErr"
+	
+	s status = ##class(%SYS.Monitor.ComponentClass).%DeleteId(Sclass)
+	i status'=$$$OK s $ze=$System.Status.GetErrorText(status) goto RunErr
+ 	q $$$OK
+RunErr
+	s $zt=""
+	Q $$$ERROR($$$CacheError,$ze)
+]]></Implementation>
+</Method>
+
+<Method name="IsComponent">
+<Description>
+Check if class is a component of System Monitor</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>Sclass:%String</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+	s $zt = "RunErr"
+	Q ##class(%SYS.Monitor.ComponentClass).%ExistsId(Sclass)
+RunErr
+	s $zt=""
+	Q $$$ERROR($$$CacheError,$ze)
+]]></Implementation>
+</Method>
+
+<Method name="RefreshSensors">
+<Description>
+Process sensors</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+	s $ZT="Error"
+	s status = $system.Event.Signal($$$SYSTEMMONITORCMD,$$$SYSTEMMONITORREFRESH)
+	Q 1
+Error s $zt=""
+	Q 0
+]]></Implementation>
+</Method>
+
+<Method name="State">
+<Description>
+Get the state for a subscriber
+Return: 0 - not running, -1 - unexpected error, else string with state information.</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	s $ZT="Error"
+	s status = $system.Event.Signal($$$SYSTEMMONITORCMD,$$$SYSTEMMONITORSTATE_"^"_+$j)
+	i 'status Q 0
+	s rc = $system.Event.WaitMsg("",5)
+	i '$li(rc,1) Q -1
+	Q $li(rc,2)
+Error s $zt=""
+	Q 0
+]]></Implementation>
+</Method>
+
+<Method name="DebugLev">
+<Description>
+System Monitor debug level. Setting to '1' will cause %SYS.Monitor.Control to save
+SystemSensors as %SYS.Monitor.SensorReading objects.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>level:%Boolean</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+	i $d(level) {
+		i 'level {
+			s ^ISC.Monitor.Debug = 0
+		} else {
+			s ^ISC.Monitor.Debug = 1
+		}
+	}
+	q $g(^ISC.Monitor.Debug,$$$DEBUGLEVEL)
+]]></Implementation>
+</Method>
+
+<Method name="Interval">
+<Description>
+System Monitor sample interval</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>int:%Integer</FormalSpec>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+	i $d(int) {
+		i int<=0 Q -1
+		s ^ISC.Monitor.Interval = int
+	}
+	q $g(^ISC.Monitor.Interval,$$$SAMPLEINTERVAL)
+]]></Implementation>
+</Method>
+
+<Method name="KeepReadingsDays">
+<Description>
+Set number of days Health Monitor is to keep alert records. Default is 5 days. Returns current number of days. </Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>days:%Integer</FormalSpec>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+	s:$d(days) ^ISC.Monitor.ReadingsAge = days
+	q $g(^ISC.Monitor.ReadingsAge,$$$KEEPALERTS)
+]]></Implementation>
+</Method>
+
+<Method name="KeepDashboardDays">
+<Description>
+Set number of days of Dashboard history to keep. Default is 5 days. Returns current number of days. </Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>days:%Integer</FormalSpec>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+	s:$d(days) ^ISC.Monitor.DashboardKeep = days
+	q $g(^ISC.Monitor.DashboardKeep,5)
+]]></Implementation>
+</Method>
+
+<Method name="Lock">
+<Description>
+System Monitor Lock</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+	Lock +^ISC.Monitor.System:0
+	Q $TEST
+]]></Implementation>
+</Method>
+
+<Method name="Unlock">
+<Description>
+System Monitor Unlock</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+	Lock -^ISC.Monitor.System:0
+	Q $TEST
+]]></Implementation>
+</Method>
+
+<Method name="IsUp">
+<Description>
+Check if System Monitor is running</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+	s $ZT="Error"
+	i '$system.Event.Defined($$$SYSTEMMONITORCMD) q 0
+	q 1
+Error s $zt=""
+	i $ze'["<UNDEFINED>" q 0
+	q 1
+]]></Implementation>
+</Method>
+
+<Method name="ClearEvents">
+<Description>
+Clear all System monitor events</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s $ZT="Error"
+	d $system.Event.Delete($$$SYSTEMMONITORCMD)
+	d $system.Event.Delete($$$SYSTEMMONITORSENSOR)
+	q $$$OK
+Error s $zt=""
+	Quit $$$ERROR($$$CacheError,$ze)
+]]></Implementation>
+</Method>
+
+<Method name="CreateEvents">
+<Description>
+Create all System monitor events</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s $ZT="Error"
+	d $system.Event.Create($$$SYSTEMMONITORCMD)
+	d $system.Event.Create($$$SYSTEMMONITORSENSOR)
+	q $$$OK
+Error s $zt=""
+	Quit $$$ERROR($$$CacheError,$ze)
+]]></Implementation>
+</Method>
+
+<Method name="ResetDefault">
+<Description>
+Reset all system monitor configuration data to default values</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	try {
+		d ##class(%SYS.Monitor.ComponentClass).%DeleteExtent()
+		s status = ##class(%SYS.Monitor).InitializeDB()
+		d ##class(%SYS.Monitor).Interval($$$SAMPLEINTERVAL)
+		d ##class(%SYS.Monitor).DebugLev($$$DEBUGLEVEL)
+	} catch {
+		s status = $$$ERROR($$$CacheError,$ze)
+	}
+	Q status
+]]></Implementation>
+</Method>
+
+<Method name="SetStartNS">
+<Description>
+Set a System Monitor startup namespace</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>Namespace:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s $ZT="Error"
+	
+	Set Rset = ##class(%ResultSet).%New("Config.Namespaces:List")
+	i '$IsObject(Rset) s $ze=$System.Status.GetErrorText(%objlasterror) goto Error
+	d Rset.Execute()
+	s found = 0
+	While Rset.Next() {
+		i Rset.GetData(1)=Namespace {
+			s found = 1
+			Q
+		}
+	}
+	i 'found s $ze="Namespace does not exist" goto Error
+	s ^ISC.Monitor.StartNS(Namespace) = ""
+	Q $$$OK
+Error s $zt=""
+	Quit $$$ERROR($$$CacheError,$ze)
+]]></Implementation>
+</Method>
+
+<Method name="DeleteStartNS">
+<Description>
+Remove a System Monitor startup namespace</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>Namespace:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s $ZT="Error"
+	k ^ISC.Monitor.StartNS(Namespace)
+	Q $$$OK
+Error s $zt=""
+	Quit $$$ERROR($$$CacheError,$ze)
+]]></Implementation>
+</Method>
+
+<Method name="ListStartNS">
+<Description>
+List System Monitor startup namespaces</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>Namespace:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s $ZT="Error"
+	s ns = "", Namespace = ""
+	f {
+		s ns = $o(^ISC.Monitor.StartNS(ns)) q:ns=""
+		s Namespace = Namespace_$lb(ns)
+	}
+	Q $$$OK
+Error s $zt=""
+	Quit $$$ERROR($$$CacheError,$ze)
+]]></Implementation>
+</Method>
+
+<Method name="StartSystemMonitorUserNS">
+<Description>
+Start System Monitor in user namespaces where %MONAPP is active</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s $ZT="Error"
+	
+	s Sys = $ZNSPACE
+	s ns = ""
+	f {
+		s ns = $o(^ISC.Monitor.StartNS(ns)) q:ns=""
+		ZNSPACE ns
+		s rc = ##class(%SYS.Monitor).Start()
+		i 'rc $$$SevereMsg("Unable to start System Monitor in "_ns)
+		ZNSPACE Sys
+	}
+	Q $$$OK
+Error ;
+	s $zt=""
+	s msg="System Monitor user startup ended with error, $ze="_$ZE
+	$$$SevereMsg(msg)
+	Quit $$$ERROR($$$CacheError,$ze)
+]]></Implementation>
+</Method>
+
+<Method name="Enabled">
+<Description>
+Disable / Enable System Monitor</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>state:%Boolean</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+	i $d(state) s ^ISC.Monitor.Enabled = state Q state
+	Q $g(^ISC.Monitor.Enabled,1)
+]]></Implementation>
+</Method>
+
+<Method name="CalcStats">
+<Description>
+Calculate mean and standard deviation squared based on list of values</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&Readings:%List,&Mean:%Integer,&Sigma2:%Integer]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s $zt="RunErr"
+
+	#; get stats for first list
+	s (valtot,sumx2) = 0
+	s n1 = $ll(Readings)
+	f i=1:1:n1 {
+		#; add value to total
+		s val= $list(Readings,i)
+		s valtot = valtot + val
+		s sumx2 = sumx2 + (val*val)
+	}
+	s Mean = valtot / n1
+	s sumx = (valtot * valtot) / n1
+	#; calculate standard deviation
+	s sumd2 = sumx2 - sumx
+	s Sigma2 = sumd2 / (n1 -1)
+	
+	Q $$$OK
+RunErr
+	s $zt=""
+	Q $$$ERROR($$$CacheError,$ze)
+]]></Implementation>
+</Method>
+
+<Method name="StudentTTest">
+<Description>
+Perform the Student T-Test for 2 sets of data. Result is a string giving probability that the means of the two sets are significantly (statistically) different.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[Readings1:%List,Readings2:%List,&Mean1:%Integer,&Mean2,&Sigma1:%Integer,&Sigma2:%Integer,&TVal,&Degree,&Result]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s $zt="RunErr"
+
+	#; get stats for first list
+	s n1 = $ll(Readings1)
+	s sc = ##class(%SYS.Monitor).CalcStats(Readings1,.Mean1, .Sigma1s)
+	s Sigma1 = $ZSQR(Sigma1s)
+	#; get stats for second list
+	s n2 = $ll(Readings2)
+	s sc = ##class(%SYS.Monitor).CalcStats(Readings2,.Mean2, .Sigma2s)
+	s Sigma2 = $ZSQR(Sigma2s)
+	
+	#; calc the t value
+	s sigmaD = (Sigma1s/n1) + (Sigma2s/n2)
+	s sd = $ZSQR(sigmaD)
+	s TVal = (Mean1 - Mean2)/sd
+	s Degree = n1-1 + n2-1
+
+	#; calc the result
+	d ..CalcSignif(TVal, Degree, .Result)
+	Q $$$OK
+RunErr
+	s $zt=""
+	Q $$$ERROR($$$CacheError,$ze)
+]]></Implementation>
+</Method>
+
+<Method name="CalcSignif">
+<Description><![CDATA[
+Returns NullProbability = 0: Null hypothesis < 90% probability
+Returns NullProbability = 1: Null hypothesis < 95% probability
+Returns NullProbability = 2: Null hypothesis < 99% probability
+Returns NullProbability = 3: Null hypothesis < 99.9% probability
+Returns NullProbability = 4: Null hypothesis > 99.9% probability]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[Tval,Degrees,&NullProbability:%String]]></FormalSpec>
+<Implementation><![CDATA[
+	i Tval<0 s Tval = -Tval
+ 
+	i Degrees=1 s list=$lb(6.31,12.71,63.66,636.62) goto ttest
+	i Degrees=2 s list=$lb(2.92,4.30,9.93,31.60 ) goto ttest
+	i Degrees=3 s list=$lb(2.35,3.18,5.84,12.92 ) goto ttest
+	i Degrees=4 s list=$lb(2.13,2.78,4.60,8.61 ) goto ttest
+	i Degrees=5 s list=$lb(2.02,2.57,4.03,6.87 ) goto ttest
+	i Degrees=6 s list=$lb(1.94,2.45,3.71,5.96 ) goto ttest
+	i Degrees=7 s list=$lb(1.89,2.37,3.50,5.41 ) goto ttest
+	i Degrees=8 s list=$lb(1.86,2.31,3.36,5.04 ) goto ttest
+	i Degrees=9 s list=$lb(1.83,2.26,3.25,4.78 ) goto ttest
+	i Degrees=10 s list=$lb(1.81,2.23,3.17,4.59 ) goto ttest
+	i Degrees=11 s list=$lb(1.80,2.20,3.11,4.44 ) goto ttest
+	i Degrees=12 s list=$lb(1.78,2.18,3.06,4.32 ) goto ttest
+	i Degrees=13 s list=$lb(1.77,2.16,3.01,4.22 ) goto ttest
+	i Degrees=14 s list=$lb(1.76,2.14,2.98,4.14 ) goto ttest
+	i Degrees=15 s list=$lb(1.75,2.13,2.95,4.07 ) goto ttest
+	i Degrees=16 s list=$lb(1.75,2.12,2.92,4.02 ) goto ttest
+	i Degrees=17 s list=$lb(1.74,2.11,2.90,3.97 ) goto ttest
+	i Degrees=18 s list=$lb(1.73,2.10,2.88,3.92 ) goto ttest
+	i Degrees=19 s list=$lb(1.73,2.09,2.86,3.88 ) goto ttest
+	i Degrees=20 s list=$lb(1.72,2.09,2.85,3.85 ) goto ttest
+	i Degrees=21 s list=$lb(1.72,2.08,2.83,3.82 ) goto ttest
+	i Degrees=22 s list=$lb(1.72,2.07,2.82,3.79 ) goto ttest
+	i Degrees=23 s list=$lb(1.71,2.07,2.82,3.77 ) goto ttest
+	i Degrees=24 s list=$lb(1.71,2.06,2.80,3.75 ) goto ttest
+	i Degrees=25 s list=$lb(1.71,2.06,2.79,3.73 ) goto ttest
+	i Degrees=26 s list=$lb(1.71,2.06,2.78,3.71 ) goto ttest
+	i Degrees=27 s list=$lb(1.70,2.05,2.77,3.69 ) goto ttest
+	i Degrees=28 s list=$lb(1.70,2.05,2.76,3.67 ) goto ttest
+	i Degrees=29 s list=$lb(1.70,2.05,2.76,3.66 ) goto ttest
+	i Degrees=30 s list=$lb(1.70,2.04,2.75,3.65 ) goto ttest
+	i (Degrees>30) && (Degrees<=40) s list=$lb(1.68,2.02,2.70,3.55 ) goto ttest
+	i (Degrees>40) && (Degrees<=60) s list=$lb(1.67,2.00,2.66,3.46 ) goto ttest
+	i (Degrees>60) && (Degrees<=120) s list=$lb(1.66,1.98,2.62,3.37 ) goto ttest
+	s list=$lb(1.65,1.96,2.58,3.29)	;> 120
+	
+ttest
+	i Tval<$li(list,1) s NullProbability = "<90%" Q $$$OK
+	i Tval<$li(list,2) s NullProbability = "<95%" Q $$$OK
+	i Tval<$li(list,3) s NullProbability = "<99%" Q $$$OK
+	i Tval<$li(list,4) s NullProbability = "<99.9%" Q $$$OK
+	s NullProbability = ">99.9%" Q $$$OK
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="%SYS.Monitor.ComponentClass">
+<Description>
+Defines 'components' of the System Monitor which should be loaded and called during the intervals
+processed by %SYS.Monitor.Control. This includes Sensors, Subscribers, and Notifications, as defined
+by the abstract classes in %SYS.Monitor.</Description>
+<Hidden>1</Hidden>
+<IncludeCode>MONEXT,%syMonitor,%syPidtab,%sySt,%sySystem</IncludeCode>
+<ProcedureBlock>0</ProcedureBlock>
+<Super>%Persistent,%XML.Adaptor</Super>
+<System>3</System>
+<TimeCreated>62179,34740.092767</TimeCreated>
+<Inheritance>right</Inheritance>
+
+<UDLText name="T">
+<Content><![CDATA[
+/*
+---------------------Documentation------------------------------------
+SAP1413	04/01/11 Steve Pettibone, initial
+-------------------End Documentation----------------------------------
+*/
+]]></Content>
+</UDLText>
+
+<Index name="IDKEY">
+<IdKey>1</IdKey>
+<PrimaryKey>1</PrimaryKey>
+<Properties>ClassName</Properties>
+<Unique>1</Unique>
+</Index>
+
+<Property name="ClassName">
+<Description>
+Class name</Description>
+<Type>%String</Type>
+<Required>1</Required>
+<Parameter name="MAXLEN" value="250"/>
+</Property>
+
+<Property name="Type">
+<Description>
+class type</Description>
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="Description">
+<Description>
+Description of the sensor</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="250"/>
+</Property>
+
+<Method name="%OnNew">
+<Description>
+Set the Rule properties</Description>
+<FormalSpec>class:%String,desc:%String="",type:%Integer</FormalSpec>
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	// create a rules object
+	s ..ClassName=class
+	s ..Description=desc
+	i (type<$$$SENSORCLASS)||(type>$$$NOTIFYFILTERCLASS) Q 0
+	s ..Type = type
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="%OnDelete">
+<Description>
+If a Dashboard Sensor component is removed, we should delete the associated Sensor classes.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>oid:%ObjectIdentity</FormalSpec>
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<ServerOnly>1</ServerOnly>
+<Implementation><![CDATA[
+	s component=..%Open(oid)
+	i component'="",component.IsDashboard() {
+		d ##class(%SYS.Monitor.Sensor).DeleteByClass(component.ClassName)
+	}
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="IsDashboard">
+<Description>
+Boolean flag indicating if this component is a Dashboard Sensor collector (inherits from AbstractDashboard).</Description>
+<Internal>1</Internal>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+	s dashboard=0
+	i ..Type=$$$SENSORCLASS {
+		s class=##class(%Dictionary.CompiledClass).%OpenId(..ClassName)
+		i class'="" {
+			f i=1:1:$length(class.Super,",") {
+				i $p(class.Super,",",i)="%SYS.Monitor.AbstractDashboard" s dashboard=1 quit
+			}
+		}		
+	}
+	q dashboard
+]]></Implementation>
+</Method>
+
+<Query name="ComponentClasses">
+<Description>
+Get the class names</Description>
+<Type>%SQLQuery</Type>
+<SqlQuery>SELECT ClassName,Type,Description FROM ComponentClass ORDER BY Type,ClassName</SqlQuery>
+<Parameter name="CONTAINID" value="1"/>
+</Query>
+
+<Query name="ComponentClassesByType">
+<Description>
+Get the class names by type</Description>
+<Type>%SQLQuery</Type>
+<FormalSpec>type:%Integer</FormalSpec>
+<SqlQuery>SELECT ClassName,Type,Description FROM ComponentClass WHERE Type=:type</SqlQuery>
+<Parameter name="CONTAINID" value="1"/>
+</Query>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^ISC.Monitor.ComponentD</DataLocation>
+<DefaultData>ComponentClassDefaultData</DefaultData>
+<IdLocation>^ISC.Monitor.ComponentD</IdLocation>
+<IndexLocation>^ISC.Monitor.ComponentI</IndexLocation>
+<StreamLocation>^ISC.Monitor.ComponentS</StreamLocation>
+<ExtentSize>100000</ExtentSize>
+<Data name="ComponentClassDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>Type</Value>
+</Value>
+<Value name="3">
+<Value>Description</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+
+
+<Class name="%SYS.Monitor.Control">
+<Description>
+This class runs as the System Monitor process. It loads, intitializes and periodically
+calls all System Monitor components, i.e. Sensors, Subscribers and Notifiers.</Description>
+<Hidden>1</Hidden>
+<IncludeCode>%syMonitor,%syPidtab,%sySystem,%occErrors</IncludeCode>
+<Super>%RegisteredObject</Super>
+<System>3</System>
+<TimeCreated>62139,29913.554785</TimeCreated>
+
+<Property name="Logfile">
+<Description>
+logfile</Description>
+<Type>%String</Type>
+<Internal>1</Internal>
+<InitialExpression>$zu(12)_"SystemMonitor.log"</InitialExpression>
+</Property>
+
+<Property name="Debug">
+<Description>
+Debug level</Description>
+<Type>%Boolean</Type>
+<Internal>1</Internal>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Property name="SensorReading">
+<Description><![CDATA[
+SensorReading(<sensor>)= value]]></Description>
+<Internal>1</Internal>
+<MultiDimensional>1</MultiDimensional>
+</Property>
+
+<Property name="Sensors">
+<Description>
+Array of sensor classes</Description>
+<Internal>1</Internal>
+<MultiDimensional>1</MultiDimensional>
+</Property>
+
+<Property name="Subscribers">
+<Description>
+List of subscriber classes</Description>
+<Internal>1</Internal>
+<MultiDimensional>1</MultiDimensional>
+</Property>
+
+<Property name="Notifiers">
+<Description>
+List of notifier classes</Description>
+<Internal>1</Internal>
+<MultiDimensional>1</MultiDimensional>
+</Property>
+
+<Property name="NotifyFilters">
+<Description>
+List of notify filter classes</Description>
+<Internal>1</Internal>
+<MultiDimensional>1</MultiDimensional>
+</Property>
+
+<Property name="Notifications">
+<Description>
+Notifications received from sensors / subscribers</Description>
+<Internal>1</Internal>
+<MultiDimensional>1</MultiDimensional>
+</Property>
+
+<Property name="LastSample">
+<Description>
+Last sample and refresh times</Description>
+<Type>%Integer</Type>
+<Internal>1</Internal>
+</Property>
+
+<Property name="LastRefresh">
+<Type>%Integer</Type>
+<Internal>1</Internal>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Property name="Today">
+<Type>%Integer</Type>
+<Internal>1</Internal>
+</Property>
+
+<Property name="Wait">
+<Type>%Integer</Type>
+<Internal>1</Internal>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Property name="State">
+<Type>%String</Type>
+<Internal>1</Internal>
+<InitialExpression>"OK"</InitialExpression>
+</Property>
+
+<Property name="PurgeDays">
+<Type>%Integer</Type>
+<Internal>1</Internal>
+</Property>
+
+<Property name="SampleTime">
+<Description>
+Sensor sample time</Description>
+<Type>%String</Type>
+<Internal>1</Internal>
+</Property>
+
+<Method name="Start">
+<Description>
+Main classmethod</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	d $zu(67,10,$$$MONAPPTYPE,$J) ; identify ourself as application monitoring job
+	s gk = $zu(68,28,0) ; allow global kill
+	#; lock
+	lock ^ISC.Monitor.System:5
+	i '$test s $ze="Could not lock System Monitor" goto dmnerr
+
+	s monitor=##Class(%SYS.Monitor.Control).%New()
+	i monitor="" s $ze=$System.Status.GetErrorText(%objlasterror) goto dmnerr
+	#; start the controller. Never returns except error or shutdown
+	try {
+		s Status = monitor.Run()
+	} catch {
+		goto dmnerr
+	}
+ 	goto halt
+dmnerr ;
+	s msg="System Monitor ended with error, $ze="_$ZE
+	$$$SevereMsg(msg)
+	s Status = $$$ERROR($$$CacheError,$ze)
+halt ;
+	#; clear pending signals
+	d ##class(%SYS.Monitor).ClearEvents()
+	d $zu(68,28,gk)		; reset global kill
+	Q Status
+]]></Implementation>
+</Method>
+
+<Method name="Run">
+<Description>
+Run the System monitor</Description>
+<Internal>1</Internal>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	#; Initialize
+	d ..LogCon("System Monitor started in "_$ZNSPACE,0)
+	s Status = ..Initialize()
+	;create the semaphores
+	#; first clear pending signals
+	d ##class(%SYS.Monitor).ClearEvents()
+	#; now create
+	d ##class(%SYS.Monitor).CreateEvents()
+
+	#; initialize  options
+	s interval=##class(%SYS.Monitor).Interval()
+	s ..Wait = interval
+	#; run
+	d {
+	    #; wait for event timer and process external commands
+	    s rc = $system.Event.WaitMsg($$$SYSTEMMONITORCMD,..Wait)
+	    i '$list(rc,1) {
+			#; run the monitor
+			d ..Process()
+			s ..LastSample = $p($h,",",2)
+			s ..Wait = interval
+	    } elseif $list(rc,1)=1 {
+		    #; we are signalled. Check command.
+			s msg = $li(rc,2)
+			s cmd = $p(msg,"^",1)
+			s caller = $p(msg,"^",2)
+		    #; See if we are to halt or refresh
+		    if cmd = $$$SYSTEMMONITORHALT {
+			    goto halt
+		    } else {
+				d ..Control(cmd,caller)
+		    }
+	    } else {
+		    #; handle unexpected return value, Event has been deleted?
+		    if $list(rc,1)=-1 {
+		    	d ..LogCon("System Monitor Command Event has been deleted.",2)
+		    } else {
+		    	d ..LogCon("System Monitor received unexpected value '"_$list(rc,1)_"' from Command Event.",2)
+		    }
+		    goto halt
+	    }
+	} while 1
+halt
+	d ..Close()
+	d ..LogCon("System Monitor stopped in "_$ZNSPACE,0)
+	Q Status
+]]></Implementation>
+</Method>
+
+<Method name="Control">
+<Description>
+Control functions</Description>
+<Internal>1</Internal>
+<FormalSpec>Cmd:%Integer,Caller:%Integer=0</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+	#; do the command
+	i Cmd=$$$SYSTEMMONITORSTATE {
+		s state = "System Monitor|"_..State
+		s sclass = ""
+		f {
+			s sclass = $o(..Sensors(sclass)) q:sclass=""
+			s state = state_"^"
+			s state = state_sclass_"|"_..Sensors(sclass).State
+		}
+		s sclass = ""
+		f {
+			s sclass = $o(..Subscribers(sclass)) q:sclass=""
+			s state = state_"^"
+			s state = state_sclass_"|"_..Subscribers(sclass).State
+		}
+		d $system.Event.Signal(Caller,state)
+	} elseif Cmd=$$$SYSTEMMONITORREFRESH {
+		i ..LastRefresh>..LastSample {
+			#; run the monitor
+			s ..Wait = 1
+		}
+		s ..LastRefresh = $p($h,",",2)
+	} else {
+		#; invalid command. Ignore.
+		Q 0
+	}
+	Q 1
+]]></Implementation>
+</Method>
+
+<Method name="Process">
+<Internal>1</Internal>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s curday = $H
+	s ..SampleTime = $zdt(curday,3)
+	#; get sensors
+	s status = ..GetSensors() Q:status'=$$$OK status
+	#; save all readings if so configured
+	i ..Debug {
+		d ..SaveSensors()
+	}
+	#; post notifications if there are any
+	i $d(..Notifications) {
+		#; filter notifications
+		s status = ..FilterNotifications() Q:status'=$$$OK status
+		#; post notifications
+		s status = ..PostNotifications() Q:status'=$$$OK status
+	}
+	#; pass to subscribers and pick up notifications
+	s status = ..SendSensors() Q:status'=$$$OK status
+	#; filter notifications
+	s status = ..FilterNotifications() Q:status'=$$$OK status
+	#; post notifications
+	s status = ..PostNotifications() Q:status'=$$$OK status
+	#; check purging
+	s day = $p(curday,",",1)
+	i day'=..Today {
+		s ..Today = day
+		d ..PurgeReadings()
+	}
+	Q $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetSensors">
+<Description>
+Get sensors</Description>
+<Internal>1</Internal>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	k ..SensorReading
+	k ..Notifications
+	#; Get sensor readings
+	s sclass = ""
+	f  {
+		s sclass = $o(..Sensors(sclass)) q:sclass=""
+		i ..Sensors(sclass,"I")=0 continue
+		s sencls = ..Sensors(sclass)
+		#; clear sensors
+		d sencls.ClearSensors()
+		#; clear notifications
+		d sencls.ClearNotifications()
+		#; tell the class to read sensors
+		s status = sencls.GetSensors()
+		i status'=$$$OK {
+			s err = "Sensor class "_sclass_" failed GetSensor: "_$System.Status.GetErrorText(status)
+			d ..LogCon(err,2)
+			s sencls.State = err
+			continue
+		}
+		#; if there are sensors for us, get them
+		s sensor = ""
+		f {
+			s sensor = $o(sencls.SensorReading(sensor)) q:sensor=""
+			#; $d = 1, 10, or 11
+			s t = $d(sencls.SensorReading(sensor))
+			#; 1 The variable contains data and has no descendants. Note that the null string ("") qualifies as data. 
+			#; 10 The variable is undefined, but has descendants that contain data. Status 10 identifies an array element that has descendants (contains a downward pointer to another array element) but does not itself contain data.  
+			#; 11 The variable contains data and has descendents. Status 11 identifies a defined array element that has descendants (contains a downward pointer to another array element that also contains data). Variables of this type can be referenced in expressions. 
+			i t'=10 {
+				s ..SensorReading(sensor) = sencls.SensorReading(sensor)
+			}
+			i t'=1 {
+				s qual = ""
+				f {
+					s qual = $o(sencls.SensorReading(sensor,qual)) q:qual=""
+				    s ..SensorReading(sensor,qual) = sencls.SensorReading(sensor,qual)
+				}
+			}
+    	}
+		#; if there are notifications for us, get them
+		i $d(sencls.Notifications) {
+			s sensor = ""
+			f {
+				s sensor = $o(sencls.Notifications(sensor)) q:sensor=""
+				s ..Notifications(sensor,$$$NOTIFYSEV) = sencls.Notifications(sensor,$$$NOTIFYSEV)
+				s ..Notifications(sensor,$$$NOTIFYMSG) = sencls.Notifications(sensor,$$$NOTIFYMSG)
+			}
+		}
+	}
+	Q $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="SendSensors">
+<Description>
+Send sensors to subscribers</Description>
+<Internal>1</Internal>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	k ..Notifications
+	#; Get sensor readings
+	s sclass = ""
+	f {
+		s sclass = $o(..Subscribers(sclass)) q:sclass=""
+		i '..Subscribers(sclass,"S") continue
+		s subscr = ..Subscribers(sclass)
+		d subscr.ClearSensors()
+		d subscr.ClearNotifications()
+		#; pass the sensors
+		s sensor = ""
+		f {
+		    s sensor = $o(..SensorReading(sensor)) q:sensor=""
+			s t = $d(..SensorReading(sensor))
+			#; 1 The variable contains data and has no descendants. Note that the null string ("") qualifies as data. 
+			#; 10 The variable is undefined, but has descendants that contain data. Status 10 identifies an array element that has descendants (contains a downward pointer to another array element) but does not itself contain data.  
+			#; 11 The variable contains data and has descendents. Status 11 identifies a defined array element that has descendants (contains a downward pointer to another array element that also contains data). Variables of this type can be referenced in expressions. 
+			i t'=10 {
+				s subscr.SensorReading(sensor) = ..SensorReading(sensor)
+			}
+			i t'=1 {
+				s qual = ""
+				f {
+					s qual = $o(..SensorReading(sensor,qual)) q:qual=""
+				    s subscr.SensorReading(sensor,qual) = ..SensorReading(sensor,qual)
+				}
+			}
+		}
+
+		#; post to the subscribers
+		s status = subscr.Receive()
+		i status'=$$$OK {
+			s err = "Subscriber class "_sclass_" failed Receive: "_$System.Status.GetErrorText(status)
+			d ..LogCon(err,2)
+			s subscr.State = err
+			continue
+		}
+
+		#; if there are notifications for us, get them
+		s sensor = ""
+		f {
+			s sensor = $o(subscr.Notifications(sensor)) q:sensor=""
+			s ..Notifications(sensor,$$$NOTIFYSEV) = subscr.Notifications(sensor,$$$NOTIFYSEV)
+			s ..Notifications(sensor,$$$NOTIFYMSG) = subscr.Notifications(sensor,$$$NOTIFYMSG)
+    	}
+	}
+	Q $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="FilterNotifications">
+<Description>
+Filter notifcations received from a sensor or subscriber.</Description>
+<Internal>1</Internal>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	#; filter returned notification before posting
+	s sclass = ""
+	f {
+		s sclass = $o(..NotifyFilters(sclass)) q:sclass=""
+		s nRef = ..NotifyFilters(sclass)
+		#; clear notifications
+		k nRef.Notifications
+		#; load the notifications
+		s sensor = ""
+		f {
+			s sensor = $o(..Notifications(sensor)) q:sensor=""
+			s nRef.Notifications(sensor,$$$NOTIFYSEV) = ..Notifications(sensor,$$$NOTIFYSEV)
+			s nRef.Notifications(sensor,$$$NOTIFYMSG) = ..Notifications(sensor,$$$NOTIFYMSG)
+		}
+		#; filter them
+		s status = nRef.Filter()
+		i status'=$$$OK {
+			s err = "Notify Filter class "_sclass_" failed Filter: "_$System.Status.GetErrorText(status)
+			d ..LogCon(err,2)
+			s nRef.State = err
+			Q
+		}
+		#;reload them
+		k ..Notifications
+		#; get filtered list
+		i $d(nRef.Notifications) {
+			s sensor = ""
+			f {
+				s sensor = $o(nRef.Notifications(sensor)) q:sensor=""
+				s ..Notifications(sensor,$$$NOTIFYSEV) = nRef.Notifications(sensor,$$$NOTIFYSEV)
+				s ..Notifications(sensor,$$$NOTIFYMSG) = nRef.Notifications(sensor,$$$NOTIFYMSG)
+			}
+		}
+	}
+	Q $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="PostNotifications">
+<Description>
+Post notifcations received from a sensor or subscriber.</Description>
+<Internal>1</Internal>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	#; post returned notification to the notify classes
+	s sclass = ""
+	f {
+		s sclass = $o(..Notifiers(sclass)) q:sclass=""
+		s nRef = ..Notifiers(sclass)
+		#; clear notifications
+		d nRef.ClearNotifications()
+		#; load the notifications
+		s sensor = ""
+		f {
+			s sensor = $o(..Notifications(sensor)) q:sensor=""
+			s nRef.Notifications(sensor,$$$NOTIFYSEV) = ..Notifications(sensor,$$$NOTIFYSEV)
+			s nRef.Notifications(sensor,$$$NOTIFYMSG) = ..Notifications(sensor,$$$NOTIFYMSG)
+		}
+		#; post them
+		s status = nRef.Post()
+		i status'=$$$OK {
+			s err = "Notifier class "_sclass_" failed Post: "_$System.Status.GetErrorText(status)
+			d ..LogCon(err,2)
+			s nRef.State = err
+		}
+	}
+	Q $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="Initialize">
+<Description>
+Set up sensors and subscribers</Description>
+<Internal>1</Internal>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	#; initialize DB
+	s Rset = ##class(%ResultSet).%New("%SYS.Monitor.ComponentClass:ComponentClasses")
+	i '$IsObject(Rset) s $ze=$System.Status.GetErrorText(%objlasterror) throw
+	d Rset.Execute()
+	i 'Rset.Next() {
+		s status = ##class(%SYS.Monitor).InitializeDB()
+		i status'=$$$OK Q status
+	}
+	#; initialize all other data
+	s status = ..InitializeClasses() Q:status'=$$$OK status
+	#; initialize the debug level
+	s ..PurgeDays = ##class(%SYS.Monitor).KeepReadingsDays()
+	s ..Debug = ##class(%SYS.Monitor).DebugLev()
+	s ..Today = $p($H,",",1)
+	Q status
+]]></Implementation>
+</Method>
+
+<Method name="Close">
+<Description>
+Close sensors and subscribers</Description>
+<Internal>1</Internal>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	#; sensors
+	s sclass = ""
+	f {
+		s sclass = $o(..Sensors(sclass)) q:sclass=""
+		s oref = ..Sensors(sclass)
+		k oref
+	}
+	#; subscribers
+	s sclass = ""
+	f {
+		s sclass = $o(..Subscribers(sclass)) q:sclass=""
+		s oref = ..Subscribers(sclass)
+		k oref
+	}
+	#; notifiers
+	s sclass = ""
+	f {
+		s sclass = $o(..Notifiers(sclass)) q:sclass=""
+		s oref = ..Notifiers(sclass)
+		k oref
+	}
+	Q $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="InitializeClasses">
+<Description>
+Initialize the component classes</Description>
+<Internal>1</Internal>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	#; get classes starting with all the sensor classes.
+	#; after getting all the sensor classes and their associated sensor defs,
+	#; get subscribers setting their sensor defs.
+	s Rset = ##class(%ResultSet).%New("%SYS.Monitor.ComponentClass:ComponentClassesByType")
+	i '$IsObject(Rset) s $ze=$System.Status.GetErrorText(%objlasterror) throw
+	d Rset.Execute($$$SENSORCLASS)
+	while Rset.Next() {
+		s sclass = Rset.Data("ClassName")
+		s sensor = $classmethod(sclass, "%New")
+		i '$IsObject(sensor) {
+			s err = $System.Status.GetErrorText(%objlasterror) 
+			d ..LogCon("Sensor class "_sclass_" failed to instantiate: "_err,2)
+			continue
+		}
+		#; start the sensor
+		s status = sensor.Start()
+		i status'=$$$OK {
+			i status=0 {
+				s ..Sensors(sclass,"I") = 0
+			} else {
+				s err = $System.Status.GetErrorText(status)
+				d ..LogCon("Sensor class "_sclass_" failed to Start: "_err,2)
+				continue
+			}
+		} else {
+			s ..Sensors(sclass,"I") = 1
+		}
+		s ..Sensors(sclass) = sensor
+	}
+	#; load remaining classes
+	s Rset = ##class(%ResultSet).%New("%SYS.Monitor.ComponentClass:ComponentClassesByType")
+	i '$IsObject(Rset) s $ze=$System.Status.GetErrorText(%objlasterror) throw
+	d Rset.Execute($$$SUBSCRIBERCLASS)
+	while Rset.Next() {
+		s sclass = Rset.Data("ClassName")
+		s subscr = $classmethod(sclass, "%New")
+		i '$IsObject(subscr) {
+			s err = $System.Status.GetErrorText(%objlasterror) 
+			d ..LogCon("Subscriber class "_sclass_" failed to instantiate: "_err,2)
+			continue
+		}
+		#; initialize the subscriber
+		s status = subscr.Start()
+		i status'=$$$OK {
+			i status=0 {
+				s ..Subscribers(sclass,"S") = 0
+			} else {
+				s err = $System.Status.GetErrorText(status)
+				d ..LogCon("Subscriber class "_sclass_" failed to Start: "_err,2)
+				continue
+			}
+		} else {
+			s ..Subscribers(sclass,"S") = 1
+		}
+		s ..Subscribers(sclass) = subscr
+	}
+	s Rset = ##class(%ResultSet).%New("%SYS.Monitor.ComponentClass:ComponentClassesByType")
+	i '$IsObject(Rset) s $ze=$System.Status.GetErrorText(%objlasterror) throw
+	d Rset.Execute($$$NOTIFYCLASS)
+	while Rset.Next() {
+		s sclass = Rset.Data("ClassName"),type = Rset.Data("Type")
+		s nRef = $classmethod(sclass, "%New")
+		i nRef="" {
+			s err = $System.Status.GetErrorText(%objlasterror) 
+			d ..LogCon("Nofity class "_sclass_" failed to instantiate: "_err,2)
+			continue
+		}
+		#; initialize the notify class
+		s status = nRef.Start()
+		i status'=$$$OK {
+			s err = $System.Status.GetErrorText(status)
+			d ..LogCon("Notify class "_sclass_" failed to Start: "_err,2)
+			continue
+		}
+		s ..Notifiers(sclass) = nRef
+	}
+	s Rset = ##class(%ResultSet).%New("%SYS.Monitor.ComponentClass:ComponentClassesByType")
+	i '$IsObject(Rset) s $ze=$System.Status.GetErrorText(%objlasterror) throw
+	d Rset.Execute($$$NOTIFYFILTERCLASS)
+	while Rset.Next() {
+		s sclass = Rset.Data("ClassName"),type = Rset.Data("Type")
+		s nRef = $classmethod(sclass, "%New")
+		i nRef="" {
+			s err = $System.Status.GetErrorText(%objlasterror) 
+			d ..LogCon("Nofity Filter class "_sclass_" failed to instantiate: "_err,2)
+			continue
+		}
+		#; initialize the notify filter class
+		s status = nRef.Start()
+		i status'=$$$OK {
+			s err = $System.Status.GetErrorText(status)
+			d ..LogCon("Notify Filter class "_sclass_" failed to Start: "_err,2)
+			continue
+		}
+		s ..NotifyFilters(sclass) = nRef
+	}
+	Q $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="SaveSensors">
+<Description>
+Save sensor persistent classes</Description>
+<Internal>1</Internal>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	#; create the sensor objects
+	s sensor = ""
+	f {
+		s sensor = $o(..SensorReading(sensor)) q:sensor=""
+		s t = $d(..SensorReading(sensor))
+		i t'=10 {
+			s value = ..SensorReading(sensor)
+			s sobj = ##class(%SYS.Monitor.SensorReading).%New()
+			i '$IsObject(sobj) s $ze = $System.Status.GetErrorText(%objlasterror) throw
+			s sobj.Sensor = sensor
+			s sobj.Item = ""
+			s sobj.SampleTime = ..SampleTime
+			s sobj.Reading = value
+			s status = sobj.%Save()
+			i status'=$$$OK s $ze = $System.Status.GetErrorText(status) throw
+			k sobj
+		}
+		i t'=1 {
+			s item = ""
+			f {
+				s item = $o(..SensorReading(sensor,item)) q:item=""
+			    s value = ..SensorReading(sensor,item)
+				s sobj = ##class(%SYS.Monitor.SensorReading).%New()
+				i '$IsObject(sobj) s $ze = $System.Status.GetErrorText(%objlasterror) throw
+				s sobj.Sensor = sensor
+				s sobj.Item = item
+				s sobj.SampleTime = ..SampleTime
+				s sobj.Reading = value
+				s status = sobj.%Save()
+				i status'=$$$OK s $ze = $System.Status.GetErrorText(status) throw
+				k sobj
+			}
+		}
+	}
+	Q $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="PurgeReadings">
+<Internal>1</Internal>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Do ##class(AbstractDashboard).Purge()
+	#; get the periods for today
+	s lastday = $zdt((..Today - ..PurgeDays),3)
+	s status = ##class(%SYS.Monitor.SensorReading).Purge(lastday)
+	i status'=$$$OK s $ze = $System.Status.GetErrorText(status) throw
+	Q $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="OpenLog">
+<Final>1</Final>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s $zt="OpenLogErr"
+	s filesize=$zu(140,1,..Logfile)
+	i filesize>2097152 {
+		s oldlog=..Logfile_".old"
+		#; delete the old log if exists
+		o oldlog:"AW":0
+		c oldlog:"D"
+		#; rename the current log to oldlog
+		o ..Logfile:"AW":0
+		c ..Logfile:("R":oldlog)
+	}
+	o ..Logfile:"AW":0
+	q $$$OK
+OpenLogErr
+	;ignore errors.  If can't log, nothing we can do
+	s $zt=""
+	c ..Logfile
+	q 0
+]]></Implementation>
+</Method>
+
+<Method name="LogMsg">
+<Final>1</Final>
+<FormalSpec>msg:%String=""</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s $zt="LogMsgErr"
+	d ..OpenLog()
+
+	s dt = $H
+	s time = $ZDate(dt,1,,2)_"-"_$ZTime($p(dt,",",2))
+	U ..Logfile w time," ",msg,!
+	c ..Logfile
+	q $$$OK
+LogMsgErr
+	;ignore errors.  If can't log, nothing we can do
+	s $zt=""
+	c ..Logfile
+	q 0
+]]></Implementation>
+</Method>
+
+<Method name="LogCon">
+<Final>1</Final>
+<FormalSpec>Msg:%String="",Severity:%Integer=0</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s Msg = "[SYSTEM MONITOR] "_Msg
+	d $zu(9,"",Msg,0,Severity)
+	d ..LogMsg(Msg)
+	i Severity=2 s ..State = Msg
+	q
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="%SYS.Monitor.Reading">
+<Description>
+A single value for a Dashboard Sensor gathered at a specific time.
+The collected history of a Sensor is kept as children of %SYS.Monitor.Sensor.</Description>
+<IncludeCode>%sySystem</IncludeCode>
+<Super>%Persistent</Super>
+<TimeCreated>64140,43047.82941</TimeCreated>
+
+<Index name="TimeIndex">
+<IdKey>1</IdKey>
+<Properties>ReadTime</Properties>
+<Unique>1</Unique>
+</Index>
+
+<Property name="ReadTime">
+<Description>
+UTC Timestamp for reading.</Description>
+<Type>%TimeStamp</Type>
+<Internal>1</Internal>
+<InitialExpression>$zdatetime($ztimestamp,3)</InitialExpression>
+</Property>
+
+<Property name="LocalReadTime">
+<Description>
+Return Local Time based on UTC ReadTime.</Description>
+<Type>%TimeStamp</Type>
+<Internal>1</Internal>
+<Calculated>1</Calculated>
+</Property>
+
+<Method name="LocalReadTimeGet">
+<Internal>1</Internal>
+<CodeMode>expression</CodeMode>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[##class(%UTC).Normalize(##class(%UTC).ConvertUTCtoLocal(i%ReadTime))
+]]></Implementation>
+</Method>
+
+<Property name="Value">
+<Type>%String</Type>
+</Property>
+
+<Property name="Sensor">
+<Type>%SYS.Monitor.Sensor</Type>
+<Cardinality>parent</Cardinality>
+<Inverse>Readings</Inverse>
+<Relationship>1</Relationship>
+</Property>
+
+<Method name="LocalTime">
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>time</FormalSpec>
+<ReturnType>%TimeStamp</ReturnType>
+<SqlProc>1</SqlProc>
+<Implementation><![CDATA[
+	#; short hand for this would be $zdt($zdth($zdth(time,3),-3),3)
+	q ##class(%UTC).Normalize(##class(%UTC).ConvertUTCtoLocal(time))
+]]></Implementation>
+</Method>
+
+<Method name="AddDashboardEntry">
+<Description>
+Add sensor history entry for Dashboard</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[Sensor:%String,Value:%String,Item:%String="",&Alert:%Integer]]></FormalSpec>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+	Try {
+		s return=$$$OK,Alert=0
+		i Item="" s Item="-"
+		#; make sure the base level sensor has already been created
+		i '##class(%SYS.Monitor.Sensor).%ExistsId(Sensor_"||-") s return=0 q
+		#; see if the Sensor.Item exists
+		i Item'="-",'##class(%SYS.Monitor.Sensor).%ExistsId(Sensor_"||"_Item) {
+			s sc=##class(%SYS.Monitor.Sensor).CreateDashboardSensor(Sensor,Item,"","","","","","")
+			i $$$ISERR(sc) s return=0 q
+		}
+		s sensor=##class(%SYS.Monitor.Sensor).SensorIndexOpen(Sensor,Item)
+		i sensor="" s return=0 q
+		s reading=##class(%SYS.Monitor.Reading).%New()
+		s reading.Value=Value,reading.Sensor=sensor
+		s sc=reading.%Save()
+		if $$$ISERR(sc) s return=0
+		#; signal a Notify on "critical" value
+		Set sc=##class(%SYS.Monitor.Sensor).GetInherited(Sensor,Item,.prop)
+		if prop("Alert"),..GetState(Sensor,Item,Value,Value)=2 s Alert=1
+	} Catch {
+		s return=0
+	}
+	Q return
+]]></Implementation>
+</Method>
+
+<Method name="GetCalculatedValues">
+<Description>
+Get max, min, mean, stdDev for a Sensor.Item.
+'BeginTime' is a UTC TimeStamp. Returns true if data, or false if not.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[Sensor:%String,Item:%String,BeginTime:%TimeStamp,&Values:%String]]></FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+	s count=0,total=0,max=0,min=-1
+	s rs=##class(%ResultSet).%New("%SYS.Monitor.Reading:ListSensorUTC")
+	s sc=rs.Execute(Sensor,Item,BeginTime,$zdt($zts,3)) i $$$ISERR(sc) quit 0
+	while rs.Next() {
+		s count=count+1,value=rs.Get("Value")
+		s value(count)=value,total=total+value
+		i value>max s max=value
+		i (min=-1)||(value<min) s min=value
+	}
+	i 'count quit 0
+	s Values("max")=max,Values("min")=min,Values("mean")=$Normalize(total/count,2)
+	s variance=0,mean=Values("mean")
+	f i=1:1:count s variance=variance+((value(i)-mean)**2)
+	s Values("stdDev")=$Normalize(variance/count,2)
+	
+	s Values("state") = ##class(%SYS.Monitor.Reading).GetState(Sensor, Item, max, min)
+	q 1
+]]></Implementation>
+</Method>
+
+<Method name="GetState">
+<Description>
+Returns 0:"OK",1:"Warning",2:"Critical".</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>sid:%String,iid:%String,max:%Integer,min:%Integer</FormalSpec>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+	s state = 0 k prop
+	s sc = ##class(%SYS.Monitor.Sensor).GetInherited(sid, iid, .prop)
+	i $$$ISERR(sc) q state
+	
+	if (prop("Operator") = ">") {
+		if ((prop("CriticalValue") '= "") && (prop("CriticalValue") <= max)) { s state = 2 }
+		elseif ((prop("WarningValue") '= "") && (prop("WarningValue") <= max)){ s state = 1 }
+	} else {
+		if ((prop("CriticalValue") '= "") && (prop("CriticalValue") >= min)) { s state = 2 }
+		elseif ((prop("WarningValue") '= "") && (prop("WarningValue") >= min)){ s state = 1 }
+	}
+	
+	q state
+]]></Implementation>
+</Method>
+
+<Method name="Purge">
+<Description>
+Purge old readings, up to 'Time' argument (in %TimeStamp format).</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>Time:%TimeStamp</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	&sql(DELETE FROM %SYS_Monitor.Reading WHERE %SYS_Monitor.Reading_LocalTime(ReadTime) < :Time)
+	Q $$$OK
+]]></Implementation>
+</Method>
+
+<Query name="ListAll">
+<Description>
+Return the sensor data for a given time range</Description>
+<Type>%SQLQuery</Type>
+<FormalSpec>BeginTime:%TimeStamp,EndTime:%TimeStamp={$zdt($h,3)}</FormalSpec>
+<SqlQuery><![CDATA[	SELECT Sensor->Name, Sensor->Item, %SYS_Monitor.Reading_LocalTime(ReadTime), Value
+	FROM %SYS_Monitor.Reading
+	WHERE %SYS_Monitor.Reading_LocalTime(ReadTime) BETWEEN :BeginTime AND :EndTime
+	ORDER BY ReadTime DESC, Sensor->Name DESC, Sensor->Item DESC]]></SqlQuery>
+<Parameter name="CONTAINID" value="1"/>
+</Query>
+
+<Query name="ListAllUTC">
+<Description>
+Return the sensor data for a given time range. Uses UTC time for arguments and data.</Description>
+<Type>%SQLQuery</Type>
+<FormalSpec>BeginTime:%TimeStamp,EndTime:%TimeStamp={$zdt($zts,3)}</FormalSpec>
+<SqlQuery><![CDATA[	SELECT Sensor->Name, Sensor->Item, ReadTime, Value
+	FROM %SYS_Monitor.Reading
+	WHERE ReadTime BETWEEN :BeginTime AND :EndTime
+	ORDER BY ReadTime DESC, Sensor->Name DESC, Sensor->Item DESC]]></SqlQuery>
+<Parameter name="CONTAINID" value="1"/>
+</Query>
+
+<Query name="ListSensor">
+<Description>
+Return the sensor data for a given Sensor.Item. 'Item' must be '-' for a top level Sensor.</Description>
+<Type>%SQLQuery</Type>
+<FormalSpec>Sensor:%String,Item:%String,BeginTime:%TimeStamp,EndTime:%TimeStamp={$zdt($h,3)}</FormalSpec>
+<SqlQuery><![CDATA[	SELECT %SYS_Monitor.Reading_LocalTime(ReadTime),Value
+	FROM %SYS_Monitor.Reading
+	WHERE %SYS_Monitor.Reading_LocalTime(ReadTime) BETWEEN :BeginTime AND :EndTime
+		AND Sensor->Name = :Sensor AND Sensor->Item = :Item
+	ORDER BY ReadTime DESC]]></SqlQuery>
+<Parameter name="CONTAINID" value="1"/>
+</Query>
+
+<Query name="ListSensorUTC">
+<Description>
+Return the sensor data for a given Sensor.Item. 'Item' must be '-' for a top level Sensor.
+Uses UTC time for arguments and data.</Description>
+<Type>%SQLQuery</Type>
+<FormalSpec>Sensor:%String,Item:%String,BeginTime:%TimeStamp,EndTime:%TimeStamp={$zdt($zts,3)}</FormalSpec>
+<SqlQuery><![CDATA[	SELECT ReadTime,Value
+	FROM %SYS_Monitor.Reading
+	WHERE ReadTime BETWEEN :BeginTime AND :EndTime
+		AND Sensor->Name = :Sensor AND Sensor->Item = :Item
+	ORDER BY ReadTime DESC]]></SqlQuery>
+<Parameter name="CONTAINID" value="1"/>
+</Query>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>{%%PARENT}("Readings")</DataLocation>
+<DefaultData>ReadingDefaultData</DefaultData>
+<IdLocation>^ISC.Monitor.SensorC("Readings")</IdLocation>
+<IndexLocation>^ISC.Monitor.ReadingI</IndexLocation>
+<StreamLocation>^ISC.Monitor.ReadingS</StreamLocation>
+<Data name="ReadingDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>Value</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+
+
+<Class name="%SYS.Monitor.Sensor">
+<Description>
+The persistent definition of a System Monitor Dashboard Sensor. 
+This also includes the history of all Sensor Readings.</Description>
+<IncludeCode>%sySystem</IncludeCode>
+<Super>%Persistent</Super>
+<TimeCreated>64140,42880.461842</TimeCreated>
+
+<Index name="SensorIndex">
+<IdKey>1</IdKey>
+<Properties>Name,Item</Properties>
+<Unique>1</Unique>
+</Index>
+
+<Property name="Name">
+<Description>
+Name of the Sensor</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="100"/>
+</Property>
+
+<Property name="Item">
+<Description>
+Some sensors may define multiple values or 'subitems', such disk space for a specific database.
+If the sensor is only a single value, then this property contains a "-" to identify as a single
+or base level sensor.</Description>
+<Type>%String</Type>
+<InitialExpression>"-"</InitialExpression>
+<Parameter name="MAXLEN" value="500"/>
+</Property>
+
+<Property name="Description">
+<Description>
+Text description of the Sensor for documentation.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="WarningValue">
+<Description>
+Value used to check for warning status. Note that if WarningValue, CriticalValue, and AlertFlag 
+are null for a specific Sensor.Item, then that Item will use the values of the base ("-") Sensor.</Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="CriticalValue">
+<Description>
+Value used to check for critical/alert status</Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="Alert">
+<Description>
+Boolean flag ("0" or  "1") to indicate if System Monitor generates an alert on CriticalValue</Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="Operator">
+<Description><![CDATA[
+Logical operator used to compare Warning/Critial values. Default is ">", with option of "<".]]></Description>
+<Type>%String</Type>
+<InitialExpression><![CDATA[">"]]></InitialExpression>
+</Property>
+
+<Property name="Units">
+<Description>
+Description of units used, for display and documentation only.</Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="Owner">
+<Description>
+Class which created this Sensor, so we can delete if class is unregistered.</Description>
+<Type>%String</Type>
+<Internal>1</Internal>
+<Parameter name="MAXLEN" value="220"/>
+</Property>
+
+<Property name="Function">
+<Description>
+The function or use of this Sensor. Sensors may be grouped by Function so that Subscribers and 
+Notifications can decide how to handle or whether they are interested certain Sensors.
+Right now only "%Dashboard" is implemented, but we could use this for System or Health Monitor sensors
+in the future.</Description>
+<Type>%String</Type>
+<Internal>1</Internal>
+</Property>
+
+<Property name="Readings">
+<Type>%SYS.Monitor.Reading</Type>
+<Cardinality>children</Cardinality>
+<Inverse>Sensor</Inverse>
+<Relationship>1</Relationship>
+</Property>
+
+<Method name="Open">
+<Description><![CDATA[
+Open an exisiting Sensor for editing Critical and Warning Values or other properties.
+'Item' may be "" to open a top level Sensor. Setting Critical/Warning Values for a specific
+Item will override the Values from the top level.
+<br><br>
+Note that internal properties for 'Owner' and 'Function' should not be modified by users.]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[Sensor:%String,Item:%String="",&Status:%Status]]></FormalSpec>
+<ReturnType>Sensor</ReturnType>
+<Implementation><![CDATA[
+	If Item="" Set Item="-"
+	Set sensor=..SensorIndexOpen(Sensor,Item,,.Status)
+	Quit $g(sensor)
+]]></Implementation>
+</Method>
+
+<Method name="CreateDashboardSensor">
+<Description>
+Called by CreateSensor() in the Dashboard Sensor class. Only creates a new Sensor, does not update an existing one.
+Properties for existing Sensors (e.g. CriticalValue and WarningValue) can be update using the standard class APIs.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>Sensor:%String,Item:%String="-",CriticalValue:%String,WarningValue:%String,Alert:%String,Units:%String,Operator:%String,Description:%String,ClassName:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Try {
+		s sc=$$$OK s:Item="" Item="-"
+		i '..%ExistsId(Sensor_"||"_Item) {
+			s sensor=..%New()
+			s sensor.Name=Sensor,sensor.Item=Item
+			s:$d(Description) sensor.Description=Description
+			s:$d(WarningValue) sensor.WarningValue=WarningValue
+			s:$d(CriticalValue) sensor.CriticalValue=CriticalValue
+			s:$d(Alert) sensor.Alert=Alert
+			s:$d(Operator) sensor.Operator=Operator
+			i Item="-",Operator="" s sensor.Operator=">"
+			s:$d(Units) sensor.Units=Units
+			#; if we're creating a specific Item, get the Owner from the top level
+			i '$d(ClassName),Item'="-" {
+				s top=..SensorIndexOpen(Sensor,"-")
+				i top'="" s ClassName=top.Owner
+			}
+			s sensor.Function="%Dashboard",sensor.Owner=ClassName
+			s sc=sensor.%Save()
+		}
+	} Catch {
+		s sc=$$$ERROR($$$CacheError,$ze)
+	}
+	q sc
+]]></Implementation>
+</Method>
+
+<Method name="GetInherited">
+<Description>
+Fetch Properties (as an array) for an Item which can be "inherited" from the top level Sensor.
+This includes "CriticalValue", "WarningValue", "Alert", "Operator", "Units" and "Description"</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[Sensor:%String,Item:%String,&Properties:%String]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set sensor=..SensorIndexOpen(Sensor,Item,,.sc) If $$$ISERR(sc) Quit sc
+	#; Inherit properties from top level Sensor if not defined for a specific Item
+	If Item'="-" {
+		Set top=..SensorIndexOpen(Sensor,"-",,.sc)
+		If $$$ISERR(sc) Quit sc
+		If top'="" {
+			If sensor.CriticalValue="" Set sensor.CriticalValue=top.CriticalValue
+			If sensor.WarningValue="" Set sensor.WarningValue=top.WarningValue
+			If sensor.Alert="" Set sensor.Alert=top.Alert
+			If sensor.Operator="" Set sensor.Operator=top.Operator
+			If sensor.Operator="" Set sensor.Operator=">"
+			If sensor.Units="" Set sensor.Units=top.Units
+			If sensor.Description="" Set sensor.Description=top.Description
+		}
+	}
+	For prop="CriticalValue", "WarningValue", "Alert", "Operator", "Units", "Description" {
+		Set Properties(prop)=$Property(sensor,prop)
+	}
+	Quit sc
+]]></Implementation>
+</Method>
+
+<Method name="DeleteByClass">
+<Description>
+Delete all Sensor and Readings associated with a ClassName (i.e. "Owner")</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>ClassName:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	&sql(DELETE FROM Sensor WHERE Sensor.Owner = :ClassName)
+	Q $$$OK
+]]></Implementation>
+</Method>
+
+<Query name="SensorIDs">
+<Description>
+A list of all top level Sensor IDs</Description>
+<Type>%SQLQuery</Type>
+<SqlQuery>SELECT ID FROM Sensor
+WHERE Sensor.Item = '-'</SqlQuery>
+<Parameter name="CONTAINID" value="1"/>
+</Query>
+
+<Query name="SensorNames">
+<Description>
+A list of all top level Sensor Names</Description>
+<Type>%SQLQuery</Type>
+<SqlQuery>SELECT Name FROM Sensor
+WHERE Sensor.Item = '-'</SqlQuery>
+<Parameter name="CONTAINID" value="1"/>
+</Query>
+
+<Query name="SensorItems">
+<Description>
+A list of all Sensor.Items for a given Sensor</Description>
+<Type>%SQLQuery</Type>
+<FormalSpec>Name:%String</FormalSpec>
+<SqlQuery>SELECT Item FROM Sensor
+WHERE Sensor.Name = :Name AND Sensor.Item != '-'</SqlQuery>
+<Parameter name="CONTAINID" value="1"/>
+</Query>
+
+<Query name="AllDashboardSensors">
+<Description>
+Loop through all registered Namespaces and return all registered Dashboard Sensors.
+If a Sensor has specific Items, do not include the top-level Sensor definition.</Description>
+<Type>%Query</Type>
+<Parameter name="ROWSPEC" value="Name:%String,Item:%String,CriticalValue:%String,WarningValue:%String,Alert:%String,Operator:%String,Units:%String,Description:%String,Namespace:%String"/>
+</Query>
+
+<Method name="AllDashboardSensorsExecute">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&qHandle:%Binary]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set beginNS=$Namespace,sc=$$$OK
+	Set Index=$i($$$ISCQUERYTEMP)
+	Try {
+		zn "%SYS"
+		Set sc=##class(%SYS.Monitor).ListStartNS(.nslist)
+		If $$$ISERR(sc) Quit
+		Set nslist=$lb("%SYS")_nslist
+		For n=1:1:$ll(nslist) {
+			Set namespace=$lg(nslist,n) zn namespace
+	   		Set rs1 = ##class(%ResultSet).%New("%SYS.Monitor.Sensor:SensorNames")
+			Set tSC = rs1.Execute()
+			If $$$ISOK(tSC) {
+				Set count = 0
+				While rs1.Next(.tSC) {
+					Set sname = rs1.Data("Name"),hasItems=0
+					Set rs2 = ##class(%ResultSet).%New("%SYS.Monitor.Sensor:SensorItems")
+					Set tSC = rs2.Execute(sname)
+					If $$$ISOK(tSC) {
+						While rs2.Next(.tSC) {
+							Set hasItems=1 Kill prop
+							Set item=rs2.Data("Item")
+							Set sc = ..GetInherited(sname,item,.prop)
+							If $$$ISOK(sc) {
+								Set row=$lb(sname,item,prop("CriticalValue"),prop("WarningValue"),prop("Alert"),prop("Operator"),prop("Units"),prop("Description"),namespace)
+								Set $$$ISCQUERYTEMP(Index,$I(Index1))=row
+							}
+						}
+					}
+					If 'hasItems {
+						Kill prop
+						Set sc = ..GetInherited(sname,"-",.prop)
+						If $$$ISOK(sc) {
+							Set row=$lb(sname,"-",prop("CriticalValue"),prop("WarningValue"),prop("Alert"),prop("Operator"),prop("Units"),prop("Description"),namespace)
+							Set $$$ISCQUERYTEMP(Index,$I(Index1))=row
+						}
+					}
+				}
+			}	
+    	} 
+   	} Catch (e) {
+	   	Set sc=e.AsStatus()
+   	}
+   	zn beginNS
+	Set qHandle=Index_"^"
+	Quit sc
+]]></Implementation>
+</Method>
+
+<Method name="AllDashboardSensorsFetch">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&qHandle:%Binary,&Row:%List,&AtEnd:%Integer=0]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	
+	$$$DEFAULTFETCHPPG
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="AllDashboardSensorsClose">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&qHandle:%Binary]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set Index=$p(qHandle,"^",1)
+	Kill $$$ISCQUERYTEMP(Index)
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^ISC.Monitor.SensorD</DataLocation>
+<DefaultData>SensorDefaultData</DefaultData>
+<IdLocation>^ISC.Monitor.SensorD</IdLocation>
+<IndexLocation>^ISC.Monitor.SensorI</IndexLocation>
+<StreamLocation>^ISC.Monitor.SensorS</StreamLocation>
+<Data name="SensorDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>Description</Value>
+</Value>
+<Value name="3">
+<Value>WarningValue</Value>
+</Value>
+<Value name="4">
+<Value>CriticalValue</Value>
+</Value>
+<Value name="5">
+<Value>Alert</Value>
+</Value>
+<Value name="6">
+<Value>Operator</Value>
+</Value>
+<Value name="7">
+<Value>Units</Value>
+</Value>
+<Value name="8">
+<Value>Owner</Value>
+</Value>
+<Value name="9">
+<Value>Function</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+
+
+<Routine name="%SYSMONMGR" type="MAC" languagemode="0"><![CDATA[
+%SYSMONMGR ;Manage System monitor ;
+#include COPYRIGH
+#include %occInclude
+#include %syMonitor
+#include %syPidtab
+#include %syPrompt
+#;/*=======================Maintenance========================*/
+#;SML1494 04/26/12 Simon Li, Rename Z*.INC and z*.INC to ISC*.INC.
+#;SAP1360 11/15/10 Steve Pettibone, initial
+#;/*====================End Maintenance======================*/
+SYSMONSTART
+	n
+	s $zt="SYSMGRE"
+SYSMONCON
+	i $ZNSPACE="%SYS" {
+		w !
+		w !,"1) Start/Stop System Monitor"
+		w !,"2) Set System Monitor Options"
+		w !,"3) Configure System Monitor Classes"
+		w !,"4) View System Monitor State"
+		w !,"5) Manage Application Monitor"
+		w !,"6) Manage Health Monitor"
+		w !,"7) View System Data"
+		w !,"8) Exit"
+		w !
+		s Option=$$OPTION("Option? ",8,8)
+		i Option=1 d SYSMGR g SYSMONCON
+		i Option=2 d SYSMGROPTS g SYSMONCON
+		i Option=3 d SYSCONFIG g SYSMONCON
+		i Option=4 d SYSSTATE g SYSMONCON
+		i Option=5 d MONITORSETUP^%MONAPPMGR g SYSMONCON
+		i Option=6 d HEALTHMON^MONHEALTHMGR g SYSMONCON
+		i Option=7 d SYSMONDATA g SYSMONCON
+		lock
+		q
+	} else {
+		w !
+		w !,"1) Start/Stop System Monitor"
+		w !,"2) Set System Monitor Options"
+		w !,"3) Configure System Monitor Classes"
+		w !,"4) View System Monitor State"
+		w !,"5) Manage Application Monitor"
+		w !,"6) View System Data"
+		w !,"7) Exit"
+		w !
+		s Option=$$OPTION("Option? ",7,7)
+		i Option=1 d SYSMGR g SYSMONCON
+		i Option=2 d SYSMGROPTS g SYSMONCON
+		i Option=3 d SYSCONFIG g SYSMONCON
+		i Option=4 d SYSSTATE g SYSMONCON
+		i Option=5 d MONITORSETUP^%MONAPPMGR g SYSMONCON
+		i Option=6 d SYSMONDATA g SYSMONCON
+		lock
+		q
+	}
+SYSMGR
+	w !
+	w !,"1) Start System Monitor"
+	w !,"2) Stop System Monitor"
+	w !,"3) Exit"
+	w !
+	s Option=$$OPTION("Option? ",3,3)
+	w !
+	i Option=1 d START g SYSMGR
+	i Option=2 d STOP g SYSMGR
+	q
+START
+	w !,"Starting System Monitor..."
+	s sc = ##class(%SYS.Monitor).Start()
+	i sc=1 {
+		w " System Monitor started"
+	} elseif sc =-1 {
+		w " System Monitor already running!"
+	} else {
+		w !,"ERROR: "_$ZE
+	}
+	q
+STOP
+	w !,"Stopping System Monitor..."
+	s sc = ##class(%SYS.Monitor).Stop()
+	i sc=1 {
+		w " System Monitor stopped"
+	} elseif sc=-1 {
+		w " System Monitor not running!"
+	} else {
+		 w !,"ERROR: "_$ZE
+	}
+	q
+SYSMGROPTS
+	w !,"1) Set Sample Interval"
+	w !,"2) Set Debugging Level"
+	w !,"3) Reset Defaults"
+	w !,"4) Manage Debug Data"
+	w !,"5) Exit"
+	w !
+	s Option=$$OPTION("Option? ",5,5)
+	i Option=1 d SINTERVAL g SYSMGROPTS
+	i Option=2 d DEBLEV g SYSMGROPTS
+	i Option=3 d RESET g SYSMGROPTS
+	i Option=4 d DEBUGDATA g SYSMGROPTS
+	q
+SINTERVAL
+	s default = ##class(%SYS.Monitor).Interval()
+	s int=$$STRINGOPTION("Sampling Interval",default,1) q:(int="")!(int=-1)
+	i int<=0 w !,"Interval must be positive",! goto SINTERVAL
+	d ##class(%SYS.Monitor).Interval(int)
+	q
+DEBLEV
+	s default = ##class(%SYS.Monitor).DebugLev()
+	s int=$$STRINGOPTION("Debug Level (0=base, 1=log all sensors)",default,1) q:(int="")!(int=-1)
+	i int&&(int'=1) w !,"Level must be 0 or 1",! goto DEBLEV
+	d ##class(%SYS.Monitor).DebugLev(int)
+	q
+RESET
+	w ! i '##class(%SYS.Monitor).Lock() w "Cannot configure while System Monitor is running.",! Q
+	s yn = $$YN("Reset will revert all settings to their defaults. Continue","N")
+	i yn="Y" {
+		s status=##class(%SYS.Monitor).ResetDefault()
+		i status '= 1 {
+			w !,"Failed to reset: " d $SYSTEM.Status.DisplayError(status)
+		} else {
+			w !,"System Monitor reset."
+		}
+	}
+	Lock
+	q
+DEBUGDATA
+	s default = ##class(%SYS.Monitor).KeepReadingsDays()
+	s default=$$STRINGOPTION("Number of days to keep readings",default,1) q:(default="")!(default=-1)
+	i default<0 w !,"Days cannot be negative",! goto DEBUGDATA
+	d ##class(%SYS.Monitor).KeepReadingsDays(default)
+	w !,"Readings will be kept for ",default," days.",!
+	q
+
+SYSCONFIG
+	i $ZNSPACE="%SYS" {
+		w !,"1) Configure System Monitor Components"
+		w !,"2) Configure Startup Namespaces"
+		w !,"3) Exit"
+		w !
+		s Option=$$OPTION("Option? ",3,3)
+		i Option=1 d COMPCLASS g SYSCONFIG
+		i Option=2 d CONFIGNS g SYSCONFIG
+	} else {
+		w !,"1) Configure System Monitor Components"
+		w !,"2) Exit"
+		w !
+		s Option=$$OPTION("Option? ",2,2)
+		i Option=1 d COMPCLASS g SYSCONFIG
+	}
+	q
+COMPCLASS
+	w !,"1) List Classes"
+	w !,"2) Add Class"
+	w !,"3) Delete Class"
+	w !,"4) Exit"
+	w !
+	s Option=$$OPTION("Option? ",4,4)
+	i Option=1 d ListC g COMPCLASS
+	i Option=2 d AddC g COMPCLASS
+	i Option=3 d DeleteC g COMPCLASS
+	q
+ListC
+	w !
+	s space="                                 "
+	Set Rset = ##class(%Library.ResultSet).%New("%SYS.Monitor.ComponentClass:ComponentClasses")
+	i '$IsObject(Rset) d $SYSTEM.Status.DisplayError(%objlasterror) q -1
+	d Rset.Execute()
+	s oldtype=""
+	While Rset.Next() {
+		s sclass=Rset.GetData(1)
+		s type=Rset.GetData(2)
+		s desc=Rset.GetData(3)
+		i oldtype'=type {
+			w !,$case(type,1:"Sensors",2:"Async Sensors",3:"Subscribers",4:"Notifiers",5:"NotifyFilters"),":",!
+			s oldtype = type
+		}
+		s n=33-$length(sclass) i n<0 s n=0
+		s spc=$e(space,1,n)
+		w "   ",sclass,spc,desc,!
+	}
+	q
+AddC
+	w !
+	s sclass = $$STRINGOPTION("Class","",1) q:(sclass="")!(sclass=-1)
+	s sc=##class(%Dictionary.CompiledClass).%ExistsId(sclass)
+	i 'sc w !,"ERROR: Class '"_sclass_"' does not exist",! goto AddC
+	s sc=##class(%Dictionary.CompiledClass).%OpenId(sclass)
+	i '$ISOBJECT(sc) w !,"ERROR: Class '"_sclass_"' open id failed",! goto AddC
+	s type = 0
+	f i=1:1:$length(sc.Super,",") {
+		i $p(sc.Super,",",i)="%SYS.Monitor.AbstractSensor" s type=$$$SENSORCLASS goto classok
+		i $p(sc.Super,",",i)="%SYS.Monitor.AbstractDashboard" s type=$$$SENSORCLASS goto classok
+		i $p(sc.Super,",",i)="%SYS.Monitor.AbstractSubscriber" s type=$$$SUBSCRIBERCLASS goto classok
+		i $p(sc.Super,",",i)="%SYS.Monitor.AbstractNotification" s type=$$$NOTIFYCLASS goto classok
+		i $p(sc.Super,",",i)="%SYS.Monitor.AbstractNotificationFilter" s type=$$$NOTIFYFILTERCLASS goto classok
+	}
+	w !,"ERROR: Class '"_sclass_"' does not extend a SYS.Monitor abstract class",! goto AddC
+classok
+	s desc = $$STRINGOPTION("Description","",1) q:desc=-1
+	s $zt="AddCE"
+	s sclassobj = ##class(%SYS.Monitor.ComponentClass).%New(sclass,desc,type)
+	i '$IsObject(sclassobj) w !,"Failed to create SYS.Monitor Class: ",$System.Status.GetErrorText(%objlasterror) goto AddCE
+	s sc=sclassobj.%Save()
+	i sc'=1 w !,"Failed to save SYS.Monitor.ComponentClass: " ,$System.Status.DisplayError(sc) goto AddCE
+	#; make sure the web app for the Dashboard REST API exists
+	i sclass="SYS.Monitor.DashboardSensors" d ##class(SYS.Monitor.DashboardSensors).CreateWebApp()
+	k sclassobj,sclass
+	w !,"Updates will take effect when System Monitor is next started",!
+AddCE
+	s $zt="SYSMGRE"
+	q
+DeleteC
+	w !
+	s classid=$$GETNAME("Component Class",1,1) q:(classid="")!(classid=-1)
+	s $zt="DeleteCE"
+	s compobj = ##class(%SYS.Monitor.ComponentClass).%OpenId(classid)
+	i compobj'="",compobj.IsDashboard() {
+		w !,"All Sensor data collected by this Dashboard Sensor class will be deleted."
+		s yn = $$YN("    Continue","N")
+		i yn="N" goto DeleteCE
+	}
+	s sc = ##class(%SYS.Monitor.ComponentClass).%DeleteId(classid)
+	i sc'=1 w !,"Failed to delete "_classid do $System.Status.DisplayError(sc) goto DeleteCE
+	w !,"Updates will take effect when System Monitor is next started",!
+DeleteCE
+	s $zt="SYSMGRE"
+	q
+
+CONFIGNS
+	w !,"1) List Start Namespaces"
+	w !,"2) Add Namespace"
+	w !,"3) Delete Namespace"
+	w !,"4) Exit"
+	w !
+	s Option=$$OPTION("Option? ",4,4)
+	i Option=1 d ListNS g CONFIGNS
+	i Option=2 d AddNS g CONFIGNS
+	i Option=3 d DeleteNS g CONFIGNS
+	q
+ListNS
+	w !
+	s rc = ##class(%SYS.Monitor).ListStartNS(.nslist)
+	i rc'=$$$OK w "Error listing Monitor namespaces: "_$ze q
+	q:$ll(nslist)=0
+	f i=1:1:$ll(nslist) {
+		w ?5,$li(nslist,i),!
+	}
+	q
+AddNS
+	s ns=$$STRINGOPTION("Namespace","",1) q:(ns="")!(ns=-1)
+	s rc = ##class(%SYS.Monitor).SetStartNS(ns)
+	i rc'=$$$OK w !, "Error setting Monitor namespaces: "_$ze,! q
+	q
+DeleteNS
+	s ns=$$STRINGOPTION("Namespace","",1) q:(ns="")!(ns=-1)
+	s rc = ##class(%SYS.Monitor).DeleteStartNS(ns)
+	i rc'=$$$OK w "Error deleting Monitor namespaces: "_$ze q
+	q
+
+SYSSTATE
+	w !
+	s State = ##class(%SYS.Monitor).State()
+	i State=-1 {
+		w "Unexpected failure"
+	} elseif State=0 {
+		w "System Monitor is not running"
+	} else {
+		w !,?5,"Component",?35,"State",!
+		f i=1:1:$length(State,"^") {
+			s comp = $p(State,"^",i)
+			w $p(comp,"|",1),?35,$p(comp,"|",2),!
+		}
+	}
+ListAllHealth
+	q
+
+SYSMONDATA	
+	i $ZNSPACE="%SYS" {
+		w !
+		w !,"1) View Sensor Readings"
+		w !,"2) View System Health"
+		w !,"3) View Alerts"
+		w !,"4) Exit"
+		w !
+		s Option=$$OPTION("Option? ",4,4)
+		i Option=1 d SYSSENSORDATA g SYSMONDATA
+		i Option=2 d SYSHEALTH g SYSMONDATA
+		i Option=3 d SYSALERTS g SYSMONDATA
+		q
+	} else {
+		w !
+		w !,"1) View Sensor Readings"
+		w !,"2) View System Health"
+		w !,"3) Exit"
+		w !
+		s Option=$$OPTION("Option? ",3,3)
+		i Option=1 d SYSSENSORDATA g SYSMONDATA
+		i Option=2 d SYSHEALTH g SYSMONDATA
+		q
+	}
+
+SYSHEALTH
+	s curhealth = $case($system.Monitor.State(),0:"GREEN",1:"YELLOW",2:"RED")
+	w !,"System Alert Level: ",curhealth,!
+	i (curhealth="GREEN") || ($ZNSPACE'="%SYS") q
+	#;list all alerts leading to this state
+	Set Rset = ##class(%ResultSet).%New("SYS.Monitor.Alert:HealthState")
+	i '$IsObject(Rset) d $SYSTEM.Status.DisplayError(%objlasterror) q
+	d Rset.Execute()
+	While Rset.Next() {
+		s prev = Rset.Get("PrevState")
+		s cur = Rset.Get("State")
+		i prev'=cur {
+			s ostate = $case(prev,0:"GREEN",1:"YELLOW",2:"RED")
+			s curstate = $case(cur,0:"GREEN",1:"YELLOW",2:"RED")
+			w "State changed from ",ostate," to ",curstate," at ",Rset.Get("AlertTime"),!
+		}
+		i Rset.Get("Msg")'="" w Rset.Get("AlertTime"),?22,Rset.Get("Msg"),! 
+	}
+	k Rset
+	w !
+	q
+SYSALERTS
+	s $zt = "SYSALERTSE"
+VIEWALERTS
+	s senopts = $$STRINGOPTION("Sensor (*=All)","*",1) q:(senopts="")||(senopts=-1)
+aBegin
+	s BeginDate=$$STRINGOPTION("Beginning date and time","Beginning",1) q:BeginDate=-1
+	i $zcvt(BeginDate,"U")[$e("BEGINNING",1,$l(BeginDate)) {
+		s BeginDate = "0"
+	} else {
+		i $p(BeginDate,"-",1)?2N1"/"2N1"/"2N {
+			s date = $p(BeginDate,"-",1), time = $p(BeginDate,"-",2)
+			s mon = $p(date,"/",1), day = $p(date,"/",2), yr = "20"_$p(date,"/",3)
+			s BeginDate = yr_"-"_mon_"-"_day_" "_$p(time,":",1,3)
+			w !,BeginDate,!
+		} elseif $zdateH(BeginDate,3,,,,,,,"ERROR")="ERROR" {
+			w !,"Date must be in YYYY-MM-DD or mm/dd/yy-hh:mm format, please re-enter"
+			g aBegin
+		}
+	}
+aEnd		 
+	s EndDate=$$STRINGOPTION("Ending date and time date","Now") q:EndDate=-1
+	i ",NOW,END"[(","_$zcvt(EndDate,"U")) {
+		s EndDate = $zdatetime($h,3)
+	} else {
+		i $p(EndDate,"-",1)?2N1"/"2N1"/"2N {
+			s date = $p(EndDate,"-",1), time = $p(EndDate,"-",2)
+			s mon = $p(date,"/",1), day = $p(date,"/",2), yr = "20"_$p(date,"/",3)
+			s EndDate = yr_"-"_mon_"-"_day_" "_$p(time,":",1,3)
+			w !,EndDate,!
+		} elseif $zdateH(EndDate,3,,,,,,,"ERROR")="ERROR" {
+			w !,"Date must be in YYYY-MM-DD or mm/dd/yy-hh:mm format, please re-enter"
+			g aEnd
+		}
+	}
+	i senopts="*" {
+		Set Rset = ##class(%Library.ResultSet).%New("SYS.Monitor.Alert:Alerts")
+	} else {
+		Set Rset = ##class(%Library.ResultSet).%New("SYS.Monitor.Alert:AlertsBySensor")
+	}
+	i Rset="" d $System.OBJ.DisplayError(%objlasterror) q
+	i senopts="*" {
+		d Rset.Execute(BeginDate,EndDate)
+	} else {
+		d Rset.Execute(BeginDate,EndDate,senopts)
+	}
+	w !
+	While Rset.Next() {
+		s prev = Rset.Get("PrevState")
+		s cur = Rset.Get("State")
+		i prev'=cur {
+			s ostate = $case(prev,0:"GREEN",1:"YELLOW",2:"RED")
+			s curstate = $case(cur,0:"GREEN",1:"YELLOW",2:"RED")
+			w !,"State changed from ",ostate," to ",curstate," at ",Rset.Get("AlertTime"),!
+		}
+		i Rset.Get("Msg")'="" w Rset.Get("AlertTime"),?22,Rset.Get("Msg"),! 
+	}
+	k Rset
+	q
+SYSALERTSE s $zt=""
+	i $ze'["<INTERRUPT>" w !,"ERROR: "_$ZE
+	q 
+SYSSENSORDATA
+	s senopts = $$STRINGOPTION("Sensor (*=All)","*",1) q:(senopts="")||(senopts=-1)
+sBegin
+	s BeginDate=$$STRINGOPTION("Beginning date and time","Beginning",1) q:BeginDate=-1
+	i $zcvt(BeginDate,"U")[$e("BEGINNING",1,$l(BeginDate)) {
+		s BeginDate = "0"
+	} else {
+		i $p(BeginDate,"-",1)?2N1"/"2N1"/"2N {
+			s date = $p(BeginDate,"-",1), time = $p(BeginDate,"-",2)
+			s mon = $p(date,"/",1), day = $p(date,"/",2), yr = "20"_$p(date,"/",3)
+			s BeginDate = yr_"-"_mon_"-"_day_" "_$p(time,":",1,3)
+			w !,BeginDate,!
+		} elseif $zdateH(BeginDate,3,,,,,,,"ERROR")="ERROR" {
+			w !,"Date must be in YYYY-MM-DD or mm/dd/yy-hh:mm format, please re-enter"
+			g sBegin
+		}
+	}
+sEnd		 
+	s EndDate=$$STRINGOPTION("Ending date and time date","Now") q:EndDate=-1
+	i ",NOW,END"[(","_$zcvt(EndDate,"U")) {
+		s EndDate = $zdatetime($h,3)
+	} else {
+		i $p(EndDate,"-",1)?2N1"/"2N1"/"2N {
+			s date = $p(EndDate,"-",1), time = $p(EndDate,"-",2)
+			s mon = $p(date,"/",1), day = $p(date,"/",2), yr = "20"_$p(date,"/",3)
+			s EndDate = yr_"-"_mon_"-"_day_" "_$p(time,":",1,3)
+			w !,EndDate,!
+		} elseif $zdateH(EndDate,3,,,,,,,"ERROR")="ERROR" {
+			w !,"Date must be in YYYY-MM-DD or mm/dd/yy-hh:mm format, please re-enter"
+			g sEnd
+		}
+	}
+	w !
+	k Index
+	s Index=0
+	s NumRecords=$$NUMOPTION("Number of records to display",20,1,5000) q:NumRecords=-1
+	i senopts="*" {
+		#; All sensors
+		Set Rset = ##class(%Library.ResultSet).%New("%SYS.Monitor.SensorReading:SensorReadings")
+		i Rset="" d $System.OBJ.DisplayError(%objlasterror) q
+		d Rset.Execute(BeginDate,EndDate)
+		#;SampleTime, Sensor, Item, Value
+		While Rset.Next() {
+			s Index=Index+1
+			s sensor = Rset.Get("Sensor"), item = Rset.Get("Item") i item'="" s sensor = sensor_": "_item
+			s value = Rset.Get("Reading")
+			s time = Rset.Get("SampleTime")
+			s Record=$lb(time,sensor,value)
+			i senopts'="*" {
+				s vlist = vlist_$lb(value)
+			}
+			s Index(Index)=Record
+			i Index=NumRecords q
+		}
+		k Rset
+		s NumRecords=Index
+		i NumRecords=0 w !,"No matching records found" goto SYSSENSORDATA
+		s time = 0
+		f i=1:1:NumRecords {
+			i time'=$li(Index(i),1) {
+				w !,$li(Index(i),1)
+				s time = $li(Index(i),1)
+			}
+			w !
+			w ?5,$li(Index(i),2)
+			w ?60,$li(Index(i),3)
+		}
+	} else {
+		#; Sensor "Xyzzy"
+		Set Rset = ##class(%Library.ResultSet).%New("%SYS.Monitor.SensorReading:SensorReadingsBySensor")
+		i Rset="" d $System.OBJ.DisplayError(%objlasterror) q
+		d Rset.Execute(BeginDate,EndDate,senopts)
+		#;SampleTime, Sensor, Item, Value: 2013-02-26 14:21:21
+		While Rset.Next() {
+			s Index=Index+1
+			s item = Rset.Get("Item")
+			s value = Rset.Get("Reading")
+			s time = Rset.Get("SampleTime")
+			s Record=$lb(time,item,value)
+			s Index(Index)=Record
+			i Index=NumRecords q
+		}
+		k Rset
+		s NumRecords=Index
+		i NumRecords=0 w !,"No matching records found" goto SYSSENSORDATA
+		s time = 0
+		w !,"Records for sensor ",senopts
+		f i=1:1:NumRecords {
+			i time'=$li(Index(i),1) {
+				w !,$li(Index(i),1)
+				s time = $li(Index(i),1)
+			}
+			i $li(Index(i),2)="" {
+				w ?25,$li(Index(i),3)
+			} else {
+				w !
+				w ?5,$li(Index(i),2)
+				w ?60,$li(Index(i),3)
+			}
+		}
+	}
+	w !
+	q
+
+SYSMGRE s $zt=""
+	i $ze'["<INTERRUPT>" w !,"ERROR: "_$ZE
+	Lock
+	q
+MONHENTER
+	d HEALTHMON^MONHEALTHMGR g SYSMONSTART
+MONAENTER
+	d MONITORSETUP^%MONAPPMGR g SYSMONSTART
+
+OPTION(prompt,default,max) [] PRIVATE {
+ s $zt="OPTIONE"
+OPTION1 w !,prompt
+ r Option i Option="" q default
+ i '(Option?1.2N)!(Option<1)!(Option>max) w !!,"Please enter a number between 1 and "_max,! g OPTION1
+ q +Option
+OPTIONE s $zt=""
+ i $ze'["<INTERRUPT>" w !,"ERROR: "_$ZE
+ q 0
+}
+NUMOPTION(prompt,default,min,max) [] PRIVATE {
+ s $zt="NUMOPTIONE"
+NUMOPTION1 w !,prompt_"? "_default_" => "
+ r Option i Option="" q default
+ i '(Option?1.5N)!(Option<min)!(Option>max) w !!,"Please enter a number between "_min_" and "_max,! g NUMOPTION1
+ q +Option
+NUMOPTIONE s $zt=""
+ i $ze'["<INTERRUPT>" w !,"ERROR: "_$ZE
+ q -1
+}
+STRINGOPTION(prompt,default,allownull) [] PRIVATE {
+ s $zt="STRINGOPTIONE"
+STRINGOPTION1 w !,prompt_"? " i default'="" w default_" => "
+ r Option i Option="",(default'="") q default
+ i Option="",(allownull=0) w !,"Please enter a non-null value" g STRINGOPTION1 
+ q Option
+STRINGOPTIONE s $zt=""
+ i $ze'["<INTERRUPT>" w !,"ERROR: "_$ZE
+ q -1
+}
+GETNAME(Prompt,Mode,NameType,Default,RequireInput,Filter) PRIVATE {
+	s namelist(0)=0
+	s OutName=$case(NameType,1:"Component class",2:"Sensor Object")
+	s ext=$case(NameType,1:"ComponentClass:ComponentClasses",2:"SensorObject:Sensors")
+	s Query="%SYS.Monitor."_ext
+	Set Rset = ##class(%Library.ResultSet).%New(Query)
+	i '$IsObject(Rset) d $SYSTEM.Status.DisplayError(%objlasterror) q -1
+	i $d(Filter) {
+		d Rset.Execute(Filter)
+	} else {
+		d Rset.Execute()
+	}
+	While Rset.Next() {
+		i (NameType=1) {
+			s namelist($i(namelist(0)))=Rset.GetData(1)_"^"_Rset.GetData(3)
+		} elseif NameType=2 {
+			s namelist($i(namelist(0)))=Rset.GetData(1)
+		}
+	}
+GETNAME1 s $zt="GETNAMEE"
+	w !,Prompt_"? "
+	i $g(Default)'="" w Default_" => "
+	R Name 
+	i Name="",$g(Default)'="" s Name=Default
+	i (Name=""),+$g(RequireInput) w !,"Must enter a valid "_OutName g GETNAME1
+	i Name="" q Name
+	i (Name="^")!($zcvt(Name,"U")="STOP") q -1
+	i Name="?" {
+		w !
+		i NameType=1 {
+			w !," Num",?6,Rset.GetColumnName(1),?60,Rset.GetColumnName(3)
+		}
+		i NameType=2 {
+			w !," Num",?6,Rset.GetColumnName(1)
+		}
+		f i=1:1:namelist(0) {
+			i NameType=1 {
+				w !,$j(i,3)_") ",?6,$p(namelist(i),"^",1),?60,$p(namelist(i),"^",2)
+			}
+			i NameType=2 {
+				w !,$j(i,3)_") ",?6,namelist(i)
+			}
+		}
+		w ! g GETNAME1
+	}
+ i Name=+Name {
+	i (Name<1)!(Name>namelist(0)) w !,"Please enter a "_OutName_" or number between 1 and "_namelist(0) g GETNAME1
+	s Name=$p(namelist(Name),"^",1)
+	w " ",Name
+ }
+ i (Mode=0),($$FINDNAME(Name)) w !,OutName_" "_Name_" already exists, please re-enter" g GETNAME1
+ i (Mode),('$$FINDNAME(Name)) w !,OutName_" "_Name_" does not exist, please re-enter" g GETNAME1
+ q Name
+GETNAMEE S $ZT="GETNAMEE1"
+ i $ze["<INTERRUPT>" q -1
+ w !,"Error: "_$ze 
+ q -1
+GETNAMEE1 s $zt=""
+ w !,"Error: "_$ZE
+ q -1
+FINDNAME(name)
+ s f=0
+ f i=1:1:namelist(0) i $p(namelist(i),"^",1)=name s f=1 q
+ q f 
+ }
+
+#include ISCYESNO
+
+
+]]></Routine>
+
+
+<CSP name="Dashboard.CSP" application="/csp/sys/dashboard/"><![CDATA[
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- =========================== CSS INCLUDES =========================== -->
+
+    <!-- Library CSS-->
+    <link rel="stylesheet" href="assets\libs\angular-material\angular-material.min.css">
+    <link rel="stylesheet" href="assets\libs\nvd3\nv.d3.min.css">
+
+    <!-- DRAGABLE FUNCTIONALITY -->
+    <link rel="stylesheet" href="assets\libs\jqueryui\jquery-ui.min.css">
+    <link rel="stylesheet" href="assets\libs\gridstack\gridstack.min.css">
+
+    <!-- <link href='https://fonts.googleapis.com/css?family=Roboto:400,400italic,300,500,700' rel='stylesheet' type='text/css'> -->
+    <link href='assets\css\font.css' rel='stylesheet' type='text/css'>
+
+    <!-- Custom CSS-->
+    <link rel="stylesheet" href="assets\css\colorPallete.css">
+    <link rel="stylesheet" href="assets\css\customStyles.css">
+    <link rel="stylesheet" href="assets\css\code.css">
+
+  </head>
+
+  <body id="SMPDashbaord" ng-app="Dashboard" ng-cloak style="overflow:hidden">
+  <!-- =========================== CONTENT OF APP =========================== -->
+    <smp-content> </smp-content>
+
+  <!-- =========================== JS INCLUDES =========================== -->
+  <script src="assets\libs\jquery\jquery.min.js" type="text/javascript"></script>
+  <script src="assets\libs\moment\moment.min.js" type="text/javascript"></script>
+  <script src="assets\libs\moment-timezone\moment-timezone-with-data.min.js" type="text/javascript"></script>
+
+  <!-- DRAGABLE FUNCTIONALITY -->
+  <script src="assets\libs\lodash\lodash.min.js" type="text/javascript"></script>
+  <script src="assets\libs\jqueryui\jquery-ui.min.js" type="text/javascript"></script>
+  <script src="assets\libs\gridstack\gridstack.min.js" type="text/javascript"></script>
+
+
+
+  <!-- Angular Material requires Angular.js Libraries -->
+  <script src="assets\libs\angular\angular.min.js" type="text/javascript"></script>
+  <script src="assets\libs\angular-animate\angular-animate.min.js" type="text/javascript"></script>
+  <script src="assets\libs\angular-aria\angular-aria.min.js" type="text/javascript"></script>
+  <script src="assets\libs\angular-messages\angular-messages.min.js" type="text/javascript"></script>
+  <script src="assets\libs\angular-sanitize\angular-sanitize.min.js" type="text/javascript"></script>
+  <script src="assets\libs\ng-storage\ngStorage.min.js" type="text/javascript"></script>
+  <!-- Bind Compile for directives on tabs -->
+  <script src="assets\libs\angular-bind-html-compile\angular-bind-html-compile.min.js" type="text/javascript"></script>
+  <!-- Angular Material Library -->
+  <script src="assets\libs\angular-material\angular-material.min.js" type="text/javascript"></script>
+
+
+  <script src="assets\libs\d3\d3.min.js" type="text/javascript"></script>
+  <script src="assets\libs\nvd3\nv.d3.min.js" type="text/javascript"></script>
+
+    <!-- Angular Modules -->
+    <script src="app/app.module.js" type="text/javascript"></script>
+      <!-- SERVICES -->
+      <script src="app/services/s-dashboardApi.js" type="text/javascript"></script>
+      <script src="app/services/s-widgets.js" type="text/javascript"></script>
+
+      <!-- DIRECTIVES -->
+      <script src="app/directives/core/d-content.js" type="text/javascript"></script>
+      <script src="app/directives/core/d-pagination.js" type="text/javascript"></script>
+      <script src="app/directives/core/d-expando.js" type="text/javascript"></script>
+      <script src="app/directives/core/d-widget.js" type="text/javascript"></script>
+
+      <script src="app/directives/tabs/d-allsensors.js" type="text/javascript"></script>
+      <script src="app/directives/tabs/d-ecp.js" type="text/javascript"></script>
+      <script src="app/directives/tabs/d-ecp-app.js" type="text/javascript"></script>
+      <script src="app/directives/tabs/d-ecp-data.js" type="text/javascript"></script>
+      <script src="app/directives/tabs/d-performance.js" type="text/javascript"></script>
+      <script src="app/directives/tabs/d-summary.js" type="text/javascript"></script>
+      <script src="app/directives/tabs/d-playground.js" type="text/javascript"></script>
+      <script src="app/directives/tabs/d-showcase.js" type="text/javascript"></script>
+
+      <script src="app/directives/showcase/d-showcaseSidenav.js" type="text/javascript"></script>
+      <script src="app/directives/showcase/d-showcaseDashboardMethods.js" type="text/javascript"></script>
+      <script src="app/directives/showcase/d-showcaseDashboardSettings.js" type="text/javascript"></script>
+      <script src="app/directives/showcase/d-showcaseLineChart.js" type="text/javascript"></script>
+      <script src="app/directives/showcase/d-showcaseSparklineChart.js" type="text/javascript"></script>
+      <script src="app/directives/showcase/d-showcaseSensorDisplay.js" type="text/javascript"></script>
+      <script src="app/directives/showcase/d-showcaseTab.js" type="text/javascript"></script>
+      <script src="app/directives/showcase/d-showcaseExpando.js" type="text/javascript"></script>
+
+      <script src="app/directives/visualizers/d-nvd3Chart.js" type="text/javascript"></script>
+      <script src="app/directives/visualizers/d-sensorDisplay.js" type="text/javascript"></script>
+      <script src="app/directives/visualizers/d-metadata.js" type="text/javascript"></script>
+      <script src="app/directives/visualizers/d-stateIcon.js" type="text/javascript"></script>
+      <script src="app/directives/visualizers/d-sensorRow.js" type="text/javascript"></script>
+
+      <!-- CONTROLLERS -->
+      <script src="app/controllers/core/c-content.js" type="text/javascript"></script>
+      <script src="app/controllers/core/c-pagination.js" type="text/javascript"></script>
+      <script src="app/controllers/core/c-widget.js" type="text/javascript"></script>
+      <script src="app/controllers/core/c-widgetMenu.js" type="text/javascript"></script>
+      <script src="app/controllers/core/c-widgetAdvancedMenu.js" type="text/javascript"></script>
+      <script src="app/controllers/core/c-widgetListDialog.js" type="text/javascript"></script>
+      <script src="app/controllers/core/c-widgetIODialog.js" type="text/javascript"></script>
+      <script src="app/controllers/core/c-settingsDialog.js" type="text/javascript"></script>
+
+      <script src="app/controllers/tabs/c-showcase.js" type="text/javascript"></script>
+      <script src="app/controllers/tabs/c-allsensors.js" type="text/javascript"></script>
+      <script src="app/controllers/tabs/c-ecp.js" type="text/javascript"></script>
+      <script src="app/controllers/tabs/c-ecp-app.js" type="text/javascript"></script>
+      <script src="app/controllers/tabs/c-ecp-data.js" type="text/javascript"></script>
+      <script src="app/controllers/tabs/c-performance.js" type="text/javascript"></script>
+      <script src="app/controllers/tabs/c-playground.js" type="text/javascript"></script>
+      <script src="app/controllers/tabs/c-summary.js" type="text/javascript"></script>
+
+      <script src="app/controllers/showcase/c-showcaseDashboardMethods.js" type="text/javascript"></script>
+      <script src="app/controllers/showcase/c-showcaseLineChart.js" type="text/javascript"></script>
+      <script src="app/controllers/showcase/c-showcaseSparklineChart.js" type="text/javascript"></script>
+      <script src="app/controllers/showcase/c-showcaseSensorDisplay.js" type="text/javascript"></script>
+      <script src="app/controllers/showcase/c-showcaseExpando.js" type="text/javascript"></script>
+
+      <script src="app/controllers/visualizers/c-nvd3Chart.js" type="text/javascript"></script>
+      <script src="app/controllers/visualizers/c-sensorDisplay.js" type="text/javascript"></script>
+      <script src="app/controllers/visualizers/c-stateIcon.js" type="text/javascript"></script>
+      <script src="app/controllers/visualizers/c-metadata.js" type="text/javascript"></script>
+      <script src="app/controllers/visualizers/c-sensorRow.js" type="text/javascript"></script>
+
+      <!-- FILTERS -->
+      <script src="app/filters/f-range.js" type="text/javascript"></script>
+      <script src="app/filters/f-time.js" type="text/javascript"></script>
+  </body>
+</html>
+]]></CSP>
+
+
+<CSP name="UtilDashboard.CSP" application="/csp/sys/op/"><![CDATA[
+<AutoPage pagename="System Dashboard" parentpage="../UtilHome.csp" stylesheet="intersystems.css">
+
+<Pane name="Title" type="%CSP.Util.SMTitlePane">
+	<Text>System Dashboard</Text>
+</Pane>
+
+<script language="cache" method="comment">
+	/*
+ Dashboard page for System Management portal
+ Information on where the values coming from for Dashboard:
+1) Look at this page (or any other dashboard page), and find the MetricMethod:
+ <MetricMethod>GetMainMetrics</MetricMethod>
+  For this page, the main Dashboard, the method is called "GetMainMetrics".
+ 
+2) Open class SYS.Metrics and find method "GetMainMetrics".
+ 
+3) In this method, you will see that it calls 
+ Do ##class(%Monitor.Manager).SignalApp()     
+ which builds a temp global ^CacheTemp.SysMetrics.
+ 
+4) Specific values are set into local array pValues which will be displayed on the dashboard. 
+For example, if you are interested in finding the value for GlobalRefs, you will find
+ Set pValues("GlobalRefs") = $FN($G(^CacheTemp.SysMetrics("GlobalRefs")),",",0)
+and whatever pValues("GlobalRefs") is will be displayed on the Dashboard.
+ 
+5) If you are debugging on a customer's machine, you can run ##class(%Monitor.Manager).SignalApp(), 
+or whatever the method is calling,  from the terminal and see what the temp global is and go from there.
+	
+Additional Tech Information:
+1) The SMP Dashboard data is collected by an instance of the Cache Application Monitor running in the %SYS namespace, 
+started during system startup (MONAPP).
+
+2) Every n seconds (n is configurable, and defaults to 300) MONAPP wakes up, and runs the sampling method (GetSample()) 
+for each Application Monitor class enabled in the namespace.  
+The system automatically enables one class in the %SYS namespace, %Monitor.System.Dashboard.  
+The GetSample() method of this class sets a variety of globals, all of the form CacheTemp.SysMetrics(xxx).
+
+3) These globals are in turn read by the SMP application, and their contents displayed on the page.  
+The globals and their meaning are documented in the %Monitor.System.Dashboard class documentation.
+
+4) When you refresh the SMP page, the SMP application calls %Monitor.Manager.SignalApp(), 
+which in fact just signals the Application Monitor to wake up and run a sample cycle.  
+This refreshes the globals immediately.
+
+5) Questions on Cache Application Monitor and any %Monitor classes may be addressed to Steve Pettibone.
+	*/
+</script>
+
+<Pane name="Detail" type="%CSP.Util.HTMLDashboardPane">
+	<Text>This dashboard displays the status of key system performance indicators:</Text>
+	<Commands>
+		<Action href="UtilSysStatisticsGlobal.csp">
+			<Caption>Global and Routine Statistics</Caption>
+			<Popup>Global and Routine Statistics</Popup>
+		</Action>
+		<Action href="UtilSysStatisticsECP.csp">
+			<Caption>ECP Statistics</Caption>
+			<Popup>ECP Statistics</Popup>
+		</Action>
+		<Action href="UtilSysStatistics.csp">
+			<Caption>Disk and Buffer Statistics</Caption>
+			<Popup>Disk and Buffer Statistics</Popup>
+		</Action>
+		<Action href="UtilSysStatisticsResource.csp">
+			<Caption>System Resource Statistics</Caption>
+			<Popup>System Resource Statistics</Popup>
+		</Action>
+		<Action href="/csp/sys/dashboard/Dashboard.csp" condition='##class(Security.Applications).%ExistsId("/csp/sys/dashboard")' >
+			<Caption>Polymetric Dashboard</Caption>
+			<Popup>Polymetric Dashboard</Popup>
+		</Action>
+	</Commands>	
+
+	<RefreshRate>60000</RefreshRate>
+	<Orientation>vertical</Orientation>
+	<MetricMethod>GetMainMetrics</MetricMethod>
+	
+	<HTMLGroup	Orientation="horizontal" >
+
+	<HTMLGroup	Orientation="vertical" >
+
+	<HTMLGroup	Label="System Performance" 
+				Orientation="vertical" 
+				Style="background: silver; border: 1px black solid;">
+
+ 	<HTMLValueMeter Label="Globals/Second"
+			 		Property="GlobalRefsPerSecond"
+			 		Link="UtilSysMonitor.csp"
+			 		Width="350"
+			 		Detail="Most recently measured number of Global references per second."
+			 		/>
+
+	<HTMLValueMeter Label="Global Refs"
+			 		Property="GlobalRefs"
+			 		Link="UtilSysMonitor.csp"
+			 		Width="350"
+			 		Detail="Number of Global references since system startup."
+			 		/>
+
+	<HTMLValueMeter Label="Global Sets"
+			 		Property="GlobalSetKill"
+			 		Link="UtilSysMonitor.csp"
+			 		Width="350"
+			 		Detail="Number of Global Sets and Kills since system startup."
+			 		/>
+
+	<HTMLValueMeter Label="Routine Refs"
+			 		Property="RoutineRefs"
+			 		Link="UtilSysMonitor.csp"
+			 		Width="350"
+			 		Detail="Number of routine loads and saves since system startup."
+			 		/>
+
+
+	<HTMLValueMeter Label="Logical Requests"
+			 		Property="LogicalRequests"
+			 		Link="UtilSysMonitor.csp"
+			 		Width="350"
+			 		Detail="Number of logical block requests since system startup."
+			 		/>
+
+	<HTMLValueMeter Label="Disk Reads"
+			 		Property="DiskReads"
+			 		Link="UtilSysMonitor.csp"
+			 		Width="350"
+			 		Detail="Number of physical block read operations since system startup."
+			 		/>
+
+	<HTMLValueMeter Label="Disk Writes"
+			 		Property="DiskWrites"
+			 		Link="UtilSysMonitor.csp"
+			 		Width="350"
+			 		Detail="Number of physical block write operations since system startup."
+			 		/>
+
+	<HTMLValueMeter Label="Cache Efficiency"
+			 		Property="CacheEfficiency"
+			 		Link="UtilSysMonitor.csp"
+			 		Width="350"
+			 		Detail="Most recently measured cache efficiency (Global references / (physical reads + writes))."
+			 		/>
+	</HTMLGroup>
+
+	<HTMLSpacer Height="30" />
+
+	<HTMLGroup	Label="ECP and Shadowing" 
+				Orientation="vertical" 
+				Style="background: silver; border: 1px black solid;">
+
+	<HTMLValueMeter Label="Application Servers"
+			 		Property="ECPClients"
+			 		Width="350"
+			 		Detail="Summary status of ECP application servers connected to this system."
+			 		/>
+
+	<HTMLValueMeter Label="Application Server Traffic"
+			 		Property="ECPClientTraffic"
+			 		Width="350"
+			 		Detail="Most recently measured ECP application server traffic in bytes/second."
+			 		/>
+
+	<HTMLValueMeter Label="Data Servers"
+			 		Property="ECPServers"
+			 		Width="350"
+			 		Detail="Summary status of ECP data servers this system is connected to."
+			 		/>
+
+	<HTMLValueMeter Label="Data Server Traffic"
+			 		Property="ECPServerTraffic"
+			 		Width="350"
+			 		Detail="Most recently measured ECP data server traffic in bytes/second."
+			 		/>
+
+	<HTMLValueMeter Label="Shadow Source"
+			 		Property="ShadowConnections"
+			 		Link="UtilSysShadowDataSource.csp"
+			 		Width="350"
+			 		Detail="Summary status of shadow connections on this data source."
+			 		/>
+
+	<HTMLValueMeter Label="Shadow Server"
+			 		Property="Shadows"
+			 		Link="UtilSysShadow.csp"
+			 		Width="350"
+			 		Detail="Summary status of shadows configured on this shadow server."
+			 		/>
+
+	</HTMLGroup>
+
+	</HTMLGroup>
+
+	<HTMLSpacer Width="20" />
+
+	<HTMLGroup	Orientation="vertical" >
+
+	<HTMLGroup	Label="System Time" 
+				Orientation="vertical" 
+				Style="background: silver; border: 1px black solid;">
+
+	<HTMLValueMeter Label="System Up Time"
+			 		Property="UpTime"
+			 		Width="350"
+			 		Detail="Elapsed time since this system was started."
+			 		/>
+
+	<HTMLValueMeter Label="Last Backup"
+			 		Property="LastBackup"
+			 		Link="UtilSysBackups.csp"
+			 		Width="350"
+			 		Detail="Date and time of the last full system backup."
+			 		/>
+	</HTMLGroup>
+
+	<HTMLSpacer Height="10" />
+
+	<HTMLGroup	Label="System Usage" 
+				Orientation="vertical" 
+				Style="background: silver; border: 1px black solid;">
+	
+	<HTMLValueMeter Label="Database Space"
+			 		Property="DatabaseSpace"
+			 		Link="%25CSP.UI.Portal.DatabaseFreespace.zen"
+			 		Width="350"
+			 		Detail="Indicates whether there is a reasonable amount of diskspace available for database files."
+			 		/>
+			 		
+	<HTMLValueMeter Label="Database Journal"
+			 		Property="DatabaseJournal"
+			 		Link="UtilSysJournals.csp"
+			 		Width="350"
+			 		Detail="Indicates the current status of the database journal."
+			 		/>
+			 		
+	<HTMLValueMeter Label="Journal Space"
+			 		Property="JournalSpace"
+			 		Link="UtilSysJournals.csp"
+			 		Width="350"
+			 		Detail="Indicates whether there is a reasonable amount of diskspace available for journal files."
+			 		/>
+
+	<HTMLValueMeter Label="Journal Entries"
+			 		Property="JournalEntries"
+			 		Link="UtilSysJournals.csp"
+			 		Width="350"
+			 		Detail="Number of entries written to the system journal."
+			 		/>
+
+	<HTMLValueMeter Label="Lock Table"
+			 		Property="LockTable"
+			 		Link="%25CSP.UI.Portal.Locks.zen"
+			 		Width="350"
+			 		Detail="Indicates the current status of the system Lock Table."
+		 		  	/>
+
+	<HTMLValueMeter Label="Write Daemon"
+			 		Property="WriteDaemon"
+			 		Width="350"
+			 		Detail="Indicates the current status of the system Write Daemon."
+		 		  	/>
+
+	<HTMLValueMeter Label="Transactions"
+			 		Property="Transactions"
+			 		Link="%25CSP.UI.Portal.Transactions.zen"
+			 		Width="350"
+			 		Detail="Indicates the current status of the system Transactions."
+		 		  	/>
+		 		  	
+	<HTMLValueMeter Label="Processes"
+			 		Property="Processes"
+			 		Link="%25CSP.UI.Portal.Processes.zen"
+			 		Width="350"
+			 		Detail="Most recent number of running processes."
+		 		  	/>
+		 		  			 		  	
+	<HTMLValueMeter Label="CSP Sessions"
+			 		Property="CSPSessions"
+			 		Link="%25CSP.UI.Portal.CSPSessions.zen"
+			 		Width="350"
+			 		Detail="Most recent number of CSP sessions."
+		 		  	/>
+
+	<HTMLTableMeter Label="Most Active Processes"
+			 		Property="BusyProcesses"
+			 		Link="%25CSP.UI.Portal.Processes.zen"
+			 		Width="350"
+			 		Rows="5"
+			 		ColumnNames="Process,Commands"
+			 		Detail="Running processes with highest amount of activity (number of commands executed)."
+		 		  	/>
+
+	</HTMLGroup>
+
+	</HTMLGroup>
+
+	<HTMLSpacer Width="20" />
+
+	<HTMLGroup	Orientation="vertical" >
+
+
+	<HTMLGroup	Label="Errors and Alerts" 
+				Orientation="vertical" 
+				Style="background: silver; border: 1px black solid;">
+
+	<HTMLValueMeter Label="Serious Alerts"
+			 		Property="SeriousAlerts"
+			 		Link="UtilSysConsoleLog.csp"
+			 		Width="300"
+			 		Detail="Number of serious alerts that have been raised."
+		 		  	/>
+
+	<HTMLValueMeter Label="Application Errors"
+			 		Property="ApplicationErrors"
+			 		Width="300"
+			 		Link="UtilSysAppErrorNamespaces.csp"
+			 		Detail="Number of application errors that have been logged."
+		 		  	/>
+	</HTMLGroup>
+
+	<HTMLSpacer Height="20" />
+
+	<HTMLGroup	Label="Licensing" 
+				Orientation="vertical" 
+				Style="background: silver; border: 1px black solid;">
+
+	<HTMLValueMeter Label="License Limit"
+			 		Property="LicenseLimit"
+			 		Link="%25CSP.UI.Portal.LicenseUsage.zen"
+			 		Width="300"
+			 		Detail="Maximum allowed license units for this system."
+		 		  	/>
+
+	<HTMLBarMeter 	Label="Current License Use"
+			 		Property="LicenseUse"
+			 		Link="%25CSP.UI.Portal.LicenseUsage.zen"
+			 		Width="300"
+			 		Detail="License usage as a percentage of available license units."
+		 		  	/>
+
+	<HTMLBarMeter Label="Highest License Use"
+			 		Property="LicenseUseHigh"
+			 		Link="%25CSP.UI.Portal.LicenseUsage.zen"
+			 		Width="300"
+			 		Detail="Highest license usage as a percentage of available license units."
+		 		  	/>
+	</HTMLGroup>
+
+	<HTMLSpacer Height="20" />
+
+ 	<HTMLGroup	Label="Task Manager" 
+				Orientation="vertical" 
+				Style="background: silver; border: 1px black solid;">
+
+	<HTMLTableMeter Label="Upcoming Tasks"
+			 		Property="UpcomingTasks"
+			 		Link="%25CSP.UI.Portal.TasksUpcoming.zen"
+			 		Rows="5"
+			 		ColumnNames="Task,Time,Status"
+			 		Width="300"
+			 		Detail="These are the next 5 tasks scheduled to run."
+			 		/>
+
+	</HTMLGroup>
+
+	</HTMLGroup>
+
+
+	</HTMLGroup>
+
+</Pane>
+
+</AutoPage>
+]]></CSP>
+
+
+<Class name="SYS.Monitor.DashboardSensors">
+<Description><![CDATA[
+Implements the Dashboard collector class for the base Cache Dashboard.
+<br><br>
+This class is used internally by InterSystems. You should not make direct use of it within your applications. There is no guarantee made about either the behavior or future operation of this class.]]></Description>
+<Hidden>1</Hidden>
+<IncludeCode>MONEXT,%syMonitor,%syPidtab,%sySt,%sySystem</IncludeCode>
+<Super>%SYS.Monitor.AbstractDashboard</Super>
+<TimeCreated>64140,71051.879981</TimeCreated>
+
+<Property name="LastReading">
+<Description>
+$ZH time of last reading</Description>
+<Type>%Integer</Type>
+</Property>
+
+<Property name="ElapsedSec">
+<Description>
+Elapsed seconds since LastReading at the start of GetSensors</Description>
+<Type>%Integer</Type>
+</Property>
+
+<Property name="PrevValue">
+<Description>
+Local array of previous values for calculating PerSec values: PrevValue(Sensor,Item)=Value</Description>
+<MultiDimensional>1</MultiDimensional>
+</Property>
+
+<Property name="CPU">
+<Description>
+Temp location for CPU of all demon processes</Description>
+<Internal>1</Internal>
+<MultiDimensional>1</MultiDimensional>
+</Property>
+
+<Property name="OpenTx">
+<Description>
+Temp storage for open transactions</Description>
+<Internal>1</Internal>
+<MultiDimensional>1</MultiDimensional>
+</Property>
+
+<Property name="ECPOpenTx">
+<Description>
+Temp storage for ECP open transactions</Description>
+<Internal>1</Internal>
+<MultiDimensional>1</MultiDimensional>
+</Property>
+
+<Method name="Start">
+<Description>
+Initialize all basic Cache Dashboard Sensors</Description>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	#; Performance
+	d ..CreateSensor("GloRefPerSec","","","",0,"",">","Global references, local databases (per second)")
+	d ..CreateSensor("GloRefRemPerSec","","","",0,"",">","Global references, remote databases (per second)")
+	d ..CreateSensor("GloUpdatePerSec","","","",0,"",">","Global updates, local SET and KILL (per second)")
+	d ..CreateSensor("GloUpdateRemPerSec","","","",0,"",">","Global updates, remote local SET and KILL (per second)")
+	d ..CreateSensor("PhysReadsPerSec","","","",0,"",">","Physical database block reads from disk (per second)")
+	d ..CreateSensor("LogReadsPerSec","","","",0,"",">","Logical reads (per second)")
+	d ..CreateSensor("PhysWritesPerSec","","","",0,"",">","Physical database block writes to disk (per second)")
+	;
+	d ..CreateSensor("RtnCallLocalPerSec","","","",0,"",">","Routine calls, local (per second)")
+	d ..CreateSensor("RtnCallRemotePerSec","","","",0,"",">","Routine calls, remote (per second)")
+	d ..CreateSensor("RtnCallMissPerSec","","","",0,"",">","Routines calls not found in memory (per second)")
+	d ..CreateSensor("RtnLoadPerSec","","","",0,"",">","Routines locally loaded from or saved to disk (per second)")
+	d ..CreateSensor("RtnLoadRemPerSec","","","",0,"",">","Routines remotely loaded from or saved to disk (per second)")
+	d ..CreateSensor("WIJWritesPerSec","","","",0,"",">","WIJ physical block writes (per second)")
+	d ..CreateSensor("ObjHitPerSec","","","",0,"",">","Object references, in process memory (per second)")
+	d ..CreateSensor("ObjMissPerSec","","","",0,"",">","Object references, in process memory (per second)")
+	d ..CreateSensor("ObjLoadPerSec","","","",0,"",">","Object loaded from disk, not in shared memory (per second)")
+	d ..CreateSensor("ObjNewPerSec","","","",0,"",">","Objects initialized (per second)")
+	d ..CreateSensor("ObjDelPerSec","","","",0,"",">","Objecta deleted (per second)")
+	;
+	d ..CreateSensor("JrnEntryPerSec","","","",0,"",">","Journal records created (per second)")
+	d ..CreateSensor("JrnBlockPerSec","","","",0,"",">","Journal blocks written to disk (per second)")
+	;
+	d ..CreateSensor("GloSeizePerSec","","","",0,"",">","Global resource seizes (per second)")
+	d ..CreateSensor("GloNSeizePerSec","","","",0,"",">","Global resource Nseizes (per second)")
+	d ..CreateSensor("GloASeizePerSec","","","",0,"",">","Global resource Aseizes (per second)")
+	;
+	d ..CreateSensor("RtnSeizePerSec","","","",0,"",">","Routine resource seizes (per second)")
+	d ..CreateSensor("RtnASeizePerSec","","","",0,"",">","Routine resource Aseizes (per second)")
+	;
+	d ..CreateSensor("ObjSeizePerSec","","","",0,"",">","Object resource seizes (per second)")
+	d ..CreateSensor("ObjASeizePerSec","","","",0,"",">","Object resource Aseizes (per second)")
+	/* Cache Efficiency: global references / (phys read + writes) expressed as a percentage */
+	d ..CreateSensor("CacheEfficiency","","","",0,"","<","Cache efficiency: global references / physical reads + writes (percentage)")
+	; ECP client
+	d ..CreateSensor("ECPConn","","","",0,"",">","Total active client connections on this ECP application server")
+	d ..CreateSensor("ECPConnMax","","","",0,"",">","Maximum active client connections from this ECP application server")
+	d ..CreateSensor("ECPConnPerSec","","","",0,"",">","Active client connections (per second) from this ECP application server")
+	d ..CreateSensor("ECPGloRefPerSec","","","",0,"",">","Database blocks added to cache (per second) on this ECP application server")
+	d ..CreateSensor("ECPBlockAddPerSec","","","",0,"",">","Database blocks added to cache (per second) on this ECP application server")
+	d ..CreateSensor("ECPBlockPurgeBuffPerSec","","","",0,"",">","Database blocks purged by buffer allocation (per second) on this ECP application server")
+	d ..CreateSensor("ECPBlockPurgeSvrPerSec","","","",0,"",">","Database blocks purged as requested  (per second) on this ECP data server")
+	d ..CreateSensor("ECPByteSentPerSec","","","",0,"",">","Bytes sent (per second) by this ECP application server")
+	d ..CreateSensor("ECPByteRcvdPerSec","","","",0,"",">","Bytes received (per second) by this ECP application server")
+	; ECP server
+	d ..CreateSensor("ECPSConn","","","",0,"",">","Total active client connections (per second) to this ECP data server")
+	d ..CreateSensor("ECPSConnMax","","","",0,"",">","Maximum active client connections to this ECP data server")
+	d ..CreateSensor("ECPSGloRefPerSec","","","",0,"",">","Global updates (per second) on this ECP data server")
+	d ..CreateSensor("ECPSGloUpdatePerSec","","","",0,"",">","Global references (per second) on this ECP data server")
+	d ..CreateSensor("ECPSReqRcvdPerSec","","","",0,"",">","Requests received (per second) by this ECP data server")
+	d ..CreateSensor("ECPSReqBuffPerSec","","","",0,"",">","Buffer requrests received (per second) by this ECP data server")
+	d ..CreateSensor("ECPSBlockSentPerSec","","","",0,"",">","Database blocks sent (per second) by this ECP data server")
+	d ..CreateSensor("ECPSLockGrantPerSec","","","",0,"",">","Locks granted (per second) on this ECP data server")
+	d ..CreateSensor("ECPSLockFailPerSec","","","",0,"",">","Locks failed (per second) on this ECP data server")
+	d ..CreateSensor("ECPSLockQue","","","",0,"",">","Current lock queue size on this ECP data server")
+	d ..CreateSensor("ECPSLockQueGrantPerSec","","","",0,"",">","Locks queue granted (per second) on this ECP data server")
+	d ..CreateSensor("ECPSLockQueFailPerSec","","","",0,"",">","Locks queue failed (per second) on this ECP data server")
+	d ..CreateSensor("ECPSByteSentPerSec","","","",0,"",">","Bytes sent (per second) by this ECP data server")
+	d ..CreateSensor("ECPSByteRcvdPerSec","","","",0,"",">","Bytes received (per second) by this ECP data server")
+	d ..CreateSensor("ECPSSvrBlockPurgePerSec","","","",0,"",">","Block purges (per second) on this ECP data server")
+	d ..CreateSensor("ECPSRoutinePurgePerSec","","","",0,"",">","Server routine purges (per second) on this ECP data server")
+	d ..CreateSensor("ECPSBigKillPerSec","","","",0,"",">","Big string kills (per second) on this ECP data server")
+	d ..CreateSensor("ECPSBigStringPerSec","","","",0,"",">","Big string data requrests received (per second) on this ECP data server")
+	; Shared Memory
+    d ..CreateSensor("SMHAvailable","","","",0,"bytes",">","Shared memory available (kilobytes) by purpose")
+    d ..CreateSensor("SMHUsed","","","",0,"bytes",">","Shared memory in use (kilobytes) by purpose")
+	d ..CreateSensor("SMHPercentFull","","","",1,"%",">","Shared memory in use (percentage of allocated) by purpose")
+	d ..CreateSensor("SMHTotal","","","",0,"bytes",">","Shared memory allocated (kilobytes) for current instance")
+	d ..CreateSensor("SMHTotalPercentFull","",98,85,1,"",">","Shared memory in use (percentage of allocated) for current instance")
+	d ..CreateSensor("SMHPercentFull","Lock Table",98,85,0,"",">","Shared memory in use (percentage of allocated) by the lock table")
+	; System Usage
+	d ..CreateSensor("MirrorJournalLatencyTime","",5000,3000,1,"ms",">","On a mirror's backup failover member,, time (in milliseconds) between receipt of the last journal file and when it was fully written to the journal directory")
+	d ..CreateSensor("MirrorDatabaseLatencyTime","",5000,3000,1,"ms",">","On a mirror's backup failover member, time (in milliseconds) between receipt of the last journal file and when it was fully dejournaled")
+	d ..CreateSensor("MirrorJournalLatencyFiles","","","",0,"",">","On a mirror's backup failover member, journal files received from the primary that are not yet written to the journal directory")
+	d ..CreateSensor("MirrorJournalLatencyBytes","","","",0,"bytes",">","On a mirror's backup failover member, bytes of journal data received from the primary that are not yet written to the journal directory")
+	d ..CreateSensor("MirrorDatabaseLatencyFiles","","","",0,"",">","On a mirror's backup failover member, journal files received from the primary that not yet fully dejournaled")
+	d ..CreateSensor("MirrorDatabaseLatencyBytes","","","",0,"bytes",">","On a mirror's backup failover member, bytes of journal data received from the primary that are not yet dejournaled")
+	d ..CreateSensor("ECPLatency","",5000,3000,1,"ms",">","Latency (in miliseconds) between the ECP application server and the ECP data server.")
+	d ..CreateSensor("ECPConnections","","","",0,"",">","Number of servers synchronized when this ECP application server synchronizes with its configured ECP data servers")
+	d ..CreateSensor("DirectorySpace","",50,250,0,"mb","<","Free space (in megabytes) available on the database directory's storage volume")
+	d ..CreateSensor("DiskPercentFull","",99,95,0,"%",">","Space in use (percentage) on the database directory's storage volume")
+	d ..CreateSensor("DBLatency","",3000,1000,1,"ms",">","Time to complete a random read from the database (miliseconds)")
+	d ..CreateSensor("DBReadsPerSec","","","",0,"",">","Reads (per second) from the database")
+	d ..CreateSensor("DBWritesPerSec","","","",0,"",">","Writes (per second) to the database")
+	d ..CreateSensor("ApplicationErrors","","","",0,"",">","Application error count for the current day")
+	d ..CreateSensor("JournalSize","","","",0,"kb",">","Current size (in kilobytes) of the journal file")
+	d ..CreateSensor("JournalSpace","",50,250,0,"mb","<","Free space (in megabytes) available on the journal directory's storage volume")
+	d ..CreateSensor("JournalGrowthRate","","","",0,"kbytes per second",">","Kilobytes added to the journal file (per second)")
+	d ..CreateSensor("CSPSessions","","","",0,"",">","")
+	d ..CreateSensor("CSPPrivateConnections","","","",0,"",">","")
+	d ..CreateSensor("CSPActualConnections","","","",0,"",">","")
+	d ..CreateSensor("CSPInUseConnections","","","",0,"",">","")
+	d ..CreateSensor("CSPActivity","","","",0,"",">","Requests (per minute) to the CSP gateway server")
+	d ..CreateSensor("CSPGatewayLatency","",2000,1000,1,"ms",">","Time (milliseconds) required to obtain a response from the CSP gateway server when fetching metrics represented by  CSP sensors")
+	d ..CreateSensor("ProcessCount","","","",0,"",">","Total number of active processes")
+	d ..CreateSensor("CPUPct","",90,50,1,"%",">","CPU usage (percentage) by process type")
+	d ..CreateSensor("ShadowConnectionsLatency","",2000,1000,1,"ms",">","Latency (miliseconds) between the shadow source and the shadow destination")
+	d ..CreateSensor("ShadowLatency","",2000,1000,1,"ms",">","Time (milliseconds) that shadow destination is behind source")
+	d ..CreateSensor("TransOpenCount","","","",0,"",">","Open transactions on the current instance")
+	d ..CreateSensor("TransOpenSecsMax","",1200,600,0,"s",">","Duration (seconds) of longest currently open  transaction on the current instance")
+	d ..CreateSensor("TransOpenSecsAvg","","","",0,"s",">","Average duration (seconds) of open  transactions on the current instance")
+	d ..CreateSensor("ECPTransOpenCount","","","",0,"",">","Open transactions on this ECP application server")
+	d ..CreateSensor("ECPTransOpenSecsMax","",1200,600,0,"s",">","Duration (seconds) of longest currently open  transaction on this ECP application server")
+	d ..CreateSensor("ECPTransOpenSecsAvg","","","",0,"s",">","Average duration (seconds) of open  transactions on this ECP application server")
+	d ..CreateSensor("LicenseAvailable","",1,5,0,"", "<","Licenses not in use")
+	d ..CreateSensor("LicenseConsumed","","","",0,"",">","Licenses in use")
+	d ..CreateSensor("LicensePercentUsed","",98,90,1,"%",">","Licenses in use (percentage)")
+	d ..CreateSensor("CPUusage","",85,75,1,"%",">","CPU usage (percentage) system-wide")
+	d ..CreateSensor("PhysMemPerCentUsed","",98,95,0,"",">","Physical memory (RAM) used (percentage)")
+	d ..CreateSensor("PageSpacePerCentUsed","",98,95,0,"",">","Page file space used (percentage of maximum allocated)")
+	; Write Demon
+	d ..CreateSensor("WDSleep","","","",0,"ms",">","Time (milliseconds) that  Write Daemon was inactive before most recent Write daemon cycle began")
+	d ..CreateSensor("WDWIJTime","","","",0,"ms",">","Time (milliseconds) Write daemon spent writing to WIJ file during most recent cycle")
+	d ..CreateSensor("WDWriteTime","","","",0,"ms",">","Time (milliseconds) Write daemon spent writing buffers to  databases during most recent cycle")
+	d ..CreateSensor("WDCycleTime","","","",0,"ms",">","Time (milliseconds) for most recent Write daemon cycle to complete")
+	d ..CreateSensor("WDSizeWrite","","","",0,"bytes",">","Size (kilobytes) of database buffers written during most recent Write daemon cycle")
+	d ..CreateSensor("WDBufferWrite","","","",0,"",">","Number of database buffers written during most recent Write daemon cycle")
+	d ..CreateSensor("WDBufferRedirty","","","",0,"",">","Number of database buffers written during most recent Write daemon cycle that were also written in prior cycle")
+	d ..CreateSensor("WDTempQueue","","","",0,"",">","In-memory buffers used at start of most recent Write daemon cycle")
+	d ..CreateSensor("WDTempWrite","","","",0,"",">","In-memory buffers written during most recent Write daemon cycle (typically none)")
+	d ..CreateSensor("WDProcInGlobal","","","",0,"",">","Number of processes actively holding global buffers at start of most recent Write daemon cycle")
+	d ..CreateSensor("WDSuspended","","","",0,"",">","Indicates WD is suspended.")
+	s ..State="OK"
+	Q $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetSensors">
+<Description>
+Fetch readings for all basic Cache Dashboard Sensors.
+Note that there's quite a bit of overlap with the SystemSensor class here. But we decided to 
+keep these separate because SystemSensor does not collect all Sensors at each sample interval.</Description>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s time=$p($zh,".",1),..ElapsedSec=(time-..LastReading),..LastReading=time
+	try {
+		d ..GetPerformance()
+		d ..GetMirrors()
+		d ..GetDBStats()
+		d ..GetCPU()
+		d ..GetCSPGateway()
+		d ..GetJournal()
+		d ..GetLicense()
+		d ..GetMemory()
+		d ..GetProcessCount()
+		d ..GetShadows()
+		d ..GetTrans()
+		d ..GetSharedMemory()
+		d ..GetWriteDemon()
+	} catch {
+		d ..LogMsg("Unexpected error collecting Dashboard Sensors: "_$ze)
+	}
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetPerformance">
+<Description>
+Set Sensors for performance metrics (mostly per second numbers) </Description>
+<Implementation><![CDATA[
+#; Resource seize definitions for $zu(162,3,res)
+#define GLORES	4
+#define ROURES	2
+#define OBJRES	14
+
+	#; get the new stats
+ 	s stats=$zu(190,6,1) ; glostat
+ 	d ..SetPerSec("GloRef",$p(stats,",",$$$GLOREF))
+ 	d ..SetPerSec("GloRefRem",$p(stats,",",$$$GLOREFCLI))
+ 	d ..SetPerSec("GloUpdate",$p(stats,",",$$$GLOSET))
+ 	d ..SetPerSec("GloUpdateRem",$p(stats,",",$$$GLOSETCLI))
+ 	d ..SetPerSec("PhysReads",$p(stats,",",$$$PHYRD))
+ 	d ..SetPerSec("LogReads",$p(stats,",",$$$LOGRD))
+ 	d ..SetPerSec("PhysWrites",$p(stats,",",$$$PHYWT))
+	/* Cache Efficiency: global references / (phys read + writes) */
+	s io = $p(stats,",",$$$PHYRD) + $p(stats,",",$$$PHYWT)
+	i (io) d ..SetSensor("CacheEfficiency",$p(stats,",",$$$GLOREF)/io)
+	e  d ..SetSensor("CacheEfficiency",$p(stats,",",$$$GLOREF)) 	
+	;
+ 	d ..SetPerSec("RtnCallLocal",$p(stats,",",$$$ROUREF))
+ 	d ..SetPerSec("RtnCallRemote",$p(stats,",",$$$ROUREFCLI))
+ 	d ..SetPerSec("RtnCallMiss",$p(stats,",",$$$ROUMISS))
+ 	d ..SetPerSec("RtnLoad",$p(stats,",",$$$GLOROU))
+ 	d ..SetPerSec("RtnLoadRem",$p(stats,",",$$$GLOROUCLI))
+ 	d ..SetPerSec("WIJWrites",$p(stats,",",$$$WIJWRITE))
+ 	d ..SetPerSec("ObjHit",$p(stats,",",$$$OBJHIT))
+ 	d ..SetPerSec("ObjMiss",$p(stats,",",$$$OBJMISS))
+ 	d ..SetPerSec("ObjLoad",$p(stats,",",$$$OBJLOAD))
+ 	d ..SetPerSec("ObjNew",$p(stats,",",$$$OBJNEW))
+ 	d ..SetPerSec("ObjDel",$p(stats,",",$$$OBJDEL))
+	;
+	s jrnbase=$ZU(40,2,94),xjwrites=0,xjents=1
+	d ..SetPerSec("JrnEntry",$V(xjents*4+jrnbase,-2,4))
+	d ..SetPerSec("JrnBlock",$V(xjwrites*4+jrnbase,-2,4))
+	;
+	s sz=$zu(162,3,$$$GLORES)
+ 	d ..SetPerSec("GloSeize",$p(sz,",",1))
+ 	d ..SetPerSec("GloNSeize",$p(sz,",",2))
+ 	d ..SetPerSec("GloASeize",$p(sz,",",3))
+	s sz=$zu(162,3,$$$ROURES)
+ 	d ..SetPerSec("RtnSeize",$p(sz,",",1))
+ 	d ..SetPerSec("RtnASeize",$p(sz,",",3))
+	s sz=$zu(162,3,$$$OBJRES)
+ 	d ..SetPerSec("ObjSeize",$p(sz,",",1))
+ 	d ..SetPerSec("ObjASeize",$p(sz,",",3))
+	; ECP client
+	s clicon=$System.ECP.NumClientConnections()
+	d ..SetSensor("ECPConn",clicon)
+	d ..SetSensor("ECPConnMax",$System.ECP.MaxClientConnections())
+	i clicon {
+		s stats=$System.ECP.GetProperty("ClientStats")
+		d ..SetPerSec("ECPGloRef",$p(stats,",",$$$ECPCGloRef))
+		d ..SetPerSec("ECPBlockAdd",$p(stats,",",$$$ECPCBlockAdd))
+		d ..SetPerSec("ECPBlockPurgeBuff",$p(stats,",",$$$ECPCBlockBuffPurge))
+		d ..SetPerSec("ECPBlockPurgeSvr",$p(stats,",",$$$ECPCBlockSvrPurge))
+		d ..SetPerSec("ECPByteSent",$p(stats,",",$$$ECPCByteSent))
+		d ..SetPerSec("ECPByteRcvd",$p(stats,",",$$$ECPCByteRcvd))
+	}
+	s t1=$zh,ecp=$system.ECP.Sync(),t2=$zh
+	d ..SetSensor("ECPLatency",$s(ecp:(t2-t1),1:0))
+	d ..SetSensor("ECPConnections",ecp)
+
+	; ECP server
+	s srvcon=$System.ECP.NumServerConnections()
+	d ..SetSensor("ECPSConn",srvcon)
+	d ..SetSensor("ECPSConnMax",$System.ECP.MaxServerConnections())
+	i srvcon {
+		s stats=$System.ECP.GetProperty("ServerStats")
+		d ..SetPerSec("ECPSGloRef",$p(stats,",",$$$ECPSGloRef))
+		d ..SetPerSec("ECPSGloUpdate",$p(stats,",",$$$ECPSGloUpdate))
+		d ..SetPerSec("ECPSReqRcvd",$p(stats,",",$$$ECPSReqRcvd))
+		d ..SetPerSec("ECPSReqBuff",$p(stats,",",$$$ECPSReqBuff))
+		d ..SetPerSec("ECPSBlockSent",$p(stats,",",$$$ECPSBlockSent))
+		d ..SetPerSec("ECPSLockGrant",$p(stats,",",$$$ECPSLockGrant))
+		d ..SetPerSec("ECPSLockFail",$p(stats,",",$$$ECPSLockFail))
+		d ..SetPerSec("ECPSLockQue",$p(stats,",",$$$ECPSLockQue))
+		d ..SetPerSec("ECPSLockQueGrant",$p(stats,",",$$$ECPSLockQueGrant))
+		d ..SetPerSec("ECPSLockQueFail",$p(stats,",",$$$ECPSLockQueFail))
+		d ..SetPerSec("ECPSByteSent",$p(stats,",",$$$ECPSByteSent))
+		d ..SetPerSec("ECPSByteRcvd",$p(stats,",",$$$ECPSByteRcvd))
+		d ..SetPerSec("ECPSSvrBlockPurge",$p(stats,",",$$$ECPSSvrBlockPurge))
+		d ..SetPerSec("ECPSRoutinePurge",$p(stats,",",$$$ECPSRoutinePurge))
+		d ..SetPerSec("ECPSBigKill",$p(stats,",",$$$ECPSBigKill))
+		d ..SetPerSec("ECPSBigString",$p(stats,",",$$$ECPSBigString))
+	}
+ 	Q $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="SetPerSec">
+<Description>
+Set calulated per second value for a Sensor. Uses the ElapsedSec property and PrevValue array.
+Appends "PerSec" to the Sensor name when calling SetSensor().</Description>
+<FormalSpec>Sensor:%String,Value:%String,Item:%String</FormalSpec>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+	s return=$$$OK
+	i $g(Item)="" s Item="-"
+	if $d(..PrevValue(Sensor,Item),prev),Value'<prev,..ElapsedSec {
+		s rate=(Value - ..PrevValue(Sensor,Item)) \ ..ElapsedSec
+		s return = ..SetSensor(Sensor_"PerSec",rate,Item)
+	}
+	s ..PrevValue(Sensor,Item)=Value
+	q return
+]]></Implementation>
+</Method>
+
+<Method name="GetMirrors">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	#; mirror backup and async members get mirror sensors
+	s names =$p($G(^SYS("MIRRORSET")),"^",2) Q:names=""
+	f i=1:1:$length(names,",") s Mirrors($p(names,",",i)) = ""
+	#; get the mirror states
+	s mirname = ""
+	f {
+		s mirname = $o(Mirrors(mirname)) q:mirname=""
+		s Mirrors(mirname) = $li($SYSTEM.Mirror.GetMemberStatus(mirname))
+	}
+	#; if backup/async, get stats
+	s mir = $SYSTEM.Mirror.GetInfo()
+	i (mir["BACKUP") {
+		#; the max size of a mirror journal file is 1GB. Thus for each journal file that we are behind,
+		#; the sensor will reflect this as .5GB behind the primary for the first journal file, then 1GB for further files.
+		s jrnlat = ##class(SYS.Mirror).DistanceFromPrimaryJournalFiles()
+		i jrnlat<0 {
+			d ..SetSensor("MirrorJournalLatencyFiles",jrnlat)
+			d ..SetSensor("MirrorJournalLatencyBytes",0)
+		} elseif jrnlat>1 {
+			d ..SetSensor("MirrorJournalLatencyFiles",0)
+			d ..SetSensor("MirrorJournalLatencyBytes",jrnlat)
+		}
+
+		s dblat = ##class(SYS.Mirror).DistanceFromPrimaryDatabases()
+		i dblat<0 {
+			d ..SetSensor("MirrorDatabaseLatencyFiles",-dblat)
+			d ..SetSensor("MirrorDatabaseLatencyBytes",0)
+		} elseif dblat>1 {
+			d ..SetSensor("MirrorDatabaseLatencyFiles",0)
+			d ..SetSensor("MirrorDatabaseLatencyBytes",dblat)
+		}
+
+		#; get latency times for every mirror (async has multiple mirrors)
+		s mirname = ""
+		f {
+			s mirname = $o(Mirrors(mirname)) q:mirname=""
+			s jrnlat = ##class(SYS.Mirror).JournalFilesLatency(mirname)
+			d ..SetSensor("MirrorJournalLatencyTime",$s(+jrnlat'<0:jrnlat,1:0),mirname)
+			s dblat = ##class(SYS.Mirror).DatabasesLatency(mirname)
+			d ..SetSensor("MirrorDatabaseLatencyTime",$s(+dblat'<0:dblat,1:0),mirname)
+		}
+	}
+	Q $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetDBStats">
+<Description>
+Latency and Reads/Writes</Description>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s date = $p($h,",")
+	s sfn = -1
+	#; do local DB first
+	f {
+		s finfo = $zu(49,sfn,1,5) q:finfo=-1
+		s sfn = +$p(finfo,"^",1)
+		s dir = $p(finfo,"^",3)
+		s db = $p($p(finfo,"^",4),"_",2)
+		i (db="DOCBOOK") || (db="SAMPLES") || (db="CACHELIB") || (db="CACHE") continue
+
+		#; get directory space
+		#; * size of free disk space available to the caller [Win/VMS], non-privileged users [Unix]
+		#; * size of total free disk space
+		#; * size of total disk space
+		#; * size of a block in bytes [Unix/VMS], or 1 on Windows.
+		s status = $zu(140,13,dir)
+		i +status<0 {
+			continue
+		} else {
+			s blocksize = $piece(status,",",4)
+			s total = $piece(status,",",3) * blocksize
+			s avail = $piece(status,",",2) * blocksize
+			d ..SetSensor("DirectorySpace",avail \ (1024*1024),dir)
+			s per=$FN(100-((avail/total)*100),"-",2)
+			d ..SetSensor("DiskPercentFull",per,dir)
+		}
+		try {
+			#; DB latency. Throws PROTECT error if DB not mounted.
+			s stat = $zu(76,dir)
+			d ..SetSensor("DBLatency",stat,dir)
+			#; DB Reads / Writes
+			s stat = $zu(190,6,3,sfn)
+			s reads = $p(stat,",",1), writes = $p(stat,",",2)
+			d ..SetPerSec("DBReads",reads,dir)
+			d ..SetPerSec("DBWrites",writes,dir)
+		} catch {
+			i ($ze["<DIRECTORY>") || ($ze["<PROTECT>")
+			continue
+		}
+	}
+	#; remote DB for Errors
+	s dserv=""
+	f i=0:1:$system.ECP.MaxClientConnections()-1 {
+		s x = $system.ECP.GetClientState(i)
+		i $p(x,"^",1)=5 s dserv($p(x,"^",2)) = $p(x,"^",3)
+	}
+	s sfn = -1
+	f {
+		s finfo = $zu(49,sfn,2,5) q:finfo=-1
+		s sfn = +$p(finfo,"^",1)
+		s sysnum = +$p(finfo,"^",2)
+		#; skip if never mounted.
+		continue:+sfn=$$$SFNUNDEF
+		s dir = $p(finfo,"^",3)
+		s sysdir = $g(dserv(sysnum),"") continue:sysdir=""
+		s ns="^"_sysdir_"^"_dir
+		s nscount=$g(^[ns]ERRORS(date),0)
+		d ..SetSensor("ApplicationErrors",nscount,ns)
+	}
+	Q $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetJournal">
+<Description>
+Get journal growth rate and number of journal files per minute.</Description>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s rset=##class(%Library.ResultSet).%New("%SYS.Journal.File:ByTimeReverseOrder")
+	d rset.Execute()
+	s JrnSize=0
+	while rset.Next() {
+		s JrnSize=JrnSize+rset.Data("Size")
+	}
+	d ..SetSensor("JournalSize",JrnSize \ 1024)
+	;journalling directories
+	s JournalDir = ##class(%SYS.Journal.System).GetPrimaryDirectory()
+	s JournalAltDir =  ##class(%SYS.Journal.System).GetAlternateDirectory()
+
+	#; Get journal data
+	d ##class(%Library.File).GetDirectorySpace(JournalDir,.j1free,.total,1)
+	s avail = j1free
+	// Try not to double count space. The journal directories must differ,
+	// and the amount of space (different directories could be on same device).
+	i JournalAltDir '= JournalDir {
+		d ##class(%Library.File).GetDirectorySpace(JournalAltDir,.j2free,.total,1)
+		i j1free '= j2free s avail =  avail + j2free
+	}
+	d ..SetSensor("JournalSpace",avail)
+	Q $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetShadows">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	#; Shadow Status and Latency
+	s rspec = ##class(%ResultSet).%New("SYS.Shadowing.Shadow:Progress")
+	d rspec.Execute()
+	While rspec.Next() {
+		s name=rspec.Data("Name")
+		s stat = rspec.Data("Latency")
+		d ..SetSensor("ShadowLatency",stat,name)
+	}
+	
+	#; Shadow error information
+	if (##class(Security.Services).Exists($$$ServiceShadow,.ref)) && ref.Enabled {
+		s rspec = ##class(%ResultSet).%New("SYS.Shadowing.DataSource:Connections")
+		d rspec.Execute()
+		While rspec.Next() {
+			s shadowIP=rspec.Data("Shadow IP")
+			s stat = rspec.Data("Latency")
+			d ..SetSensor("ShadowConnectionsLatency",stat,shadowIP)
+		}
+	}
+	Q $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetLicense">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	#; License usage exceeding a high water mark percentage of license capacity)
+	s avail = $SYSTEM.License.LUAvailable()
+	s used = $SYSTEM.License.LUConsumed()
+	i '(avail+used) {
+		Q $$$OK
+	}
+	d ..SetSensor("LicenseAvailable",avail)
+	d ..SetSensor("LicenseConsumed",used)
+	s per = $NORMALIZE(100-((avail/(avail+used))*100),0)
+	d ..SetSensor("LicensePercentUsed",per)
+	Q $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetCPU">
+<Description>
+CPU Utilization for ECP and daemons</Description>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	#; list of job types to look for
+	k JobName
+	s JobName($$$ECPWorker)="ECPWorker"
+	s JobName($$$ECPCliR)="ECPCliR"
+	s JobName($$$ECPCliW)="ECPCliW"
+	s JobName($$$ECPSrvR)="ECPSrvR"
+	s JobName($$$ECPSrvW)="ECPSrvW"
+	s JobName($$$LICENSESRV)="LICENSESRV"
+	s JobName($$$SLWDTYPE)="WDSLAVE"
+	s JobName($$$WDTYPE)="WRTDMN"
+	s JobName($$$JDTYPE)="JRNDMN"
+	s JobName($$$GCTYPE)="GARCOL"
+	s JobName($$$CSPDMNTYPE)="CSPDMN"
+	s JobName($$$CSPSRV)="CSPSRV"
+	s JobName($$$ODBCSRV)="ODBCSRV"
+	s JobName($$$MIRRORMASTER)="MirrorMaster"
+	s JobName($$$MIRRORPRIMARY)="MirrorPri"
+	s JobName($$$MIRRORBACKUP)="MirrorBack"
+	s JobName($$$MIRRORPREFETCH)="MirrorPre"
+	s JobName($$$MIRRORSVRRDDMN)="MirrorSvrR"
+	s JobName($$$MIRRORJRNREAD)="MirrorJrnR"
+	s JobName($$$MIRRORSETKILL)="MirrorSK"
+	s JobName($$$MIRRORCOMM)="MirrorComm"
+	#; Go over processes and gather CPU by process type / process id
+	#; CPU usage is kept for process id's of jobs that are in jobserver list
+	#; Most daemons are stable, but some come and go with load, e.g., ECP. Thus we check all processes on every iteration.
+	#; step 1. Gather data
+	f i=1:1:($$$STmaxpid-1) {
+		s jobtype=$zu(61,10,i) continue:'jobtype
+		i $d(JobName(jobtype)) {
+			#; gather CPU stats
+			Set pid=$zu(61,17,i)
+			s pidlist(pid) = ""
+			s curcpu = $zu(190,19,pid)
+			s jtype = $o(..CPU(pid,""))
+			i jtype'=jobtype {
+				k ..CPU(pid)
+				s ..CPU(pid,jobtype) = curcpu
+			} else {
+				s usage = (curcpu - ..CPU(pid,jobtype))
+				s ..CPU(pid,jobtype) = curcpu
+				s pct = usage \ (..ElapsedSec * 10)
+				#; Mean = Mean + ((Value-Mean)/Count)
+				s count = $g(jobpct(jobtype,"C"),0) + 1
+				s jobpct(jobtype,"C") = count
+				i count=1 {
+					s jobpct(jobtype) = pct
+				} else {
+					s mean = jobpct(jobtype)
+					s jobpct(jobtype) = mean + ((pct-mean)/count)
+				}
+			}
+		}
+	}
+	#; step 2. post results
+	s jobtype=""
+	f {
+		s jobtype = $o(jobpct(jobtype),1,pct) q:jobtype=""
+		d ..SetSensor("CPUPct",pct,JobName(jobtype))
+	}
+	#; step 3. remove pids no longer of jobtype
+	s pid=""
+	f {
+		s pid = $o(..CPU(pid)) q:pid=""
+		i '$d(pidlist(pid)) k ..CPU(pid)
+	}
+	#; system cpu.
+	s cpustr = $zu(190,15)
+	s usage = $p(cpustr,",",1) + $p(cpustr,",",2)
+	i usage>101 s usage = 0
+	d ..SetSensor("CPUusage",usage)
+	Q $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetProcessCount">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s JobNumber=1, pcount=0
+	f  {
+		s PID=$zu(61,17,JobNumber)
+		i PID'=0 {
+			s pcount=pcount+1 
+		}
+		s JobNumber=JobNumber+1 Q:JobNumber>$$$STmaxpid
+	}
+	d ..SetSensor("ProcessCount",pcount)
+	q $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetMemory">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	#; get memory stats: total Physical, available Physical, total Page space, available Page space
+	s memstats = $zu(190,18)
+	i +memstats=-1 {
+		Q $$$OK
+	}
+	s tPhys = +$p(memstats,",",1)
+	s aPhys = +$p(memstats,",",2)
+	s tPage = +$p(memstats,",",3)
+	s aPage = +$p(memstats,",",4)
+
+	#; check outputs for 0
+	i 'tPhys Q $$$OK
+	s Physpc = (tPhys-aPhys)*100\tPhys
+	i 'tPage {
+		s Pagepc = 100
+	} else {
+		s Pagepc = (tPage-aPage)*100\tPage
+	}
+	d ..SetSensor("PhysMemPerCentUsed",Physpc)
+	d ..SetSensor("PageSpacePerCentUsed",Pagepc)
+
+	Q $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetCSPGateway">
+<Description><![CDATA[
+CSPGateway sensors have the qualifier: <gateway ip>:<gateway port>. For example, "192.12.12.1:33".]]></Description>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+ try {
+	#; CSP Gateway. Note that gateway sets external interrupts, so turn off at the end
+	s GWRegistry = $system.CSP.GetGatewayRegistry()
+	s GWList = GWRegistry.GetGatewayMgrs()
+
+	f i=1:1:GWList.Count() {
+		s gateway = GWList.GetAt(i)
+		i gateway.Port="" continue
+		s GatewayName = gateway.IPAddress_":"_gateway.Port
+		s gw(GatewayName) = ""
+		k metrics
+
+		s starttime = $zh
+		s sc = gateway.GetSystemMetrics(.metrics)
+		s latency = ($zh - starttime) * 1000
+		i $d(metrics("Activity")) d ..SetSensor("CSPGatewayLatency",latency,GatewayName)
+		d ..SetSensor("CSPActivity",$Get(metrics("Activity"))+0,GatewayName) 
+		d ..SetSensor("CSPActualConnections",$Get(metrics("ActualConnections"))+0,GatewayName)
+		d ..SetSensor("CSPInUseConnections",$Get(metrics("InUseConnections"))+0,GatewayName)
+		d ..SetSensor("CSPPrivateConnections",$Get(metrics("PrivateConnections"))+0,GatewayName)
+		k gateway
+	}
+	k GWList, GWRegistry
+	#; CSP sessions
+ 	s i=0 f csp=0:1  s i=$o(^%cspSession(i)) q:i=""
+	d ..SetSensor("CSPSessions",csp)
+ } catch {
+	;ignore errors such as external interrupts
+ }
+ d $System.Util.SetInterruptEnable(0)
+ Q $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetTrans">
+<Description><![CDATA[
+Get transaction info
+Return number of open transactions, average time open, average size as statistics,<p>
+Return all size > 100MB and longer than 12 hours as metrics.]]></Description>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s jnum = 0, maxtime = 0, TransOpenSecs = 0, TransOpenCount = 0
+	f {
+		s txinfo = $zu(34,25,jnum) Q:'+txinfo
+		s jnum = $p(txinfo,",",1)
+		s pid = $p(txinfo,",",2)
+		s jrnoff = $p(txinfo,",",3)
+		s jrncnt = $p(txinfo,",",4)
+		s pidlist(pid)=""
+		i '$d(..OpenTx(pid)) {
+			#; not seen before
+			s time = ..ElapsedSec \ 2
+			s ..OpenTx(pid) = time
+			s ..OpenTx(pid,1) = jrncnt
+			s ..OpenTx(pid,2) = jrnoff
+		} else {
+			#; if same tx, add seconds, else reinit
+			i (..OpenTx(pid,1) = jrncnt) && (..OpenTx(pid,2) = jrnoff) {
+				s time = ..OpenTx(pid) + ..ElapsedSec
+				s ..OpenTx(pid) = time
+			} else {
+				#; started a new tx
+				s time = ..ElapsedSec \ 2
+				s ..OpenTx(pid) = time
+				s ..OpenTx(pid,1) = jrncnt
+				s ..OpenTx(pid,2) = jrnoff
+			}
+		}
+		i time>maxtime s maxtime = time
+		s TransOpenSecs = TransOpenSecs + time
+		s TransOpenCount = TransOpenCount + 1
+	}
+	d ..SetSensor("TransOpenSecsMax",maxtime)
+	d ..SetSensor("TransOpenSecs",TransOpenSecs)
+	d ..SetSensor("TransOpenCount",TransOpenCount)
+	
+	i TransOpenCount {
+		#; go thru our last list and remove pids with no tx or that no longer exist
+		s pid = ""
+		f {
+			s pid = $o(..OpenTx(pid)) q:pid=""
+			i '$d(pidlist(pid)) k ..OpenTx(pid)
+		}
+	} else {
+		#; there are no open local tx
+		k ..OpenTx
+	}
+	#; ECP Server Tx
+	s txinfo = $zu(34,24)
+	i txinfo="" {
+		#; there are no ECP tx open
+		k ..ECPOpenTx
+		Q
+	}
+	s jnum = 0, maxtime = 0, ECPTransOpenSecs = 0, ECPTransOpenCount = 0
+	f {
+		s txinfo = $zu(34,25,jnum) Q:'+txinfo
+		s jnum = $p(txinfo,",",1)
+		s pid = $p(txinfo,",",2)
+		s jrnoff = $p(txinfo,",",3)
+		s jrncnt = $p(txinfo,",",4)
+		s pidlist(pid)=""
+		i '$d(..ECPOpenTx(pid)) {
+			#; not seen before
+			s time = ..ElapsedSec \ 2
+			s ..ECPOpenTx(pid) = time
+			s ..ECPOpenTx(pid,1) = jrncnt
+			s ..ECPOpenTx(pid,2) = jrnoff
+		} else {
+			#; if same tx, add seconds, else reinit
+			i (..ECPOpenTx(pid,1) = jrncnt) && (..ECPOpenTx(pid,2) = jrnoff) {
+				s time = ..ECPOpenTx(pid) + ..ElapsedSec
+				s ..ECPOpenTx(pid) = time
+			} else {
+				#; started a new tx
+				s time = ..ElapsedSec \ 2
+				s ..ECPOpenTx(pid) = time
+				s ..ECPOpenTx(pid,1) = jrncnt
+				s ..ECPOpenTx(pid,2) = jrnoff
+			}
+		}
+		i time>maxtime s maxtime = time
+		s ECPTransOpenSecs = ECPTransOpenSecs + time
+		s ECPTransOpenCount = ECPTransOpenCount + 1
+	}
+	d ..SetSensor("ECPTransOpenSecsMax",maxtime)
+	d ..SetSensor("ECPTransOpenSecs",ECPTransOpenSecs)
+	d ..SetSensor("ECPTransOpenCount",ECPTransOpenCount)
+	i ECPTransOpenCount {
+		#; go thru our last list and remove pids with no tx or that no longer exist
+		s pid = ""
+		f {
+			s pid = $o(..ECPOpenTx(pid)) q:pid=""
+			i '$d(pidlist(pid)) k ..ECPOpenTx(pid)
+		}
+	} else {
+		#; there are no open local tx
+		k ..ECPOpenTx
+	}
+	Q $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetSharedMemory">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    s Rset=##class(%ResultSet).%New("%SYSTEM.Config.SharedMemoryHeap:UsageQuery")
+    s Status=Rset.Execute(-1) i $$$ISERR(Status) Quit Status
+    While (Rset.Next()) {
+        s ConsumerName = Rset.GetData(1)				// Description of the consumer.
+        s alloc = Rset.GetData(2)
+        i 'alloc continue
+        s avail=Rset.GetData(3),used=Rset.GetData(4)
+        d ..SetSensor("SMHAvailable",avail,ConsumerName)	// Amount of SM Heap data available for this consumer
+        d ..SetSensor("SMHUsed",used,ConsumerName)			// Amount of SM Heap data used by this consumer
+        i used'=alloc {
+			s per = $NORMALIZE((used/alloc)*100,0)
+			d ..SetSensor("SMHPercentFull",per,ConsumerName)
+        } 
+    }
+	s sum = $system.Config.SharedMemoryHeap.GetUsageSummary()
+	s memused=$p(sum,",",1)
+	s totsmh=$p(sum,",",3)
+	d ..SetSensor("SMHTotal",totsmh)
+	s per = $NORMALIZE((memused/totsmh)*100,0)
+	d ..SetSensor("SMHTotalPercentFull",per)
+ 	Q $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetWriteDemon">
+<Description>
+Get Write Demon sensors</Description>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+#if 0	
+///	$Pieces for $zu(190,13,1) are:
+///	1     2         3       4         5         6         7         8     9      10     11        12     13      14
+///	index,starttime,wijtime,writetime,cycletime,sizewrite,buffwrite,qsize,qwrite,ijucnt,wdredirty,status,endtime,sleeptime
+#endif
+	#; check WD
+	#; if WD suspended for backup just quit
+	i $zu(182,0) q
+	s hist=$zu(190,13,1),count=$l(hist,";")-2
+	s (Sleep,WIJTime,WriteTime,CycleTime,SizeWrite,BufferWrite,BufferRedirty,TempQueue,TempWrite,ProcInGlobal) = 0
+	; loop thru cycles to get averages for sample
+	f c=1:1:count {
+		s cycle=$p(hist,";",c)
+		s WIJTime = WIJTime + $p(cycle,",",3)
+		s WriteTime = WriteTime + $p(cycle,",",4)
+		s CycleTime = CycleTime + $p(cycle,",",5)
+		s SizeWrite = SizeWrite + $p(cycle,",",6)
+		s BufferWrite = BufferWrite + $p(cycle,",",7)
+		s TempQueue = TempQueue + $p(cycle,",",8)
+		s TempWrite = TempWrite + $p(cycle,",",9)
+		s ProcInGlobal = ProcInGlobal + $p(cycle,",",10)
+		s BufferRedirty = BufferRedirty + $p(cycle,",",11)
+		s Sleep = Sleep + $p(cycle,",",14)
+	}
+	#; set sensors
+	d ..SetSensor("WDSleep",(Sleep \ count))
+	d ..SetSensor("WDWIJTime",(WIJTime \ count))
+	d ..SetSensor("WDWriteTime",(WriteTime \ count))
+	d ..SetSensor("WDCycleTime",(CycleTime \ count))
+	d ..SetSensor("WDSizeWrite",(SizeWrite \ count))
+	d ..SetSensor("WDBufferWrite",(BufferWrite \ count))
+	d ..SetSensor("WDBufferRedirty",(BufferRedirty \ count))
+	d ..SetSensor("WDTempQueue",(TempQueue \ count))
+	d ..SetSensor("WDTempWrite",(TempWrite \ count))
+	d ..SetSensor("WDProcInGlobal",(ProcInGlobal \ count))
+ 	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="CreateWebApp">
+<Description>
+Create CSP Web App necessary for the Dashboard page.
+This should be called if the SYS.Monitor.DashboardSensors class gets registered</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s sc=$$$OK
+	i '##class(Security.Applications).%ExistsId("/api/dashboard") {
+		s app=##class(Security.Applications).%New()
+		s app.Name="/api/dashboard",app.Description="System Monitor Dashboard REST API"
+		s app.NameSpace="%SYS",app.DispatchClass="%Api.Dashboard",app.Timeout=3600
+		#; create with same authentication as the MP Operations app
+		i ##class(Security.Applications).Exists("/csp/sys/op",.op) {
+			s app.AutheEnabled=op.AutheEnabled
+		}
+		s sc=app.%Save()
+	}
+	s ^SYS("Security","CSP","AllowClass","/api/dashboard/","%Api.Dashboard")=1
+	q sc
+]]></Implementation>
+</Method>
+
+<Method name="ExportSupport">
+<Description>
+Export all necessary support classes, routine and CSP pages for Dashboard add-on installation</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[file:%String="DashboardSupport.xml",&errors:%String]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	k list
+	#; build list of needed components, and path to sources
+	s list("%SYS.Monitor.AbstractSensor.CLS")="SYS/Monitor/AbstractSensor.xml"
+	s list("%SYS.Monitor.ComponentClass.CLS")="SYS/Monitor/ComponentClass.xml"
+	s list("%SYS.Monitor.Control.CLS")="SYS/Monitor/Control.xml"
+	s list("%SYS.Monitor.CLS")="SYS/Monitor.xml"
+	s list("%SYS.Monitor.AbstractDashboard.CLS")="SYS/Monitor/AbstractDashboard.xml"
+	s list("%SYS.Monitor.Sensor.CLS")="SYS/Monitor/Sensor.xml"
+	s list("%SYS.Monitor.Reading.CLS")="SYS/Monitor/Reading.xml"
+	s list("SYS.Monitor.DashboardSensors.CLS")="SYS/Monitor/DashboardSensors.xml"
+	s list("%Dashboard.REST.CLS")="Dashboard/REST.xml"
+	s list("%Api.Dashboard.CLS")="Api/Dashboard.xml"
+	s list("%Api.Dashboard.v3.CLS")="Api/Dashboard/v3.xml"
+	s list("%SYSMONMGR.MAC")="sysconfig/_sysmonmgr.mac"
+	s list("/csp/sys/op/UtilDashboard.CSP")=""
+	s list("/csp/sys/dashboard/Dashboard.CSP")=""
+	#; see if we can get the latest version
+	s sources=$get(^%SYS("SourceRoot","%SYS"),$get(^%SYS("SourceRoot")))
+	i sources'="" {
+		s code=""
+		f  {
+			s code=$o(list(code),1,src) q:code=""
+			s type=$case($p(code,".",*),"CLS":"cls","MAC":"rtn","CSP":"csp")
+			#; CSP should pull the file directly from Perforce if we've done ^build
+			i type="csp" continue
+			s path=sources_"databases/sys/"_type_"/"_src
+			s sc=$System.OBJ.Load(path,"ck")
+			q:$$$ISERR(sc)
+		}
+	}
+	i $$$ISOK(sc) s sc=$System.OBJ.Export(.list,file,"",.errors)
+	q sc
+]]></Implementation>
+</Method>
+</Class>
+</Export>

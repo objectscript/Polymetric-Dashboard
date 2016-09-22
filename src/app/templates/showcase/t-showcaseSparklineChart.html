@@ -1,0 +1,179 @@
+<div layout="row" layout-align="left center" flex="100" class="md-padding">
+  <h2 class="md-display-1 no-margin">Sparkline Chart</h2>
+</div>
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - DEMO - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<div>
+  <smp-expando open="true" target="showcaseLineDemo">
+    <div smp-expando-toggle layout="row" layout-align="left center" flex="100" class="white-text primary-hue1-fill md-padding doesAction" md-whiteframe="2">
+      <h2 class="md-headline no-margin">Demo</h2>
+    </div>
+    <div smp-expando-content="showcaseLineDemo">
+      <div class="contentContainer">
+        <div layout="column" flex="100">
+          <div>
+            <smp-nvd3-chart
+              type="sparklineChart"
+              id="showcase-sparklineChart"
+              namespace="{{scSparklineChart.namespace}}"
+              sensor="{{scSparklineChart.sensor}}"
+              item="{{scSparklineChart.item}}"
+              units="{{scSparklineChart.unit}}"
+              height="48"
+            />
+          </div>
+        </div>
+
+        <div layout="row" layout-wrap flex="100" layout-align="center center" layout-margin>
+          <!-- Namespace Select for Widget -->
+          <div flex="30">
+            <md-input-container flex="90" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
+              <label style="padding-bottom:0">Widget Namespace</label>
+              <md-select
+                ng-model="scSparklineChart.namespace"
+                ng-change="scSparklineChart.sensor = ''; scSparklineChart.item = ''"
+                class="white-fill"
+                md-whiteframe="1"
+                aria-label="showcase line chart namespace select"
+                style="display: block; padding-top: 0;">
+                <md-option ng-repeat="(namespace, sensors) in scSparklineChart.sensors" value="{{namespace}}" >
+                  {{namespace}}
+                </md-option>
+              </md-select>
+            </md-input-container>
+          </div>
+
+          <!-- Sensor Select for Widget -->
+          <div flex="30">
+            <md-input-container flex="90" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
+              <label style="padding-bottom:0">Widget Sensor</label>
+              <md-select
+                ng-disabled="!scSparklineChart.namespace"
+                ng-model="scSparklineChart.sensor"
+                ng-change="scSparklineChart.item = ''"
+                class="white-fill"
+                md-whiteframe="1"
+                aria-label="showcase line chart sensor select"
+                style="display: block; padding-top: 0;">
+                <md-option ng-repeat="(sensor, props) in scSparklineChart.sensors[scSparklineChart.namespace]" value="{{sensor}}" >
+                  {{sensor}}
+                </md-option>
+              </md-select>
+            </md-input-container>
+          </div>
+
+          <!-- Item Select for Widget -->
+          <div flex="30">
+            <md-input-container flex="90" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
+              <label style="padding-bottom:0">Widget Item</label>
+              <md-select
+                ng-disabled="!scSparklineChart.sensor || !scSparklineChart.namespace"
+                ng-model="scSparklineChart.item"
+                class="white-fill"
+                md-whiteframe="1"
+                aria-label="showcase line chart item select"
+                style="display: block; padding-top: 0;">
+                <md-option ng-repeat="item in scSparklineChart.sensors[scSparklineChart.namespace][scSparklineChart.sensor].items" value="{{item}}">
+                  {{item}}
+                </md-option>
+              </md-select>
+            </md-input-container>
+          </div>
+
+          <div layout="row" layout-align="center center" flex="auto">
+            <md-button aria-label="Apply" ng-click="scSparklineChart.update()" class="md-raised primary-fill white-text">Apply</md-button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </smp-expando>
+</div>
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - HTML - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<div>
+  <smp-expando open="true" target="showcaseLineHtml">
+    <div smp-expando-toggle layout="row" layout-align="left center" flex="100" class="white-text primary-hue1-fill md-padding doesAction" md-whiteframe="2">
+      <h2 class="md-headline no-margin">HTML</h2>
+    </div>
+
+    <div smp-expando-content="showcaseLineHtml" md-whiteframe="2">
+      <div class="contentContainer">
+        <div layout="row" layout-align="left center" flex="100"  class="smp-code">
+<pre>
+  <code class="smp-text">
+    <span class="smp-punct">&lt;</span><span class="smp-elem">div</span><span class="smp-punct">&gt;</span>
+      <span class="smp-punct">&lt;</span><span class="smp-elem">smp-nvd3-chart</span>
+        <span class="smp-attr">id</span> <span class="smp-punct">=</span> <span class="smp-str">"showcase-sparklineChart"</span>
+        <span class="smp-attr">type</span> <span class="smp-punct">=</span> <span class="smp-str">"sparklineChart"</span>
+        <span class="smp-attr">namespace</span> <span class="smp-punct">=</span> <span class="smp-str">"{{scSparklineChart.namespace}}"</span>
+        <span class="smp-attr">sensor</span> <span class="smp-punct">=</span> <span class="smp-str">"{{scSparklineChart.sensor}}"</span>
+        <span class="smp-attr">item</span> <span class="smp-punct">=</span> <span class="smp-str">"{{scSparklineChart.item}}"</span>
+        <span class="smp-attr">units</span> <span class="smp-punct">=</span> <span class="smp-str">"{{scSparklineChart.unit}}"</span>
+        <span class="smp-attr">height</span> <span class="smp-punct">=</span> <span class="smp-str">"125"</span>
+      <span class="smp-punct">&gt; &lt;/</span><span class="smp-elem">smp-nvd3-chart</span><span class="smp-punct">&gt;</span>
+    <span class="smp-punct">&lt;/</span><span class="smp-elem">div</span><span class="smp-punct">&gt;</span>
+  </code>
+</pre>
+        </div>
+      </div>
+    </div>
+  </smp-expando>
+</div>
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - USE - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<div>
+  <smp-expando open="true" target="showcaseLineUse" elevation="2">
+    <div smp-expando-toggle layout="row" layout-align="left center" flex="100" class="white-text primary-hue1-fill md-padding doesAction" md-whiteframe="2">
+      <h2 class="md-headline no-margin">Options</h2>
+    </div>
+    <div smp-expando-content="showcaseLineUse" class="white-fill" md-whiteframe="2">
+      <div class="contentContainer">
+        <div layout="column" flex="100" class="">
+          <md-list>
+            <md-subheader class="md-no-sticky accent-text">Required</md-subheader>
+            <md-list-item layout="row" class="md-offset">
+              <p layout="row" flex="100">
+                <span flex="15" style="font-weight:bold;" class="md-subhead">Attribute</span>
+                <span flex="10" style="font-weight:bold;" class="md-subhead">Type</span>
+                <span flex="" style="font-weight:bold;" class="md-subhead">Description</span>
+                <span flex="10" style="font-weight:bold;" class="md-subhead">Default</span>
+              </p>
+            </md-list-item>
+            <md-list-item layout="row" class="md-offset" ng-repeat="attr in scSparklineChart.sparklineChartAttributes.Required">
+              <p layout="row" flex="100">
+                <span flex="15" class="md-body-1">{{attr.attr}}</span>
+                <span flex="10" class="md-body-1">{{attr.type}}</span>
+                <span flex="" class="md-body-1">{{attr.desc}}</span>
+                <span flex="10" class="md-body-1">{{attr.default}}</span>
+              </p>
+            </md-list-item>
+            <md-divider></md-divider>
+
+            <md-subheader class="md-no-sticky">Optional</md-subheader>
+            <md-list-item layout="row" class="md-offset">
+              <p layout="row" flex="100">
+                <span flex="15" style="font-weight:bold;" class="md-subhead">Attribute</span>
+                <span flex="10" style="font-weight:bold;" class="md-subhead">Type</span>
+                <span flex="" style="font-weight:bold;" class="md-subhead">Description</span>
+                <span flex="10" style="font-weight:bold;" class="md-subhead">Default</span>
+              </p>
+            </md-list-item>
+            <md-list-item layout="row" class="md-offset" ng-repeat="attr in scSparklineChart.sparklineChartAttributes.Optional">
+              <p layout="row" flex="100">
+                <span flex="15" class="md-body-1">{{attr.attr}}</span>
+                <span flex="10" class="md-body-1">{{attr.type}}</span>
+                <span flex="" class="md-body-1">{{attr.desc}}</span>
+                <span flex="10" class="md-body-1">{{attr.default}}</span>
+              </p>
+            </md-list-item>
+
+          </md-list>
+        </div>
+      </div>
+    </div>
+  </smp-expando>
+</div>

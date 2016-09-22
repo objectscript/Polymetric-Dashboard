@@ -1,0 +1,30 @@
+<!-- Div that all the widgets will be placed in (this is set up in the controller using Gridstack)-->
+<div class="grid-stack performance-stack"></div>
+
+<!-- Template Defining the layout of the widgets shown on the performance tab-->
+<script type="text/ng-template" id="performanceWidget">
+  <div>
+    <div flex="100" class="grid-stack-item-content hideOverflow" md-whiteframe="1" layout-padding>
+      <!--  Title for the chart -->
+      <div flex="100" layout="row" class="no-padding" layout-align="center center">
+        <!--  performance.widgets[_].title uses [_] (invalid js) because the template is rendered programatically by the Performance Controller c-performance.js
+        where a array holds all the the sensor data and [_] is replaced with the correct index when added to the DOM
+        -->
+        <h4 class="md-title no-margin blend-text doesAction">
+          {{performance.widgets[_].title}}
+          <smp-metadata namespace="{{performance.widgets[_].namespace}}" sensor="{{performance.widgets[_].sensor}}" item="{{performance.widgets[_].item}}"></smp-metadata>
+        </h4>
+      </div>
+      <div flex="100" layout="row" layout-wrap class="no-padding">
+        <smp-nvd3-chart
+          type="lineChart"
+          id="performance-{{performance.widgets[_].id}}"
+          namespace="{{performance.widgets[_].namespace}}"
+          sensor="{{performance.widgets[_].sensor}}"
+          item="{{performance.widgets[_].item}}"
+          unit="{{performance.widgets[_].unit}}"
+        ></smp-nvd3-chart>
+      </div>
+    </div>
+  </div>
+</script>

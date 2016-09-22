@@ -1,0 +1,30 @@
+<!--  Application server widget grid -->
+<div class="grid-stack ecp-data-stack"></div>
+
+<!-- Template Defining the layout of the widgets shown on the ecpData tab-->
+<script type="text/ng-template" id="ecpDataWidget">
+  <div>
+    <div flex="100" class="grid-stack-item-content hideOverflow" md-whiteframe="1" layout-padding>
+      <!--  Title for the chart -->
+      <div flex="100" layout="row" class="no-padding" layout-align="center center">
+        <!--  ecpData.widgets[_].title uses [_] (invalid js) because the template is rendered programatically by the ecpData Controller c-ecp-data.js
+        where a array holds all the the sensor data and [_] is replaced with the correct index when added to the DOM
+        -->
+        <h4 class="md-title no-margin blend-text doesAction">
+          {{ecpData.widgets[_].title}}
+          <smp-metadata namespace="{{ecpData.widgets[_].namespace}}" sensor="{{ecpData.widgets[_].sensor}}" item="{{ecpData.widgets[_].item}}"></smp-metadata>
+        </h4>
+      </div>
+      <div flex="100" layout="row" layout-wrap class="no-padding">
+        <smp-nvd3-chart
+          type="lineChart"
+          id="ecpData-{{ecpData.widgets[_].id}}"
+          namespace="{{ecpData.widgets[_].namespace}}"
+          sensor="{{ecpData.widgets[_].sensor}}"
+          item="{{ecpData.widgets[_].item}}"
+          unit="{{ecpData.widgets[_].unit}}"
+        ></smp-nvd3-chart>
+      </div>
+    </div>
+  </div>
+</script>

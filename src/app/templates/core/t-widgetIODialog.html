@@ -1,0 +1,53 @@
+<md-dialog aria-label="Search Help" class="dialogBody" style="max-width:none;min-width:80vw;">
+  <!-- Header -->
+  <md-toolbar>
+      <div layout="row" class="primary-hue1-fill white-text">
+        <div flex="100" align="left" layout-padding>
+          <p class="md-headline no-margin">Import and Export Widgets</p>
+        </div>
+      </div>
+  </md-toolbar>
+
+  <!-- Content -->
+  <md-dialog-content flex="auto" layout="column" class="dialogContent background-fill">
+    <div layout="row" flex="auto" layout-wrap layout-align="center center" >
+      <!-- Text area where widget JSON is eported or imported, by default it is populated with the current widgets JSON data -->
+        <md-input-container flex="90" style="margin-bottom:0;" md-is-error="json.$invalid">
+          <label>Widget Data</label>
+          <!-- The text area has a max length of 0 and some functionality within the widgetIO Controller to only allow copying and pasting -->
+          <textarea
+            class="IODialogTextArea white-fill"
+            md-whiteframe="1"
+            ng-model="widgetIO.JSON"
+            required
+            ng-paste="widgetIO.inputJSON($event)"
+            rows="5"
+            aria-label="Import Export JSON text field"
+            maxlength="0"
+            md-select-on-focus
+            md-no-asterisk
+          ></textarea>
+        </md-input-container>
+        <!-- Error messages for the importing of widget data -->
+        <div flex="90" layout="row" layout-align="center center">
+          <div ng-if="widgetIO.$error.empty" class="warn-text md-caption errmsg-if">Please paste (manual typing is disabled) widget JSON data into the field before importing.</div>
+          <div ng-if="widgetIO.$error.invalidJson" class="warn-text md-caption errmsg-if">Widget data has syntax errors and cannot be parsed.</div>
+          <div ng-if="widgetIO.$error.invalidWidget" class="warn-text md-caption errmsg-if">Widget data does is invalid or incorrect, widgets cannot be created.</div>
+        </div>
+    </div>
+
+    <!-- Button to re-export the current widgets data -->
+    <div layout="row" flex="none" layout-align="center center">
+      <md-button class=" md-accent" ng-click="widgetIO.export()">
+        Export
+      </md-button>
+    </div>
+  </md-dialog-content>
+
+  <!-- Buttons -->
+  <md-dialog-actions layout="row">
+    <span flex></span>
+    <md-button class="md-primary" ng-click="widgetIO.close()">Cancel</md-button>
+    <md-button class="md-raised md-primary" ng-click="widgetIO.import()">Import</md-button>
+  </md-dialog-actions>
+</md-dialog>

@@ -1,0 +1,137 @@
+<div aria-label="Search Help" style="max-width:none;min-width:80vw;">
+  <!-- Header -->
+  <md-toolbar>
+      <div layout="row" class="primary-hue1-fill white-text">
+        <div flex="100" align="left" layout-padding>
+          <p class="md-headline no-margin">All Playground Widgets</p>
+        </div>
+      </div>
+  </md-toolbar>
+
+  <!-- Content -->
+  <div class="background-fill">
+    <!-- Header for the list of widgets -->
+    <md-list ng-cloak>
+      <md-list-item flex="auto">
+        <div flex="5" class="no-padding"><h3 class="no-margin blend-text"></h3></div>
+        <div flex="15" class="no-padding"><h3 class="no-margin blend-text">Type</h3></div>
+        <div flex="10" class="no-padding"><h3 class="no-margin blend-text">Namespace</h3></div>
+        <div flex="20" class="no-padding"><h3 class="no-margin blend-text">Sensor</h3></div>
+        <div flex="30" class="no-padding"><h3 class="no-margin blend-text">Item</h3></div>
+        <div flex="5" class="no-padding">
+          <md-tooltip md-direction="top">Lock/Unlock Widget</md-tooltip>
+          <md-icon md-svg-src="assets/icons/ic_lock_24px.svg" aria-label="Lock Widget"></md-icon>
+        </div>
+        <div flex="5" class="no-padding">
+          <md-tooltip md-direction="top">Remove Widget</md-tooltip>
+          <md-icon md-svg-src="assets/icons/ic_delete_24px.svg" aria-label="RemoveWidget"></md-icon>
+        </div>
+        <div flex="10" class="no-padding"><h3 class="no-margin blend-text">Advanced</h3></div>
+      </md-list-item flex="auto">
+      <md-divider></md-divider>
+    </md-list>
+
+    <!-- A list of all currently shown widgets on the playground -->
+    <md-list
+      ng-repeat="widget in widgetList.widgets | startFrom: (startIndex ? startIndex : 0) | limitTo: widgetList.numWidgetsPerPage"
+      ng-cloak
+    >
+      <md-list-item flex="auto">
+        <div flex="5" layout="row" layout-align="start center">
+          <h4 class="no-margin blend-text">
+            {{startIndex + $index + 1}}
+          </h4>
+        </div>
+        <!-- Type Select for Widget -->
+        <div flex="15">
+          <md-input-container flex="90" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
+            <md-select id="widgetListTypeSelect" ng-model="widget.settings.type" class="white-fill"  md-whiteframe="1" aria-label="widget type select" style="display: block; padding-top: 0;">
+              <md-option ng-repeat="type in widgetList.types" value="{{type}}">
+                {{type}}
+              </md-option>
+            </md-select>
+          </md-input-container>
+        </div>
+
+        <!-- Namespace Select for Widget -->
+        <div flex="10">
+          <md-input-container flex="90" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
+            <md-select id="widgetListNamespaceSelect" ng-disabled="!widget.settings.type || widget.settings.type === 'Text'" ng-model="widget.settings.namespace" class="white-fill"  md-whiteframe="1" aria-label="widget namespace select" style="display: block; padding-top: 0;">
+              <md-option ng-repeat="(namespace, sensors) in widgetList.sensors" value="{{namespace}}" ng-click="widget.settings.namespaceIdx = $index; widget.settings.sensor = ''; widget.settings.item = ''">
+                {{namespace}}
+              </md-option>
+            </md-select>
+          </md-input-container>
+        </div>
+
+        <!-- Sensor Select for Widget -->
+        <div flex="20">
+          <md-input-container flex="90" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
+            <md-select id="widgetListSensorSelect" ng-disabled="!widget.settings.type || widget.settings.type === 'Text' || widget.settings.namespaceIdx === -1" ng-model="widget.settings.sensor" class="white-fill"  md-whiteframe="1" aria-label="widget sensor select" style="display: block; padding-top: 0;">
+              <md-option ng-repeat="(sensor, props) in widgetList.sensors[widget.settings.namespace]" value="{{sensor}}" ng-click="widget.settings.sensorIdx = $index; widget.settings.item = ''">
+                {{sensor}}
+              </md-option>
+            </md-select>
+          </md-input-container>
+        </div>
+
+        <!-- Item Select for Widget -->
+        <div flex="30">
+          <md-input-container flex="90" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
+            <md-select id="widgetListItemSelect" ng-disabled="!widget.settings.type || widget.settings.sensorIdx === -1 || widget.settings.namespaceIdx === -1 || widget.settings.type === 'Text'" ng-model="widget.settings.item" class="white-fill"  md-whiteframe="1" aria-label="widget item select" style="display: block; padding-top: 0;">
+              <md-option ng-repeat="item in widgetList.sensors[widget.settings.namespace][widget.settings.sensor].items" value="{{item}}" ng-click="widget.settings.itemIdx = $index;">
+                {{item}}
+              </md-option>
+            </md-select>
+          </md-input-container>
+        </div>
+
+        <!-- Lock/Unlock Widget -->
+        <div flex="5">
+          <md-checkbox class="md-primary" ng-model="widget.locked" aria-label="Lock"></md-checkbox>
+        </div>
+
+        <!-- Remove Widget -->
+        <div flex="5">
+          <md-checkbox class="md-warn" ng-model="widget.remove" aria-label="Remove"></md-checkbox>
+        </div>
+
+        <!-- Advanced Settings -->
+        <div flex="10">
+          <md-button id="widgetMenuAdvancedButton" ng-disabled="widget.settings.type === ''" ng-click="widgetList.openAdvMenu($event, widget)" class="widgetMenuBtn white-fill" md-whiteframe="1">
+            <md-tooltip md-direction="right">Advanced Settings</md-tooltip>
+            <md-icon
+              aria-label="Settings"
+              class="material-icons step"
+              md-svg-src="assets/icons/ic_build_24px.svg"
+            >
+          </md-button>
+        </div>
+      </md-list-item>
+    </md-list>
+
+    <!-- Button allowing for addition of new widets -->
+    <div flex="100" layout="row">
+      <div flex="5" layout="row" layout-align="center center">
+        <md-button
+          aria-label="Add Widget"
+          class="md-fab md-mini accent-fill white-text"
+          ng-click="widgetList.addWidget()"
+        >
+          <md-tooltip md-direction="right">Add Widget</md-tooltip>
+          <md-icon md-svg-src="assets/icons/ic_add_24px.svg" aria-label="Add Widget"></md-icon>
+        </md-button>
+      </div>
+
+      <!-- Pagination for the widget list -->
+      <smp-pagination flex="95" num-items="widgetList.widgets.length" start-index="startIndex" items-per-page="{{widgetList.numWidgetsPerPage}}" cur-page="widgetList.curPage"></smp-pagination>
+    </div>
+  </div>
+
+  <!-- Buttons -->
+  <div layout="row" class="white-fill">
+    <span flex></span>
+    <md-button ng-click="widgetList.cancel()" class="primary-text">Cancel</md-button>
+    <md-button class="md-raised md-primary" ng-click="widgetList.apply()">Apply</md-button>
+  </div>
+</div>

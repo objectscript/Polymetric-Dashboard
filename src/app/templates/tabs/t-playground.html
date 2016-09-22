@@ -1,0 +1,57 @@
+<!-- Div that all the widgets will be placed in (this is set up in the controller using Gridstack)-->
+<div class="grid-stack playground-stack">
+</div>
+
+<!-- PLAYGROUND OPTIONS FAB -->
+<md-fab-speed-dial
+  id="playgroundFAB"
+  md-open="playground.fabOpen"
+  md-direction="up"
+  class="playgroundOptionsFab"
+  ng-class="['md-scale', 'md-hover-full']"
+  ng-mouseleave="playground.fabAction($event, 'leave')"
+>
+  <md-fab-trigger>
+    <md-button
+      aria-label="Playground Options"
+      class="md-fab accent-fill white-text"
+      ng-mouseenter="playground.fabAction($event, 'enter')"
+      ng-mouseover="playground.isLocked()"
+    >
+      <md-tooltip md-direction="right">Playground Options</md-tooltip>
+      <md-icon md-svg-src="assets/icons/ic_dashboard_24px.svg"></md-icon>
+    </md-button>
+  </md-fab-trigger>
+
+  <md-fab-actions>
+    <md-button aria-label="Add Widget" class="md-fab md-raised md-mini white-fill" ng-click="playground.fabAction($event, 'add')">
+      <md-tooltip md-direction="right">Add Widget</md-tooltip>
+      <md-icon class="blend-text" md-svg-src="assets/icons/ic_add_24px.svg" aria-label="Add Widget"></md-icon>
+    </md-button>
+    <md-button aria-label="List Widgets" class="md-fab md-raised md-mini white-fill widgetListTarget" ng-click="playground.fabAction($event, 'list')">
+      <md-tooltip md-direction="right">List Widgets</md-tooltip>
+      <md-icon class="blend-text" md-svg-src="assets/icons/ic_menu_24px.svg" aria-label="List Widgets"></md-icon>
+    </md-button>
+    <md-button aria-label="Grid Lock Toggle" class="md-fab md-raised md-mini white-fill" ng-click="playground.fabAction($event, 'lock')">
+      <md-tooltip md-direction="right">{{playground.isLocked() ? 'Unl' : 'L'}}ock Widgets</md-tooltip>
+      <md-icon class="blend-text" ng-if="playground.isLocked()" md-svg-src="assets/icons/ic_lock_24px.svg" aria-label="Lock Grid"></md-icon>
+      <md-icon class="blend-text" ng-if="!playground.isLocked()" md-svg-src="assets/icons/ic_lock_open_24px.svg" aria-label="Lock Grid"></md-icon>
+    </md-button>
+    <md-button aria-label="Clear Grid" class="md-fab md-raised md-mini white-fill" ng-mousedown="playground.fabAction($event, 'startClear')" ng-mouseup="playground.fabAction($event, 'cancelClear')" ng-click="playground.fabAction($event, 'doNothing')">
+      <md-tooltip md-direction="right">Clear Widgets</md-tooltip>
+      <md-icon class="blend-text" md-svg-src="assets/icons/ic_delete_24px.svg" aria-label="Clear Grid"></md-icon>
+      <md-progress-circular value="{{playground.clearGridPercent}}" class="saveProgress" md-mode="determinate"></md-progress-circular>
+    </md-button>
+    <md-button aria-label="Save Widgets" class="md-fab md-raised md-mini white-fill" ng-click="playground.fabAction($event, 'save')">
+      <md-tooltip md-direction="right">Save Widgets</md-tooltip>
+      <md-icon class="blend-text" ng-if="playground.saveStatus === 0" md-svg-src="assets/icons/ic_save_24px.svg" aria-label="Save Widgets"></md-icon>
+      <md-icon ng-if="playground.saveStatus === 1" class="zone-c-text fade-if" md-svg-src="assets/icons/ic_done_24px.svg" aria-label="Save Widgets"></md-icon>
+      <md-icon ng-if="playground.saveStatus === -1" class="zone-a-text fade-if" md-svg-src="assets/icons/ic_close_24px.svg" aria-label="Save Widgets"></md-icon>
+      <md-progress-circular ng-if="playground.saveStatus === 2" class="saveProgress fade-if" md-mode="indeterminate"></md-progress-circular>
+    </md-button>
+    <md-button aria-label="Import or Export Widgets" class="md-fab md-raised md-mini white-fill" ng-click="playground.fabAction($event, 'io')">
+      <md-tooltip md-direction="right">Import or Export Widgets</md-tooltip>
+      <md-icon class="blend-text" md-svg-src="assets/icons/ic_import_export_24px.svg" aria-label="Import or Export Widgets"></md-icon>
+    </md-button>
+  </md-fab-actions>
+</md-fab-speed-dial>

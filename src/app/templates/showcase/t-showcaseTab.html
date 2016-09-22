@@ -1,0 +1,158 @@
+<div layout="row" layout-align="left center" flex="100" class="md-padding">
+  <h2 class="md-display-1 no-margin">Tab</h2>
+</div>
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - DEMO - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<div>
+  <smp-expando open="true" target="showcaseTabHTML" elevation="2" style="padding-bottom:2em;">
+    <div smp-expando-toggle layout="row" layout-align="left center" flex="100" class="white-text primary-hue1-fill md-padding doesAction" md-whiteframe="2">
+      <h2 class="md-headline no-margin">HTML Template</h2>
+    </div>
+    <div smp-expando-content="showcaseTabHTML" class="white-fill" md-whiteframe="2">
+      <div class="contentContainer">
+        <div layout="row" layout-wrap flex="100" class="">
+          <div flex="100">
+            <div layout="row" layout-align="left center" flex="100" class="primary-fill md-padding">
+              <h2 class="md-title no-margin white-text">Description</h2>
+            </div>
+            <div flex="100">
+              <h2 class="md-subhead no-margin md-padding">
+                Each tab requires a template to define what it will display. Templates are placed in the <i>/app/templates/tabs</i> directory,
+                and are an html file. Use of Angluar Material, NVD3 charts, and all the available visualization tools are encouraged during
+                development of a tab.
+              </h2>
+            </div>
+          </div>
+          <div flex="100">
+            <div layout="row" layout-align="left center" flex="100" class="primary-fill md-padding">
+              <h2 class="md-title no-margin white-text">Example</h2>
+              <div flex=""></div>
+              <h4 class="md-subhead no-margin white-text">app/tempates/tabs/t-exampleView.html</h4>
+            </div>
+            <div layout="row" layout-align="left center" flex="100"  class="smp-code" md-whiteframe="2">
+<pre>
+  <code class="smp-text">
+    <span class="smp-punct">&lt;</span><span class="smp-elem">div</span> <span class="smp-attr">layout</span><span class="smp-punct">=</span><span class="smp-str">"row"</span> <span class="smp-attr">layout-wrap</span><span class="smp-punct">&gt;</span>
+      <span class="smp-punct">&lt;</span><span class="smp-elem">div</span><span class="smp-punct">&gt;</span>
+        <span class="smp-punct">&lt;</span><span class="smp-elem">h2</span> <span class="smp-attr">class</span><span class="smp-punct">=</span><span class="smp-str">"md-headline smpHeader"</span><span class="smp-punct">&gt;</span>Example View<span class="smp-punct">&lt;/</span><span class="smp-elem">h2</span><span class="smp-punct">&gt;</span>
+      <span class="smp-punct">&lt;/</span><span class="smp-elem">div</span><span class="smp-punct">&gt;</span>
+
+      <span class="smp-punct">&lt;</span><span class="smp-elem">div</span> <span class="smp-attr">layout</span><span class="smp-punct">=</span><span class="smp-str">"column"</span> <span class="smp-attr">flex</span><span class="smp-punct">=</span><span class="smp-str">"100"</span><span class="smp-punct">&gt;</span>
+        <span class="smp-punct">&lt;</span><span class="smp-elem">h4</span> <span class="smp-attr">class</span><span class="smp-punct">=</span><span class="smp-str">"md-title chartTitle"</span><span class="smp-punct">&gt;</span>CPU Usage<span class="smp-punct">&lt;/</span><span class="smp-elem">h4</span><span class="smp-punct">&gt;</span>
+        <span class="smp-punct">&lt;</span><span class="smp-elem">smp-nvd3-chart</span>
+          <span class="smp-attr">id</span><span class="smp-punct"> = </span><span class="smp-str">"showcaseTab-CPU"</span>
+          <span class="smp-attr">type</span><span class="smp-punct"> = </span><span class="smp-str">"lineChart"</span>
+          <span class="smp-attr">namespace</span><span class="smp-punct"> = </span><span class="smp-str">"%SYS"</span>
+          <span class="smp-attr">sensor</span><span class="smp-punct"> = </span><span class="smp-str">"CPUusage"</span>
+          <span class="smp-attr">item</span><span class="smp-punct"> = </span><span class="smp-str">"-"</span>
+          <span class="smp-attr">units</span><span class="smp-punct"> = </span><span class="smp-str">"%"</span>
+          <span class="smp-attr">height</span><span class="smp-punct"> = </span><span class="smp-str">"144"</span>
+        <span class="smp-punct">&gt; &lt;/</span><span class="smp-elem">smp-nvd3-chart</span><span class="smp-punct">&gt;</span>
+      <span class="smp-punct">&lt;/</span><span class="smp-elem">div</span><span class="smp-punct">&gt;</span>
+    <span class="smp-punct">&lt;/</span><span class="smp-elem">div</span><span class="smp-punct">&gt;</span>
+  </code>
+</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </smp-expando>
+
+  <smp-expando open="true" target="showcaseTabDirective" elevation="2" style="padding-bottom:2em;">
+    <div smp-expando-toggle layout="row" layout-align="left center" flex="100" class="white-text primary-hue1-fill md-padding doesAction" md-whiteframe="2">
+      <h2 class="md-headline no-margin">JavaScript Directive</h2>
+    </div>
+    <div smp-expando-content="showcaseTabDirective" class="white-fill" md-whiteframe="2">
+      <div class="contentContainer">
+        <div layout="row" layout-wrap flex="100" class="">
+          <div flex="100">
+            <div layout="row" layout-align="left center" flex="100" class="primary-fill md-padding">
+              <h2 class="md-title no-margin white-text">Description</h2>
+            </div>
+            <div flex="100">
+              <h2 class="md-subhead no-margin md-padding">
+                In order for angular to know what template to inject into the DOM each tab template needs to be referenced by an Angluar Directive.
+                Directives are place in the <i>/app/directives/tabs</i> directory, and are JavaScript files defining where the tab template is located
+                as well as some AngluarJS parameters for the tab.
+              </h2>
+            </div>
+          </div>
+          <div flex="100">
+            <div layout="row" layout-align="left center" flex="100" class="primary-fill md-padding">
+              <h2 class="md-title no-margin white-text">Example</h2>
+              <div flex=""></div>
+              <h4 class="md-subhead no-margin white-text">app/directives/tabs/t-exampleView.js</h4>
+            </div>
+            <div layout="row" layout-align="left center" flex="100"  class="smp-code" md-whiteframe="2">
+<pre>
+  <code class="smp-text">
+    (<span class="smp-funct">function</span>() {
+      <span class="smp-str">'use strict'</span>;
+
+      angular<span class="smp-funct">.</span><span class="smp-call">module</span>(<span class="smp-str">'Dashboard'</span>)
+        <span class="smp-funct">.</span><span class="smp-call">directive</span>(<span class="smp-str">'exampleView</span>, <span class="smp-funct">function</span>() {
+          <span class="smp-funct">return</span> {
+            restrict<span class="smp-punct">:</span> <span class="smp-str">'E'</span>,
+            templateUrl<span class="smp-punct">:</span> <span class="smp-str">'app/templates/tabs/t-exampleView.html'</span>,
+            controller<span class="smp-punct">:</span> <span class="smp-str">'exampleCtrl as example'</span>,
+          };
+        });
+    })();
+  </code>
+</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </smp-expando>
+
+
+  <smp-expando open="true" target="showcaseTabCreation" elevation="2" style="padding-bottom:2em;">
+    <div smp-expando-toggle layout="row" layout-align="left center" flex="100" class="white-text primary-hue1-fill md-padding doesAction" md-whiteframe="2">
+      <h2 class="md-headline no-margin">Adding To System Dashboard</h2>
+    </div>
+    <div smp-expando-content="showcaseTabCreation" class="white-fill" md-whiteframe="2">
+      <div class="contentContainer">
+        <div layout="row" layout-wrap flex="100" class="">
+          <div flex="100">
+            <div layout="row" layout-align="left center" flex="100" class="primary-fill md-padding">
+              <h2 class="md-title no-margin white-text">Description</h2>
+            </div>
+            <div flex="100">
+              <h2 class="md-subhead no-margin md-padding">
+                Tabs are dynamically added to the application using AngularJS. Thus to add a new tab, the directive needs to be placed in the tabs
+                array held in the content controller, which can be found in <i>/app/controllers/core/c-content.js</i>. To add a new tab simply
+                create a new object in the tabs array defining an id for the tab, a title, the html reference to the directive, and the width the
+                tab should fill on the screen.
+              </h2>
+            </div>
+          </div>
+          <div flex="100">
+            <div layout="row" layout-align="left center" flex="100" class="primary-fill md-padding">
+              <h2 class="md-title no-margin white-text">Example</h2>
+            </div>
+            <div layout="row" layout-align="left center" flex="100"  class="smp-code">
+<pre>
+  <code class="smp-text">
+    $scope<span class="smp-funct">.</span>tabs <span class="smp-funct">=</span> <span class="smp-punct">[</span>
+      <span class="smp-punct">{</span>
+        id<span class="smp-punct">:</span> <span class="smp-str">'summary'</span>, title<span class="smp-punct">:</span> <span class="smp-str">'Summary'</span>, width<span class="smp-punct">:</span> <span class="smp-int">80</span>,
+        content<span class="smp-punct">:</span> <span class="smp-str">'&lt;summary-view ng-if="$index === data.selectedIndex"&gt;&lt;/summary-view&gt;'</span>
+      <span class="smp-punct">}</span>,
+      <span class="smp-punct">{</span>
+        id<span class="smp-punct">:</span> <span class="smp-str">'example'</span>, title<span class="smp-punct">:</span> <span class="smp-str">'Example'</span>, width<span class="smp-punct">:</span> <span class="smp-int">80</span>,
+        content<span class="smp-punct">:</span> <span class="smp-str">'&lt;example-view ng-if="$index === data.selectedIndex"&gt;&lt;/example-view&gt;'</span>
+      <span class="smp-punct">}</span>
+    <span class="smp-punct">]</span>;
+  </code>
+</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </smp-expando>
+</div>

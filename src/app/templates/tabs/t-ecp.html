@@ -1,0 +1,12 @@
+<div layout="row" flex="100">
+  <div>
+    <h2 class="md-headline">{{ecp.show() === 'app' ? 'Application Server' : 'Data Server'}}</h2>
+  </div>
+  <div flex=""></div>
+  <md-button class="primary-text" aria-label="data server" ng-click="ecp.show('toggle')">
+    Show {{ecp.show() === 'data' ? 'Application Server' : 'Data Server'}}
+  </md-button>
+</div>
+
+<smp-ecp-app ng-show="ecp.show() === 'app'"></smp-ecp-app>
+<smp-ecp-data ng-show="ecp.show() === 'data'"></smp-ecp-data>

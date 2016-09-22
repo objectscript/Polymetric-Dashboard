@@ -1,0 +1,29 @@
+<!-- SHOWCASE SUB NAVIGATION-->
+<span id="showcaseSideNav">
+  <!-- Side Navigation menu for the showcase tab -->
+  <smp-showcase-sidenav></smp-showcase-sidenav>
+
+  <!-- FAB to open the side navigation -->
+  <md-button
+    class="md-fab accent-fill showcaseSidenavToggleBtn"
+    ng-click="showcase.toggleSidenav()"
+    layout="row" layout-align="center center"
+  >
+    <md-tooltip md-direction="left">Showcase Navigation</md-tooltip>
+      <div class="menuToggleIcon" flex="none" layout-align="center center">
+        <div class="menuIconBar white-fill" ng-class="{'menuIconBar1Close' : showcase.isSidenavOpen()}"></div>
+        <div class="menuIconBar white-fill" ng-class="{'menuIconBar2Close' : showcase.isSidenavOpen()}"></div>
+        <div class="menuIconBar white-fill" ng-class="{'menuIconBar3Close' : showcase.isSidenavOpen()}"></div>
+      </div>
+    </md-icon>
+  </md-button>
+</span>
+
+<!-- Templates for all the content shown on the showcase tab -->
+<smp-showcase-dashboard-methods ng-if="showcase.curShowcaseSection === 'DashboardMethods'" layout="column"  flex-xs="100" flex-sm="100" flex-md="80" flex-gt-md="60" flex-offset-md="10"  flex-offset-gt-md="20"> </smp-showcase-dashboard-methods>
+<smp-showcase-dashboard-settings ng-if="showcase.curShowcaseSection === 'DashboardSettings'" layout="column"  flex-xs="100" flex-sm="100" flex-md="80" flex-gt-md="60" flex-offset-md="10"  flex-offset-gt-md="20"> </smp-showcase-dashboard-settings>
+<smp-showcase-line-chart sensors="showcase.sensors" active-sensor="showcase.activeSensor" ng-if="showcase.curShowcaseSection === 'Line'" layout="column" flex-xs="100" flex-sm="100" flex-md="80" flex-gt-md="60" flex-offset-md="10"  flex-offset-gt-md="20"> </smp-showcase-line-chart>
+<smp-showcase-sparkline-chart sensors="showcase.sensors" active-sensor="showcase.activeSensor" ng-if="showcase.curShowcaseSection === 'Sparkline'" layout="column"  flex-xs="100" flex-sm="100" flex-md="80" flex-gt-md="60" flex-offset-md="10"  flex-offset-gt-md="20"> </smp-showcase-sparkline-chart>
+<smp-showcase-sensor-display sensors="showcase.sensors" active-sensor="showcase.activeSensor" ng-if="showcase.curShowcaseSection === 'Sensor'" layout="column"  flex-xs="100" flex-sm="100" flex-md="80" flex-gt-md="60" flex-offset-md="10"  flex-offset-gt-md="20"> </smp-showcase-sensor-display>
+<smp-showcase-tab ng-if="showcase.curShowcaseSection === 'Tab'" layout="column"  flex-xs="100" flex-sm="100" flex-md="80" flex-gt-md="60" flex-offset-md="10"  flex-offset-gt-md="20"> </smp-showcase-tab>
+<smp-showcase-expando ng-if="showcase.curShowcaseSection === 'Expando'" layout="column"  flex-xs="100" flex-sm="100" flex-md="80" flex-gt-md="60" flex-offset-md="10"  flex-offset-gt-md="20"> </smp-showcase-expando>
