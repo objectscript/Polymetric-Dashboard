@@ -4,11 +4,13 @@ Quickly install the System Monitor Dashboard using this kit.
 ## Contents of Kit
 The kit is made up of two xml files and one directory.
 
- 1. The DashboardInstaller.xml file
+##### DashboardInstaller.xml
   - This xml file is the only file you will need to interact with to install the System Monitor Dashboard. It automatically sets up all necessary functionality for you.
- 2. The DashboardSupport.xml file
+  
+##### DashboardSupport.xml
   - This xml file is an export of all the Caché code needed for monitoring the Caché environment.
- 3. The 'dashboard' directory
+
+##### dashboard/
   - This directory contains all the code needed for front end web page you will be interacting with.
 
 ## Instructions

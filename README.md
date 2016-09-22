@@ -38,17 +38,17 @@ To do so, start at the main page and choose "System Operation" -> "System Dashbo
 11. [gridstack](https://github.com/troolee/gridstack.js) v0.2.5
 
 ### Installation
-The System Monitor Dashboard can be installed quickly with the quick start kit, or manually with the source code.
+The System Monitor Dashboard can be installed quickly with the [quick start kit](https://github.com/CDTiernan/SystemMonitorDashboard/tree/master/dist), or manually with the [source code](https://github.com/CDTiernan/SystemMonitorDashboard/tree/master/src).
 
 #### Quick Start Kit
 Use the kit if you are not planning on customizing any of the code but want to use the monitoring capabilities of the System Monitoring Dashboard.
 
- - The kit can be found in the [dist/](https://github.com/CDTiernan/SystemMonitorDashboard/tree/master/dist) directory.
+ - The [kit](https://github.com/CDTiernan/SystemMonitorDashboard/tree/master/dist) can be found in the dist/ directory.
 
 #### Source Code
 Install the source code if you want to more fully understand functionality of the System Monitoring Dashboard and be able to contribute.
 
- - The source code can be found in the [src/](https://github.com/CDTiernan/SystemMonitorDashboard/tree/master/src) directory.
- - Instructions detailing how to install the source code are located in the docs/ directory.
+ - The [source code](https://github.com/CDTiernan/SystemMonitorDashboard/tree/master/src) can be found in the src/ directory.
+ - Instructions detailing [installation using the source code](https://github.com/CDTiernan/SystemMonitorDashboard/blob/master/docs/InstallUsingSourceCode.md) are located in the docs/ directory.
 
 ## Customization
