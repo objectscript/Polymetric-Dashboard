@@ -280,7 +280,7 @@ The System Monitor Dashbaord only runs in namespaces it has been told to do so, 
 
 The new sensors are now registered and should show up on the System Monitor Dashboard front end! It takes a few seconds to gather data to display, but they will be shown on the All Sensors tab.
 
-## Example - Removing Sensors
+## Removing Sensors
 ### Introduction
 It is also possible to remove sensors from the System Monitor Dashboard. This is done by "deregistering" a sensor collection class.
 
