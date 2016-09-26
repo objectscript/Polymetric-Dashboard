@@ -1,6 +1,28 @@
 # User Defined Sensors
 The System Monitor Dashboard provides the functionality and structure for users to create their own sensors. These sensors can be added to the monitoring process, and the data collected by them displayed on the front end of the application.
 
+<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+
+- [User Defined Sensors](#user-defined-sensors)
+	- [Namespaces](#namespaces)
+	- [Procedure](#procedure)
+	- [Example - Adding Sensors](#example-adding-sensors)
+		- [Introduction](#introduction)
+		- [Creating the Sensors](#creating-the-sensors)
+			- [Sensor Collection Class](#sensor-collection-class)
+			- [TotalAudits Sensor](#totalaudits-sensor)
+			- [AuditsPerSecond Sensor](#auditspersecond-sensor)
+			- [TotalAuditsOfType Sensor](#totalauditsoftype-sensor)
+		- [Registering the Sensors](#registering-the-sensors)
+	- [Registering the Namespace](#registering-the-namespace)
+- [Done](#done)
+	- [Example - Removing Sensors](#example-removing-sensors)
+		- [Introduction](#introduction)
+		- [Deregistering Sensors](#deregistering-sensors)
+	- [Deregistering Namespaces](#deregistering-namespaces)
+
+<!-- /TOC -->
+
 ## Namespaces
 The System Monitoring Dashboard's default collection of sensors is defined in the %SYS namespace because it is maintained by InterSystems. Users are *strongly* discouraged from changing the default sensor definitions or creating new sensor definitions in the %SYS namespace. The System Monitor Dashboard can collect data from sensors in any namespace, so users are encouraged to define custom sensors in their own namespace.
 

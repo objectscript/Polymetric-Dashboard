@@ -1,6 +1,62 @@
 # REST API
 The System Monitor Dashboard uses a simple REST API to retrieve data from the Caché environment.
 
+<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+
+- [REST API](#rest-api)
+	- [Overview](#overview)
+		- [URL](#url)
+		- [Data](#data)
+	- [Paths](#paths)
+		- [Get All Sensors](#get-all-sensors)
+			- [URL](#url)
+			- [Method](#method)
+			- [URL Params](#url-params)
+			- [Query Params](#query-params)
+				- [Required](#required)
+				- [Optional](#optional)
+			- [Success Responses](#success-responses)
+			- [Error Responses](#error-responses)
+			- [Sample Call](#sample-call)
+		- [Get a Sensor](#get-a-sensor)
+			- [URL](#url)
+			- [Method](#method)
+			- [URL Params](#url-params)
+				- [Required](#required)
+				- [Optional](#optional)
+			- [Query Params](#query-params)
+				- [Required](#required)
+				- [Optional](#optional)
+			- [Success Responses](#success-responses)
+			- [Error Responses](#error-responses)
+			- [Sample Call](#sample-call)
+		- [Get A Sensor's Chart Data](#get-a-sensors-chart-data)
+			- [URL](#url)
+			- [Method](#method)
+			- [URL Params](#url-params)
+				- [Required](#required)
+				- [Optional](#optional)
+			- [Query Params](#query-params)
+				- [Required](#required)
+				- [Optional](#optional)
+			- [Success Responses](#success-responses)
+			- [Error Responses](#error-responses)
+			- [Sample Call](#sample-call)
+		- [Get A Sensor's Calculated Data](#get-a-sensors-calculated-data)
+			- [URL](#url)
+			- [Method](#method)
+			- [URL Params](#url-params)
+				- [Required](#required)
+				- [Optional](#optional)
+			- [Query Params](#query-params)
+				- [Required](#required)
+				- [Optional](#optional)
+			- [Success Responses](#success-responses)
+			- [Error Responses](#error-responses)
+			- [Sample Call](#sample-call)
+
+<!-- /TOC -->
+
 ## Overview
 ### URL
 - **Base Path**

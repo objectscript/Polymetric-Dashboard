@@ -1,6 +1,20 @@
 # Quick Start Guide
 Quickly install the System Monitor Dashboard using this kit.
 
+<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+
+- [Quick Start Guide](#quick-start-guide)
+	- [Contents of Kit](#contents-of-kit)
+				- [DashboardInstaller.xml](#dashboardinstallerxml)
+				- [DashboardSupport.xml](#dashboardsupportxml)
+				- [dashboard/](#dashboard)
+	- [Instructions](#instructions)
+		- [Download](#download)
+		- [Install](#install)
+		- [Use](#use)
+
+<!-- /TOC -->
+
 ## Contents of Kit
 The kit is made up of two xml files and one directory.
 

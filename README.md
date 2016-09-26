@@ -1,6 +1,24 @@
 # The System Monitor Dashboard
 Fully customizable Caché system monitoring.
 
+<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+
+- [The System Monitor Dashboard](#the-system-monitor-dashboard)
+	- [Overview](#overview)
+	- [Demo](#demo)
+	- [Usage](#usage)
+		- [Requirements](#requirements)
+		- [Dependencies](#dependencies)
+		- [Installation](#installation)
+			- [Quick Start Kit](#quick-start-kit)
+			- [Source Code](#source-code)
+	- [Customization](#customization)
+		- [Creating New Sensors](#creating-new-sensors)
+		- [The Rest API](#the-rest-api)
+		- [The Front End](#the-front-end)
+
+<!-- /TOC -->
+
 ## Overview
 Current Caché system monitoring functionality provides real-time information about a Caché environment. This allows for preventative measures to be taken before system failure by highlighting specific metrics when they are at unusual or dangerous values. Additionally, diagnosis of past or current erroneous events is aided by informative logs that are created by the system monitoring process.
 
@@ -12,7 +30,7 @@ The System Monitor Dashboard project is a successor to the current system monito
 ## Usage
 Once installed, the System Monitoring Dashboard can be accessed via the Caché System Management Portal.
 
-To do so, start at the main page of the System Management Portal and choose "System Operation" -> "System Dashboard" -> "System Monitor Dashboard".
+To do so, start at the main page of the System Management Portal and choose <br />"System Operation" -> "System Dashboard" -> "System Monitor Dashboard".
 
 ### Requirements
  - Caché version 2016.1 or later
