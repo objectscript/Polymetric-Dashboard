@@ -57,13 +57,13 @@ The System Monitor Dashboard is built to be customizable by design.
 ### Creating New Sensors
 The System Monitor Dashboard in its default configuration has over 100 sensors. However, this collection can be modified by defining new sensors and the defaults can be removed.
 
-Instructions upon how to [create new sensors](https://github.com/CDTiernan/SystemMonitorDashboard/blob/master/docs/CreatingNewSenors.md) are defined in the *docs/CreatingNewSenors.md* file.
+Instructions upon how to [create new sensors](https://github.com/CDTiernan/SystemMonitorDashboard/blob/master/docs/CreatingNewSensors.md) are defined in the *docs/CreatingNewSenors.md* file.
 
 
 ### The Rest API
 A simple REST API connects the back end monitoring and front end dashboard of the System Monitor Dashboard.
 
-The [REST API's schema](https://github.com/CDTiernan/SystemMonitorDashboard/blob/master/docs/RESTApi.md) is defined in the *docs/RESTApi.md* file.
+The [REST API's schema](https://github.com/CDTiernan/SystemMonitorDashboard/blob/master/docs/RestApi.md) is defined in the *docs/RESTApi.md* file.
 
 ### The Front End
 The front end of the System Monitor Dashboard is built using Angular and nvd3 charts. The visualization tools used are modular and can be easily used anywhere throughout the app. However, it is also possible to change the content structure of the System Monitor Dashboard or even create a completely front end.
