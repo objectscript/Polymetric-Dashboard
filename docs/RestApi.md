@@ -1,7 +1,7 @@
 # REST API
 The System Monitor Dashboard uses a simple REST API to retrieve data from the Caché environment.
 
-## Table of Contents
+**Table of Contents**
 <!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
 
 - [Overview](#overview)

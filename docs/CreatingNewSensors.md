@@ -1,7 +1,7 @@
 # User Defined Sensors
 The System Monitor Dashboard provides the functionality and structure for users to create their own sensors. These sensors can be added to the monitoring process, and the data collected by them displayed on the front end of the application.
 
-## Table of Contents
+**Table of Contents**
 <!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
 
 - [Namespaces](#namespaces)
