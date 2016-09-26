@@ -11,9 +11,10 @@ The System Monitoring Dashboard's default collection of sensors is defined in th
   - `Method Start() As %Status {...}`, overrides `%SYS.Monitor.AbstractDashboard.Start()` and will be called automatically during the initialization of the System Monitor Dashboard
 3.	Create the GetSensors Method calling `SetSensor()` for each individual sensor you want to record data from
   - `Method GetSensors() As %Status {...}`, overrides `%SYS.Monitor.AbstractDashboard.GetSensors()` and will be called automatically during during each sampling period.
-4.	Use the the System Monitor Manager (`^%SYSMONMGR`) to add your new Sensor Collection Class to the System Monitor Dashboard
+4.	Use the the System Monitor Manager (`^%SYSMONMGR`) to register your new sensor collection class to the System Monitor Dashboard
+  - The System Monitor Manager can also be used to deregister sensor collection classes.
 
-## Example
+## Example - Adding Sensors
 ### Introduction
 In order to describe the creation of new user defined sensors more clearly, lets go through a concrete example. We will be creating a small collection of three sensors that monitor the CacheAudit database.
 
@@ -24,20 +25,21 @@ In order to describe the creation of new user defined sensors more clearly, lets
 3. TotalAuditsOfType
   - The total number of audits grouped by type.
 
-These three sensors represent the three types of sensors the System Monitor Dashboard can contain. TotalAudits is a value based sensor, recording the value of a metric at the time it was read. AuditsPerSecond is a delta based sensor, recording the difference in the monitored metrics value since it was last read. TotalAuditsOfType is an example of a sensor with sensor items, recording the total audits, but breaking it down into subcategories.
+These three sensors represent the three types of sensors that are used within the System Monitor Dashboard. TotalAudits is a value based sensor, recording the value of a metric at the time it was read. AuditsPerSecond is a delta based sensor, recording the difference in the monitored metric's value since it was last read. TotalAuditsOfType is an example of a value based sensor with items, recording the total audits but breaking it down into subcategories.
 
 ### Creating the Sensors
 #### Sensor Collection Class
 The first thing we need to do is create a sensor collection class for the sensors we are going to create.
+
 1. In the USER namespace, create a new Caché Class
   - Package: User.Dashboard.Sensors
   - Class Name: Audit
-  - Description: Sensors that monitor the audit database.
+  - Description: Sensors that monitor the CacheAudit database.
 2. Click "Next"
 3. Select "Extends" and input "%SYS.Monitor.AbstractDashboard"
 4. Click "Finish"
 
-Now that the sensor collection class is created, we need to override two methods in %SYS.Monitor.AbstractDashboard: Start() and GetSensors(). We are going to create these methods now and fill in functionality later.
+Now that the sensor collection class is created, we need to override two methods in %SYS.Monitor.AbstractDashboard: Start() and GetSensors(). We are going to create these methods now and fill in their functionality later.
 
 1. Create the Start() Method, this is where the sensors will be created
 
@@ -71,21 +73,21 @@ The TotalAudits sensor is the most simple form of sensor so lets start with it.
 
   - From left to right the arguments passed to ..CreateSensor() are
     - Sensor: The name of the sensor to create
-    - Item: The sub category of the sensor we are going to create
-    - Warning Value: The value at which the sensor is in a unusual state if exceeded
-    - Critical Value: The value at which the sensor is in a alert state if exceeded
-    - Alert Flag: Boolean flag representing if alerts and warnings should be logged
+    - Item: The sub category of the sensor we are going to create, by inputing "" no items are created
+    - Warning Value: The value at which the sensor is in a unusual state if exceeded, by inputing "" no warning value is set and the sensor will never reach a warning state
+    - Critical Value: The value at which the sensor is in a alert state if exceeded, by inputing "" no critical value is set and the sensor will never reach a critical state
+    - Alert Flag: Boolean flag representing if alerts and warnings should be logged to the cconsole.log
     - Units: The unit that the sensors metric is measured in
-    - Operator: How the sensors value should be compared to Warning and Critical Values (aka if its lower or higher values are worse states)
+    - Operator: How the sensors value should be compared to Warning and Critical Values (aka if low or high values are worse)
     - Description: A short explanation of the sensor
 
-2. Add a call to SetSensor() in the GetSensors() Method to populate readings of the TotalAudits Sensor
+2. Call SetSensor() in the GetSensors() Method to populate readings of the TotalAudits Sensor
 
   ```
   // The global ^["^^cacheaudit"]CacheAuditD stores the total number of audits
-  Set TotalAudits = ^["^^cacheaudit"]CacheAuditD
+  Set NumberOfAudits = ^["^^cacheaudit"]CacheAuditD
 
-  Do ..SetSensor("TotalAudits", TotalAudits)
+  Do ..SetSensor("TotalAudits", NumberOfAudits)
   ```
 
   - From left to right the arguments passed to ..CreateSensor() are
@@ -93,24 +95,24 @@ The TotalAudits sensor is the most simple form of sensor so lets start with it.
     - Value: The value the sensor is to record
 
 #### AuditsPerSecond Sensor
-The AuditsPerSecond sensor builds off the TotalAudits sensor, adding the functionality to compute the change in value of the metric
+The AuditsPerSecond sensor builds off the TotalAudits sensor, adding functionality to compute the change in value of the metric
 
 
 1. Add two new properties to the sensor collection class, one called "LastReading" and the other "ElapsedSeconds". These will be used to calculate the total time since the last reading of the sensors.
 
   ```
   /// Time of last reading
-  Property LastReading As %Integer;
+  Property PrevReadingTime As %Integer;
 
-  /// Elapsed seconds since LastReading at the start of current GetSensors() call
+  /// Elapsed seconds since the last GetSensors() call
   Property ElapsedSeconds As %Integer;
   ```
 
 2. Add a new property to the sensor collection class called "PrevTotalAudits", this will store the last value so it can be compared to the current value
 
   ```
-  /// Value of TotalAudits during the last GetSensors() call
-  Property PrevTotalAudits As %Integer [InitialExpression = 0];
+  /// Value of NumberOfAudits during the last GetSensors() call
+  Property PrevNumberOfAudits As %Integer [InitialExpression = 0];
   ```
 
 3. Add a call to CreateSensor() in the Start() Method to create the AuditsPerSecond Sensor
@@ -123,38 +125,41 @@ The AuditsPerSecond sensor builds off the TotalAudits sensor, adding the functio
 
   ```
   // Get the Current time
-  Set CurReading = $p($zh,".",1)
+  Set CurReadingTime = $p($zh, ".", 1)
 
   // Calculate the difference between the last reading time and the current time
-  Set ..ElapsedSeconds = (time-..LastReading)
+  Set ..ElapsedSeconds = (CurReadingTime - ..PrevReadingTime)
 
-  // Store the current time for the next GetSensors() call
-  Set ..LastReading = CurReading
   ```
 
 5. Calculate the difference between the current number of audits and the previous number of audits in the GetSensors() Method
 
   ```
-  Set TotalAudits = ^["^^cacheaudit"]CacheAuditD
+  Set NumberOfAudits = ^["^^cacheaudit"]CacheAuditD
   // Calculate the difference between the current and last reading's total audits
-  Set DeltaAudits = TotalAudits - ..PrevTotalAudits
+
+  Set DeltaAudits = NumberOfAudits - ..PrevNumberOfAudits
   ```
 
 6. Calculate the change in number of audits per second
 
   ```
-  Set AuditsPerSecond = DeltaAudits / ..ElapsedSeconds
+  Set NumberOfAuditsPerSecond = DeltaAudits / ..ElapsedSeconds
   ```
 
 7. Set the AuditsPerSecond sensor to the calcuated reading
 
   ```
-  Do ..SetSensor("AuditsPerSecond", AuditsPerSecond)
+  Do ..SetSensor("AuditsPerSecond", NumberOfAuditsPerSecond)
   ```
-8. Store this readings total audits for the next GetSenors() call
+8. Store this readings total audits and the current time for the next GetSenors() call
 
   ```
-    Set ..PrevTotalAudits = TotalAudits
+    // Store the current number of audits
+    Set ..PrevNumberOfAudits = NumberOfAudits
+
+    // Store the current time for the next GetSensors() call
+    Set ..PrevReadingTime = CurReadingTime
   ```
 
 #### TotalAuditsOfType Sensor
@@ -176,7 +181,7 @@ The TotalAuditsOfType sensor builds is similar to the TotalAudits sensor as it r
 		// Extract the 5th element of the entry (type of audit)
 		Set auditType = $LIST(@node,5)
 
-		// Add to counts, use dollar get to avoid errors of undefined types
+		// Add to counts, use $GET to avoid undefined type errors
 		Set ..TotalAuditsOfType(auditType) = $GET(..TotalAuditsOfType(auditType), 0) + 1
 
 		// Get the next pointer
@@ -184,7 +189,7 @@ The TotalAuditsOfType sensor builds is similar to the TotalAudits sensor as it r
 	}
   ```
 
-3. After the counting loop, add another that call SetSensor() for each group found in the counting loop
+3. After the counting loop, add another loop that call SetSensor() for each audit type
 
   ```
   // Iteration begins at the empty string
@@ -193,7 +198,7 @@ The TotalAuditsOfType sensor builds is similar to the TotalAudits sensor as it r
 		// Get the next item held in the multidimensional property
 		Set item = $ORDER(..TotalAuditsOfType(item)) Quit:item=""
 
-		// Set the sensor, defining the item so the subcategory will be used (or created then used)
+		// Set the sensor, defining the item so the subcategory will be used
 		Do ..SetSensor("TotalAuditsOfType",..TotalAuditsOfType(item), item)
 
 		// Reset the counts to 0
@@ -201,33 +206,33 @@ The TotalAuditsOfType sensor builds is similar to the TotalAudits sensor as it r
 	}
   ```
 
-  - We are using the third argument of SetSensor() in this case (something that was not done in either of the other two sensors). This is because we need to define an item for each group of audits. By passing in this third parameter the System Monitor Dashboard knows to create a new sensor item if it does not exist, then increment that items count not the parent sensors.
+  - We are using the third argument of SetSensor() in this case (something that was not done in either of the other two sensors). This is because we need to define an item for each group of audits. By passing in this third parameter the System Monitor Dashboard knows to create a new sensor item if it does not exist, then increment that item's count.
 
 ### Registering the Sensors
 
 1. Using the Caché Terminal from the USER namespace run the System Monitor Manager Routine
   - `Do ^%SYSMONMGR`
 
-2. The System Monitor Manager provides a list of functionality, to add sensors you will want to input 3 for "Confirgure System Monitor Components"
+2. The System Monitor Manager provides a list of functionality, to add sensors you will want to **input 3** for "Confirgure System Monitor Components"
 
-3. Input 1 for "Configure System Monitor Components"
+3. **Input 1** for "Configure System Monitor Components"
 
-4. Input 2 for "Add Class"
+4. **Input 2** for "Add Class"
 
-5. Input "USER.Dashboard.Sensors.Audit" as the class
+5. **Input "USER.Dashboard.Sensors.Audit"** as the class
 
-6. Input "Sensors that monitor the audit database" as the description
+6. **Input "Sensors that monitor the audit database"** as the description
 
-7. Exit back to the main menu by inputting "4" then "2"
+7. Exit back to the main menu by **inputting 4** then **2**
 
-8. Input 1 for "Start/Stop System Monitor"
+8. **Input 1** for "Start/Stop System Monitor"
 
-9. Input 2 to stop the system monitor
+9. **Input 2** to stop the system monitor
 
-10 Input 1 to start the system monitor
+10 **Input 1** to start the system monitor
 
 
-### Registering the USER Namespace
+## Registering the Namespace
 The System Monitor Dashbaord only runs in namespaces it has been told to do so, thus if you are creating sensors in a namespace that has not been registered by the System Montior you must do so for the sensors to be seen.
 
 1. Using the Caché Terminal switch to the %SYS namespace
@@ -236,21 +241,72 @@ The System Monitor Dashbaord only runs in namespaces it has been told to do so, 
 2. Using the Caché Terminal from the USER namespace run the System Monitor Manager Routine
   - `Do ^%SYSMONMGR`
 
-3. The System Monitor Manager provides a list of functionality, to Register a namespace you will want to input 3 for "Confirgure System Monitor Components"
+3. The System Monitor Manager provides a list of functionality, to Register a namespace you will want to **input 3** for "Confirgure System Monitor Components"
 
-4. Input 2 for "Configure Startup Namespaces"
+4. **Input 2** for "Configure Startup Namespaces"
 
-5. Input 2 for "Add Namespace"
+5. **Input 2** for "Add Namespace"
 
-6. Input "USER" for the namespace
+6. **Input "USER"** for the namespace
 
-7. Exit back to the main menu by inputting "4" then "2"
+7. Exit back to the main menu by **inputting 4** then **2**
 
-8. Input 1 for "Start/Stop System Monitor"
+8. **Input 1** for "Start/Stop System Monitor"
 
-9. Input 2 to stop the system monitor
+9. **Input 2** to stop the system monitor
 
-10 Input 1 to start the system monitor
+10 **Input 1** to start the system monitor
 
 # Done
 The new sensors are now registered and should show up on the System Monitor Dashboard front end! It takes a few seconds to gather data to display, but they will be shown on the All Sensors tab.
+
+## Example - Removing Sensors
+### Introduction
+It is also possible to remove sensors from the System Monitor Dashboard. This is done by "deregistering" a sensor collection class.
+
+### Deregistering Sensors
+
+1. Using the Caché Terminal from the USER namespace run the System Monitor Manager Routine
+  - `Do ^%SYSMONMGR`
+
+2. The System Monitor Manager provides a list of functionality, to add sensors you will want to **input 3** for "Confirgure System Monitor Components"
+
+3. **Input 1** for "Configure System Monitor Components"
+
+4. **Input 3** for "Remove Class"
+
+5. **Input "USER.Dashboard.Sensors.Audit"** as the class
+
+6. Exit back to the main menu by **inputting 4** then **2**
+
+7. **Input 1** for "Start/Stop System Monitor"
+
+8. **Input 2** to stop the system monitor
+
+9 **Input 1** to start the system monitor
+
+
+## Deregistering Namespaces
+The System Monitor Dashbaord only runs in namespaces it has been told to do so, thus if to limit CPU usage of the System Monitor Dashboard namespaces that do not have any registered sensors collection clases should be deregistered from the System Monitor.
+
+1. Using the Caché Terminal switch to the %SYS namespace
+  - `zn "%SYS"`
+
+2. Using the Caché Terminal from the USER namespace run the System Monitor Manager Routine
+  - `Do ^%SYSMONMGR`
+
+3. The System Monitor Manager provides a list of functionality, to Register a namespace you will want to **input 3** for "Confirgure System Monitor Components"
+
+4. **Input 2** for "Configure Startup Namespaces"
+
+5. **Input 3** for "Remove Namespace"
+
+6. **Input "NAMESPACE"** for the namespace, where NAMEPACE is the name of the namepsace
+
+7. Exit back to the main menu by **inputting 4** then **2**
+
+8. **Input 1** for "Start/Stop System Monitor"
+
+9. **Input 2** to stop the system monitor
+
+10 **Input 1** to start the system monitor
