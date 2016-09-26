@@ -1,5 +1,5 @@
 # REST API
-The System Monitor Dashboard uses a simple REST API to retrieve the data displayed on the front end from the Caché Server.
+The System Monitor Dashboard uses a simple REST API to retrieve data from the Caché environment.
 
 ## Overview
 ### URL
@@ -15,7 +15,7 @@ The System Monitor Dashboard uses a simple REST API to retrieve the data display
   - All data sent and recieved from the REST API should be formatted as a JSON string.
 
 - **Times**
-  - All time stamps sent and recieved from the REST API should be in non-localized UTC format
+  - All timestamps sent and recieved from the REST API should be in non-localized UTC format
     - YYYY-MM-DD HH:mm:ss
     - ex: 2016-05-11 09:54:23, or 2016-09-21 15:34:01
 
@@ -28,7 +28,7 @@ Response contains an array of objects representing all of the Sensors registered
 
   `/Sensors`
 
-#### Method:
+#### Method
 
   `GET`
 
@@ -40,6 +40,8 @@ Response contains an array of objects representing all of the Sensors registered
 
   `encryption=['none' | 'base64']`
 
+  - The type of encryption the URL and query parameters are encoded in
+
 #### Success Responses
 
   - **Code:** 200 <br />
@@ -48,14 +50,14 @@ Response contains an array of objects representing all of the Sensors registered
     ```javascript
     [
       {
-        "namespace":	string,
-        "sensor":	string,
-        "item":	string,
-        "criticalValue":	string,
-        "warningValue":	string,
-        "units":	string,
-        "operator":	string,
-        "description":	string,
+        "namespace": string,
+        "sensor" string,
+        "item": string,
+        "criticalValue": string,
+        "warningValue": string,
+        "units": string,
+        "operator": string,
+        "description": string,
       }
     ]
     ```
@@ -78,7 +80,7 @@ Response contains an array of objects representing all of the Sensors registered
     "error": [
       string,
     ],
-    "message": string,
+    "message": tring,
   }
   ```
 
@@ -100,14 +102,14 @@ $http({
 
 ---
 
-### Get A Sensor
+### Get a Sensor
 Response contains one object representing a single Sensor registered within the dashboard. Only the Sensor's properties are included within the object as the identifiers must be known already to make this call.
 
 #### URL
 
   `/Sensors/:sensor/Items/:item`
 
-#### Method:
+#### Method
 
   `GET`
 
@@ -129,11 +131,11 @@ Response contains one object representing a single Sensor registered within the 
     ```javascript
     [
       {
-        "criticalValue":	string,
-        "warningValue":	string,
-        "units":	string,
-        "operator":	string,
-        "description":	string,
+        "criticalValue": string,
+        "warningValue": string,
+        "units": string,
+        "operator": string,
+        "description": string,
       }
     ]
     ```
@@ -185,7 +187,7 @@ Response contains an array of objects representing a single Sensor's readings, s
 
   `/Sensors/:sensor/ChartData/:item`
 
-#### Method:
+#### Method
 
   `GET`
 
@@ -209,8 +211,8 @@ Response contains an array of objects representing a single Sensor's readings, s
     ```javascript
     [
       {
-        "timestamp":	string,
-        "value":	number,
+        "timestamp": string,
+        "value": number,
       }
     ]
     ```
@@ -262,7 +264,7 @@ Response contains one object representing a single Sensor's calculated data, sta
 
   `/Sensors/:sensor/CalculatedData/:item`
 
-#### Method:
+#### Method
 
   `GET`
 
@@ -285,11 +287,11 @@ Response contains one object representing a single Sensor's calculated data, sta
     ```javascript
     [
       {
-        "state":	integer,
-        "min":	number,
-        "max":	number,
-        "mean":	number,
-        "stdDev":	number,
+        "state": integer,
+        "min": number,
+        "max": number,
+        "mean": number,
+        "stdDev": number,
       }
     ]
     ```
