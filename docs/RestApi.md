@@ -39,7 +39,7 @@ Response contains an array of objects representing all of the Sensors registered
 
 - The type of encryption the URL and query parameters are encoded in
 
-##### Required
+##### Optional
 `none`
 
 #### Success Responses
