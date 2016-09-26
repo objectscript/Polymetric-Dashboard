@@ -11,7 +11,7 @@ The System Monitor Dashboard uses a simple REST API to retrieve the data display
     - The current version is *v3/*
 
 - **Example**
-  - An example call to get all the sensors registered to the System Monitor Dashboard */api/dashboard/v3/Sensors?encryption=none*
+  - An example call to get all the sensors registered to the System Monitor Dashboard <br /> */api/dashboard/v3/Sensors?encryption=none*
 
 ### Data
 - **Format**
@@ -29,7 +29,7 @@ Response contains an array of objects representing all of the Sensors registered
 
 #### URL
 
-  /Sensors
+  `/Sensors`
 
 #### Method:
 
@@ -41,7 +41,7 @@ Response contains an array of objects representing all of the Sensors registered
 
 #### Query Params
 
-  `encryption=[none | base64]`
+  `encryption=['none' | 'base64']`
 
 #### Success Responses
 
@@ -93,6 +93,83 @@ Response contains an array of objects representing all of the Sensors registered
 $http({
   method: "GET",
   url: "/api/dashboard/v3/Sensors?encryption=none"
+}).then(function successCallback(resp) {
+    console.log(resp);
+});
+
+```
+
+---
+
+
+### Get A Sensors
+Response contains one object representing a single Sensor registered within the dashboard. Only the Sensor's properties are included within the object as the identifiers must be known already to make this call.
+
+#### URL
+
+  `/Sensors/:sensor/Items/:item`
+
+#### Method:
+
+  `GET`
+
+#### URL Params
+
+  `sensor=[string]`<br />
+  `item=[string]`
+
+#### Query Params
+
+  `namespace=[string]` <br />
+  `encryption=['none' | 'base64']`
+
+#### Success Responses
+
+  - **Code:** 200 <br />
+    **Description:** Found the Sensor <br />
+    **Content:** A Sensor object
+    ```javascript
+    [
+      {
+        "criticalValue":	string,
+        "warningValue":	string,
+        "units":	string,
+        "operator":	string,
+        "description":	string,
+      }
+    ]
+    ```
+
+  - **Code:** 204 <br />
+    **Description:** Did Not Find the Sensor <br />
+    **Content:** Empty Array
+    ```javascript
+    []
+    ```
+
+#### Error Responses
+
+- **Code:** 400 <br />
+  **Description:** Invalid Query Parameters <br />
+  **Content:** Error Object
+  ```javascript
+  {
+    "code": integer,
+    "message": string,
+    "fields": string,
+  }
+  ```
+
+  - **Code:** 500 <br />
+    **Description:** Internal Server Error <br />
+    **Content:** N/A
+
+#### Sample Call
+
+```javascript
+$http({
+  method: "GET",
+  url: "/api/dashboard/v3/Sensors/CPUusage/Items/-?encryption=none"
 }).then(function successCallback(resp) {
     console.log(resp);
 });
