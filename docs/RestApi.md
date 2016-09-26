@@ -1,26 +1,26 @@
 # REST API
-The System Monitor Dashboard uses a simple REST API to retrieve the data displayed on the front end from the Caché Server .
+The System Monitor Dashboard uses a simple REST API to retrieve the data displayed on the front end from the Caché Server.
 
 ## Overview
 ### URL
-#### Base Path
-The base path of all REST API calls is */api/dashboard/*
+- **Base Path**
+  - The base path of all REST API calls is */api/dashboard/*
 
-#### Versioning
-After the base path comes the version of the REST API, this allows for new versions to be created without breaking or removing current functionality.
-  - The current version is *v3/*
+- **Versioning**
+  - After the base path comes the version of the REST API, this allows for new versions to be created without breaking or removing current functionality.
+    - The current version is *v3/*
 
-#### Example
-An example call to get all the sensors registered to the System Monitor Dashboard */api/dashboard/v3/Sensors?encryption=none*
+- **Example**
+  - An example call to get all the sensors registered to the System Monitor Dashboard */api/dashboard/v3/Sensors?encryption=none*
 
 ### Data
-#### Format
-All data sent and recieved from the REST API should be formatted as a JSON string.
+- **Format**
+  - All data sent and recieved from the REST API should be formatted as a JSON string.
 
-#### Times
-All time stamps sent and recieved from the REST API should be in non-localized UTC format
-  - YYYY-MM-DD HH:mm:ss
-  - ex: 2016-05-11 09:54:23, or 2016-09-21 15:34:01
+- **Times**
+  - All time stamps sent and recieved from the REST API should be in non-localized UTC format
+    - YYYY-MM-DD HH:mm:ss
+    - ex: 2016-05-11 09:54:23, or 2016-09-21 15:34:01
 
 ## Paths
 
@@ -51,14 +51,14 @@ Response contains an array of objects representing all of the Sensors registered
     ```javascript
     [
       {
-        'namespace':	string,
-        'sensor':	string,
-        'item':	string,
-        'criticalValue':	string,
-        'warningValue':	string,
-        'units':	string,
-        'operator':	string,
-        'description':	string,
+        "namespace":	string,
+        "sensor":	string,
+        "item":	string,
+        "criticalValue":	string,
+        "warningValue":	string,
+        "units":	string,
+        "operator":	string,
+        "description":	string,
       }
     ]
     ```
@@ -77,9 +77,9 @@ Response contains an array of objects representing all of the Sensors registered
   **Content:** Error Object
   ```javascript
   {
-    'code': integer,
-    'message': string,
-    'fields': string,
+    "code": integer,
+    "message": string,
+    "fields": string,
   }
   ```
 
@@ -91,8 +91,8 @@ Response contains an array of objects representing all of the Sensors registered
 
 ```javascript
 $http({
-  method: 'GET',
-  url: '/api/dashboard/v3/Sensors?encryption=none'
+  method: "GET",
+  url: "/api/dashboard/v3/Sensors?encryption=none"
 }).then(function successCallback(resp) {
     console.log(resp);
 });
