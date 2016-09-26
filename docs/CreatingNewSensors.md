@@ -15,7 +15,7 @@ The System Monitor Dashboard provides the functionality and structure for users 
 		- [TotalAuditsOfType Sensor](#totalauditsoftype-sensor)
 	- [Registering the Sensors](#registering-the-sensors)
 	- [Registering the Namespace](#registering-the-namespace)
-- [Example - Removing Sensors](#example-removing-sensors)
+- [Removing Sensors](#example-removing-sensors)
 	- [Introduction](#introduction)
 	- [Deregistering Sensors](#deregistering-sensors)
 	- [Deregistering Namespaces](#deregistering-namespaces)
