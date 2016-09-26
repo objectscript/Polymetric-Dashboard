@@ -98,7 +98,7 @@ The TotalAudits sensor is the most simple form of sensor so lets start with it.
 The AuditsPerSecond sensor builds off the TotalAudits sensor, adding functionality to compute the change in value of the metric
 
 
-1. Add two new properties to the sensor collection class, one called "LastReading" and the other "ElapsedSeconds". These will be used to calculate the total time since the last reading of the sensors.
+1. Add two new properties to the sensor collection class, one called "PrevReadingTime" and the other "ElapsedSeconds". These will be used to calculate the total time since the last reading of the sensors.
 
   ```
   /// Time of last reading
@@ -108,7 +108,7 @@ The AuditsPerSecond sensor builds off the TotalAudits sensor, adding functionali
   Property ElapsedSeconds As %Integer;
   ```
 
-2. Add a new property to the sensor collection class called "PrevTotalAudits", this will store the last value so it can be compared to the current value
+2. Add a new property to the sensor collection class called "PrevNumberOfAudits", this will store the last value so it can be compared to the current value
 
   ```
   /// Value of NumberOfAudits during the last GetSensors() call
@@ -152,13 +152,13 @@ The AuditsPerSecond sensor builds off the TotalAudits sensor, adding functionali
   ```
   Do ..SetSensor("AuditsPerSecond", NumberOfAuditsPerSecond)
   ```
-8. Store this readings total audits and the current time for the next GetSenors() call
+8. Store this readings total audits and the current time for the next GetSensors() call
 
   ```
     // Store the current number of audits
     Set ..PrevNumberOfAudits = NumberOfAudits
 
-    // Store the current time for the next GetSensors() call
+    // Store the current time
     Set ..PrevReadingTime = CurReadingTime
   ```
 
@@ -229,7 +229,7 @@ The TotalAuditsOfType sensor builds is similar to the TotalAudits sensor as it r
 
 9. **Input 2** to stop the system monitor
 
-10 **Input 1** to start the system monitor
+10. **Input 1** to start the system monitor
 
 
 ## Registering the Namespace
@@ -255,7 +255,7 @@ The System Monitor Dashbaord only runs in namespaces it has been told to do so, 
 
 9. **Input 2** to stop the system monitor
 
-10 **Input 1** to start the system monitor
+10. **Input 1** to start the system monitor
 
 # Done
 The new sensors are now registered and should show up on the System Monitor Dashboard front end! It takes a few seconds to gather data to display, but they will be shown on the All Sensors tab.
@@ -275,7 +275,7 @@ It is also possible to remove sensors from the System Monitor Dashboard. This is
 
 4. **Input 3** for "Remove Class"
 
-5. **Input "USER.Dashboard.Sensors.Audit"** as the class
+5. **Input "SENSOR COLLECTION CLASS"** as the class, where SENSOR COLLECTION CLASS is the name of the sensor collection class
 
 6. Exit back to the main menu by **inputting 4** then **2**
 
@@ -283,11 +283,11 @@ It is also possible to remove sensors from the System Monitor Dashboard. This is
 
 8. **Input 2** to stop the system monitor
 
-9 **Input 1** to start the system monitor
+9. **Input 1** to start the system monitor
 
 
 ## Deregistering Namespaces
-The System Monitor Dashbaord only runs in namespaces it has been told to do so, thus if to limit CPU usage of the System Monitor Dashboard namespaces that do not have any registered sensors collection clases should be deregistered from the System Monitor.
+The System Monitor Dashbaord only runs in namespaces it has been told to do so. Thus if to limit CPU usage of the System Monitor Dashboard, namespaces that do not have any registered sensors collection clases should be deregistered from the System Monitor.
 
 1. Using the Caché Terminal switch to the %SYS namespace
   - `zn "%SYS"`
@@ -299,7 +299,7 @@ The System Monitor Dashbaord only runs in namespaces it has been told to do so, 
 
 4. **Input 2** for "Configure Startup Namespaces"
 
-5. **Input 3** for "Remove Namespace"
+5. **Input 3** for "Delete Namespace"
 
 6. **Input "NAMESPACE"** for the namespace, where NAMEPACE is the name of the namepsace
 
@@ -309,4 +309,4 @@ The System Monitor Dashbaord only runs in namespaces it has been told to do so, 
 
 9. **Input 2** to stop the system monitor
 
-10 **Input 1** to start the system monitor
+10. **Input 1** to start the system monitor
