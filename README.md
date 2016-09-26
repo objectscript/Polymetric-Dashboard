@@ -1,21 +1,21 @@
 # The System Monitor Dashboard
 Fully customizable Caché system monitoring.
 
+## Table of Contents
 <!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
 
-- [The System Monitor Dashboard](#the-system-monitor-dashboard)
-	- [Overview](#overview)
-	- [Demo](#demo)
-	- [Usage](#usage)
-		- [Requirements](#requirements)
-		- [Dependencies](#dependencies)
-		- [Installation](#installation)
-			- [Quick Start Kit](#quick-start-kit)
-			- [Source Code](#source-code)
-	- [Customization](#customization)
-		- [Creating New Sensors](#creating-new-sensors)
-		- [The Rest API](#the-rest-api)
-		- [The Front End](#the-front-end)
+- [Overview](#overview)
+- [Demo](#demo)
+- [Usage](#usage)
+	- [Requirements](#requirements)
+	- [Dependencies](#dependencies)
+	- [Installation](#installation)
+		- [Quick Start Kit](#quick-start-kit)
+		- [Source Code](#source-code)
+- [Customization](#customization)
+	- [Creating New Sensors](#creating-new-sensors)
+	- [The Rest API](#the-rest-api)
+	- [The Front End](#the-front-end)
 
 <!-- /TOC -->
 

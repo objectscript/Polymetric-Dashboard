@@ -1,25 +1,24 @@
 # User Defined Sensors
 The System Monitor Dashboard provides the functionality and structure for users to create their own sensors. These sensors can be added to the monitoring process, and the data collected by them displayed on the front end of the application.
 
+## Table of Contents
 <!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
 
-- [User Defined Sensors](#user-defined-sensors)
-	- [Namespaces](#namespaces)
-	- [Procedure](#procedure)
-	- [Example - Adding Sensors](#example-adding-sensors)
-		- [Introduction](#introduction)
-		- [Creating the Sensors](#creating-the-sensors)
-			- [Sensor Collection Class](#sensor-collection-class)
-			- [TotalAudits Sensor](#totalaudits-sensor)
-			- [AuditsPerSecond Sensor](#auditspersecond-sensor)
-			- [TotalAuditsOfType Sensor](#totalauditsoftype-sensor)
-		- [Registering the Sensors](#registering-the-sensors)
-	- [Registering the Namespace](#registering-the-namespace)
-- [Done](#done)
-	- [Example - Removing Sensors](#example-removing-sensors)
-		- [Introduction](#introduction)
-		- [Deregistering Sensors](#deregistering-sensors)
-	- [Deregistering Namespaces](#deregistering-namespaces)
+- [Namespaces](#namespaces)
+- [Procedure](#procedure)
+- [Example - Adding Sensors](#example-adding-sensors)
+	- [Introduction](#introduction)
+	- [Creating the Sensors](#creating-the-sensors)
+		- [Sensor Collection Class](#sensor-collection-class)
+		- [TotalAudits Sensor](#totalaudits-sensor)
+		- [AuditsPerSecond Sensor](#auditspersecond-sensor)
+		- [TotalAuditsOfType Sensor](#totalauditsoftype-sensor)
+	- [Registering the Sensors](#registering-the-sensors)
+- [Registering the Namespace](#registering-the-namespace)
+- [Example - Removing Sensors](#example-removing-sensors)
+	- [Introduction](#introduction)
+	- [Deregistering Sensors](#deregistering-sensors)
+- [Deregistering Namespaces](#deregistering-namespaces)
 
 <!-- /TOC -->
 
@@ -279,7 +278,6 @@ The System Monitor Dashbaord only runs in namespaces it has been told to do so, 
 
 10. **Input 1** to start the system monitor
 
-# Done
 The new sensors are now registered and should show up on the System Monitor Dashboard front end! It takes a few seconds to gather data to display, but they will be shown on the All Sensors tab.
 
 ## Example - Removing Sensors
