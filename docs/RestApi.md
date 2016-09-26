@@ -25,56 +25,50 @@ The System Monitor Dashboard uses a simple REST API to retrieve data from the Ca
 Response contains an array of objects representing all of the Sensors registered to the dashboard. Each Sensor's identifiers and properties are included within the objects.
 
 #### URL
-
-  `/Sensors`
+`/Sensors`
 
 #### Method
-
-  `GET`
+`GET`
 
 #### URL Params
-
-  `none`
+`none`
 
 #### Query Params
+##### Required
+`encryption=['none' | 'base64']`
+
+- The type of encryption the URL and query parameters are encoded in
 
 ##### Required
-  `encryption=['none' | 'base64']`
-
-  - The type of encryption the URL and query parameters are encoded in
-
-##### Required
-  `none`
+`none`
 
 #### Success Responses
+- **Code:** 200 <br />
+  **Description:** Found Sensors <br />
+  **Content:** An Array of Sensor Objects
+  ```javascript
+  [
+    {
+      "namespace": string,
+      "sensor" string,
+      "item": string,
+      "criticalValue": string,
+      "warningValue": string,
+      "units": string,
+      "operator": string,
+      "description": string,
+    }
+  ]
+  ```
 
-  - **Code:** 200 <br />
-    **Description:** Found Sensors <br />
-    **Content:** An Array of Sensor Objects
-    ```javascript
-    [
-      {
-        "namespace": string,
-        "sensor" string,
-        "item": string,
-        "criticalValue": string,
-        "warningValue": string,
-        "units": string,
-        "operator": string,
-        "description": string,
-      }
-    ]
-    ```
-
-  - **Code:** 204 <br />
-    **Description:** Did Not Find Sensors <br />
-    **Content:** Empty Array
-    ```javascript
-    []
-    ```
+- **Code:** 204 <br />
+  **Description:** Did Not Find Sensors <br />
+  **Content:** Empty Array
+  ```javascript
+  []
+  ```
 
 #### Error Responses
-
 - **Code:** 400 <br />
   **Description:** Invalid Query Parameters <br />
   **Content:** Error Object
@@ -88,12 +82,11 @@ Response contains an array of objects representing all of the Sensors registered
   }
   ```
 
-  - **Code:** 500 <br />
-    **Description:** Internal Server Error <br />
-    **Content:** N/A
+- **Code:** 500 <br />
+  **Description:** Internal Server Error <br />
+  **Content:** N/A
 
 #### Sample Call
-
 ```javascript
 $http({
   method: "GET",
@@ -110,69 +103,61 @@ $http({
 Response contains one object representing a single Sensor registered within the dashboard. Only the Sensor's properties are included within the object as the identifiers must be known already to make this call.
 
 #### URL
-
-  `/Sensors/:sensor/Items/:item`
+`/Sensors/:sensor/Items/:item`
 
 #### Method
-
-  `GET`
+`GET`
 
 #### URL Params
 ##### Required
+`sensor=[string]`
 
-  `sensor=[string]`<br />
+- The name of the sensor to get
 
-  - The name of the sensor to get
+`item=[string]`
 
-  `item=[string]`
-
-  - The name of the sensor's item to get. If the sensor has no item, use the default item: -
+- The name of the sensor's item to get. If the sensor has no item, use the default item: -
 
 ##### Optional
-
-  `none`
+`none`
 
 #### Query Params
 ##### Required
+`namespace=[string]`
 
-  `namespace=[string]` <br />
+- The namespace the sensor is stored in
 
-  - The namespace the sensor is stored in
+`encryption=['none' | 'base64']`
 
-  `encryption=['none' | 'base64']`
-
-  - The type of encryption the URL and query parameters are encoded in
+- The type of encryption the URL and query parameters are encoded in
 
 ##### Optional
-
-  `none`
+`none`
 
 #### Success Responses
+- **Code:** 200 <br />
+  **Description:** Found the Sensor <br />
+  **Content:** A Sensor Object
+  ```javascript
+  [
+    {
+      "criticalValue": string,
+      "warningValue": string,
+      "units": string,
+      "operator": string,
+      "description": string,
+    }
+  ]
+  ```
 
-  - **Code:** 200 <br />
-    **Description:** Found the Sensor <br />
-    **Content:** A Sensor Object
-    ```javascript
-    [
-      {
-        "criticalValue": string,
-        "warningValue": string,
-        "units": string,
-        "operator": string,
-        "description": string,
-      }
-    ]
-    ```
-
-  - **Code:** 204 <br />
-    **Description:** Did Not Find the Sensor <br />
-    **Content:** Empty Array
-    ```javascript
-    []
-    ```
+- **Code:** 204 <br />
+  **Description:** Did Not Find the Sensor <br />
+  **Content:** Empty Array
+  ```javascript
+  []
+  ```
 
 #### Error Responses
-
 - **Code:** 400 <br />
   **Description:** Invalid Query Parameters <br />
   **Content:** Error Object
@@ -186,12 +171,11 @@ Response contains one object representing a single Sensor registered within the 
   }
   ```
 
-  - **Code:** 500 <br />
-    **Description:** Internal Server Error <br />
-    **Content:** N/A
+- **Code:** 500 <br />
+  **Description:** Internal Server Error <br />
+  **Content:** N/A
 
 #### Sample Call
-
 ```javascript
 $http({
   method: "GET",
@@ -208,17 +192,14 @@ $http({
 Response contains an array of objects representing a single Sensor's readings, starting from the current time and ending at a specified time in the past. Each object contains the time and value of the reading.
 
 #### URL
-
-  `/Sensors/:sensor/ChartData/:item`
+`/Sensors/:sensor/ChartData/:item`
 
 #### Method
-
-  `GET`
+`GET`
 
 #### URL Params
 ##### Required
-
-`sensor=[string]`<br />
+`sensor=[string]`
 
 - The name of the sensor to get
 
@@ -227,51 +208,48 @@ Response contains an array of objects representing a single Sensor's readings, s
 - The name of the sensor's item to get. If the sensor has no item, use the default item: -
 
 ##### Optional
-  `none`
+`none`
 
 #### Query Params
 ##### Required
+`namespace=[string]`
 
-  `namespace=[string]` <br />
+- The namespace the sensor is stored in
 
-  - The namespace the sensor is stored in
+`samplePeriod=[integer]`
 
-  `samplePeriod=[integer]` <br />
+- The amount of seconds each data point should represent
 
-  - The amount of seconds each data point should represent
+`encryption=['none' | 'base64']`
 
-  `encryption=['none' | 'base64']`
-
-  - The type of encryption the URL and query parameters are encoded in
+- The type of encryption the URL and query parameters are encoded in
 
 ##### Optional
-  `startTime=[string]`
+`startTime=[string]`
 
-  - A timestamp representing the oldest possible data point to retrieve
+- A timestamp representing the oldest possible data point to retrieve
 
 #### Success Responses
+- **Code:** 200 <br />
+  **Description:** Found Chart Data <br />
+  **Content:** An Array of Chart Data Objects
+  ```javascript
+  [
+    {
+      "timestamp": string,
+      "value": number,
+    }
+  ]
+  ```
 
-  - **Code:** 200 <br />
-    **Description:** Found Chart Data <br />
-    **Content:** An Array of Chart Data Objects
-    ```javascript
-    [
-      {
-        "timestamp": string,
-        "value": number,
-      }
-    ]
-    ```
-
-  - **Code:** 204 <br />
-    **Description:** Did Not Find Chart Data <br />
-    **Content:** Empty Array
-    ```javascript
-    []
-    ```
+- **Code:** 204 <br />
+  **Description:** Did Not Find Chart Data <br />
+  **Content:** Empty Array
+  ```javascript
+  []
+  ```
 
 #### Error Responses
-
 - **Code:** 400 <br />
   **Description:** Invalid Query Parameters <br />
   **Content:** Error Object
@@ -285,12 +263,11 @@ Response contains an array of objects representing a single Sensor's readings, s
   }
   ```
 
-  - **Code:** 500 <br />
-    **Description:** Internal Server Error <br />
-    **Content:** N/A
+- **Code:** 500 <br />
+  **Description:** Internal Server Error <br />
+  **Content:** N/A
 
 #### Sample Call
-
 ```javascript
 $http({
   method: "GET",
@@ -307,17 +284,14 @@ $http({
 Response contains one object representing a single Sensor's calculated data, starting from the current time and ending at a specified time in the past. The object contains the Sensor's state, max value, min value, mean value, and standard deviation.
 
 #### URL
-
-  `/Sensors/:sensor/CalculatedData/:item`
+`/Sensors/:sensor/CalculatedData/:item`
 
 #### Method
-
-  `GET`
+`GET`
 
 #### URL Params
 ##### Required
-
-`sensor=[string]`<br />
+`sensor=[string]`
 
 - The name of the sensor to get
 
@@ -326,52 +300,47 @@ Response contains one object representing a single Sensor's calculated data, sta
 - The name of the sensor's item to get. If the sensor has no item, use the default item: -
 
 ##### Optional
-
-  `none`
+`none`
 
 #### Query Params
 ##### Required
+`namespace=[string]`
 
-  `namespace=[string]` <br />
+- The namespace the sensor is stored in
 
-  - The namespace the sensor is stored in
+`encryption=['none' | 'base64']`
 
-  `encryption=['none' | 'base64']`
-
-  - The type of encryption the URL and query parameters are encoded in
+- The type of encryption the URL and query parameters are encoded in
 
 ##### Optional
+`startTime=[string]`
 
-  `startTime=[string]`
-
-  - A timestamp representing the oldest possible data point to retrieve
+- A timestamp representing the oldest possible data point to retrieve
 
 #### Success Responses
+- **Code:** 200 <br />
+  **Description:** Found Chart Data <br />
+  **Content:** A Calculated Data Object
+  ```javascript
+  [
+    {
+      "state": integer,
+      "min": number,
+      "max": number,
+      "mean": number,
+      "stdDev": number,
+    }
+  ]
+  ```
 
-  - **Code:** 200 <br />
-    **Description:** Found Chart Data <br />
-    **Content:** A Calculated Data Object
-    ```javascript
-    [
-      {
-        "state": integer,
-        "min": number,
-        "max": number,
-        "mean": number,
-        "stdDev": number,
-      }
-    ]
-    ```
-
-  - **Code:** 204 <br />
-    **Description:** Did Not Find Calculated Data <br />
-    **Content:** Empty Array
-    ```javascript
-    []
-    ```
+- **Code:** 204 <br />
+  **Description:** Did Not Find Calculated Data <br />
+  **Content:** Empty Array
+  ```javascript
+  []
+  ```
 
 #### Error Responses
-
 - **Code:** 400 <br />
   **Description:** Invalid Query Parameters <br />
   **Content:** Error Object
@@ -385,12 +354,11 @@ Response contains one object representing a single Sensor's calculated data, sta
   }
   ```
 
-  - **Code:** 500 <br />
-    **Description:** Internal Server Error <br />
-    **Content:** N/A
+- **Code:** 500 <br />
+  **Description:** Internal Server Error <br />
+  **Content:** N/A
 
 #### Sample Call
-
 ```javascript
 $http({
   method: "GET",
