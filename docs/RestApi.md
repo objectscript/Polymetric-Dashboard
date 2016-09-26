@@ -38,9 +38,13 @@ Response contains an array of objects representing all of the Sensors registered
 
 #### Query Params
 
+##### Required
   `encryption=['none' | 'base64']`
 
   - The type of encryption the URL and query parameters are encoded in
+
+##### Required
+  `none`
 
 #### Success Responses
 
@@ -114,14 +118,34 @@ Response contains one object representing a single Sensor registered within the 
   `GET`
 
 #### URL Params
+##### Required
 
   `sensor=[string]`<br />
+
+  - The name of the sensor to get
+
   `item=[string]`
 
+  - The name of the sensor's item to get. If the sensor has no item, use the default item: -
+
+##### Optional
+
+  `none`
+
 #### Query Params
+##### Required
 
   `namespace=[string]` <br />
+
+  - The namespace the sensor is stored in
+
   `encryption=['none' | 'base64']`
+
+  - The type of encryption the URL and query parameters are encoded in
+
+##### Optional
+
+  `none`
 
 #### Success Responses
 
@@ -192,16 +216,38 @@ Response contains an array of objects representing a single Sensor's readings, s
   `GET`
 
 #### URL Params
+##### Required
 
-  `sensor=[string]`<br />
-  `item=[string]`
+`sensor=[string]`<br />
+
+- The name of the sensor to get
+
+`item=[string]`
+
+- The name of the sensor's item to get. If the sensor has no item, use the default item: -
+
+##### Optional
+  `none`
 
 #### Query Params
+##### Required
 
   `namespace=[string]` <br />
-  `startTime=[string]` <br />
+
+  - The namespace the sensor is stored in
+
   `samplePeriod=[integer]` <br />
+
+  - The amount of seconds each data point should represent
+
   `encryption=['none' | 'base64']`
+
+  - The type of encryption the URL and query parameters are encoded in
+
+##### Optional
+  `startTime=[string]`
+
+  - A timestamp representing the oldest possible data point to retrieve
 
 #### Success Responses
 
@@ -269,15 +315,36 @@ Response contains one object representing a single Sensor's calculated data, sta
   `GET`
 
 #### URL Params
+##### Required
 
-  `sensor=[string]`<br />
-  `item=[string]`
+`sensor=[string]`<br />
+
+- The name of the sensor to get
+
+`item=[string]`
+
+- The name of the sensor's item to get. If the sensor has no item, use the default item: -
+
+##### Optional
+
+  `none`
 
 #### Query Params
+##### Required
 
   `namespace=[string]` <br />
-  `startTime=[string]` <br />
+
+  - The namespace the sensor is stored in
+
   `encryption=['none' | 'base64']`
+
+  - The type of encryption the URL and query parameters are encoded in
+
+##### Optional
+
+  `startTime=[string]`
+
+  - A timestamp representing the oldest possible data point to retrieve
 
 #### Success Responses
 
