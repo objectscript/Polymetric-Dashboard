@@ -14,11 +14,11 @@ The System Monitor Dashboard provides the functionality and structure for users 
 		- [AuditsPerSecond Sensor](#auditspersecond-sensor)
 		- [TotalAuditsOfType Sensor](#totalauditsoftype-sensor)
 	- [Registering the Sensors](#registering-the-sensors)
-- [Registering the Namespace](#registering-the-namespace)
+	- [Registering the Namespace](#registering-the-namespace)
 - [Example - Removing Sensors](#example-removing-sensors)
 	- [Introduction](#introduction)
 	- [Deregistering Sensors](#deregistering-sensors)
-- [Deregistering Namespaces](#deregistering-namespaces)
+	- [Deregistering Namespaces](#deregistering-namespaces)
 
 <!-- /TOC -->
 
@@ -253,7 +253,7 @@ The TotalAuditsOfType sensor builds is similar to the TotalAudits sensor as it r
 10. **Input 1** to start the system monitor
 
 
-## Registering the Namespace
+### Registering the Namespace
 The System Monitor Dashbaord only runs in namespaces it has been told to do so, thus if you are creating sensors in a namespace that has not been registered by the System Montior you must do so for the sensors to be seen.
 
 1. Using the Caché Terminal switch to the %SYS namespace
@@ -306,7 +306,7 @@ It is also possible to remove sensors from the System Monitor Dashboard. This is
 9. **Input 1** to start the system monitor
 
 
-## Deregistering Namespaces
+### Deregistering Namespaces
 The System Monitor Dashbaord only runs in namespaces it has been told to do so. Thus if to limit CPU usage of the System Monitor Dashboard, namespaces that do not have any registered sensors collection clases should be deregistered from the System Monitor.
 
 1. Using the Caché Terminal switch to the %SYS namespace
