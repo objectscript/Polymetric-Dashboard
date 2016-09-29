@@ -14,25 +14,25 @@
     <md-tabs class="md-primary" md-dynamic-height>
       <md-tab label="Chart Properties">
         <md-content flex="100" layout="row" layout-align="center center" layout-padding>
-          <!-- Chart Window -->
+          <!-- Chart Period -->
           <div flex="50" layout="row" layout-wrap layout-align="start center">
             <div layout="row" flex="100">
-              <h2 class="md-headline smpHeader">Chart Window</h2>
+              <h2 class="md-headline smpHeader">Chart Period</h2>
             </div>
             <md-input-container flex="95" flex-offset="5" layout-padding style="display: block">
-              <md-select flex="95" class="white-fill" md-whiteframe="1" ng-model="chartWindow" aria-label="Set Chart Window">
+              <md-select flex="95" class="white-fill" md-whiteframe="1" ng-model="chartWindow" aria-label="Set Chart Period">
                 <md-option ng-repeat="cW in chartWindows" value="{{cW}}">{{getDisplayString(cW)}}</md-option>
               </md-select>
             </md-input-container>
           </div>
-          <!-- Sample Period -->
+          <!-- Sample Interval -->
           <div flex="50" layout="row" layout-wrap layout-align="start center">
             <div layout="row" flex="100">
-              <h2 class="md-headline smpHeader">Sample Period</h2>
+              <h2 class="md-headline smpHeader">Sample Interval</h2>
             </div>
             <div layout="row" flex="95" flex-offset="5">
               <md-input-container flex="95" flex-offset="5" layout-padding style="display: block">
-                <md-select flex="95" class="white-fill" md-whiteframe="1" ng-model="samplePeriod" aria-label="Set Sample Period">
+                <md-select flex="95" class="white-fill" md-whiteframe="1" ng-model="samplePeriod" aria-label="Set Sample Interval">
                   <md-option ng-repeat="sP in availableSamplePeriods()" value="{{sP}}">{{getDisplayString(sP)}}</md-option>
                 </md-select>
               </md-input-container>

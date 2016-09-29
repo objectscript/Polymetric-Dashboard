@@ -3,7 +3,7 @@
 
   var tab = angular.module('tabs');
 
-  tab.controller('allsensorsCtrl', ['$scope', '$mdDialog', 'dashboard', function($scope, $mdDialog, dashboard) {
+  tab.controller('allsensorsCtrl', ['$rootScope', '$scope', '$mdDialog', 'dashboard', function($rootScope, $scope, $mdDialog, dashboard) {
     var _this = this;
     var queryText = '';
 
@@ -157,6 +157,21 @@
           _this.searchText = '';
           queryText = '';
         }
+      }
+    }
+
+    // the tabs themselves are a midway point for the update call
+    // this allows only the viz tools that are shown to be updated (reducing lag)
+    dashboard.subscribe($scope, update); // subscribe to the dashboard update call
+    $scope.$on('renderComplete', function(event, args) {update(args);}); // when visualization tool held in the tab are done rendering they emit this so they will be populated
+
+    // intercept the broadcast, and only update the data if currently selected tab.
+    var clearData = false;
+    function update(args) {
+      clearData = clearData || args.clearData;
+      if ($rootScope.curTab === 'allsensors') {
+        $scope.$broadcast('updateData', {'clearData': clearData});
+        clearData = false;
       }
     }
   }]);

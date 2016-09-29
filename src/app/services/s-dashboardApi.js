@@ -4,7 +4,7 @@
   var app = angular.module('dashboardApi', []);
 
   /*  Holds all the sensor information */
-  app.factory('dashboard', ['$rootScope', '$http', '$q', '$log', '$filter', '$interval', '$localStorage', function($rootScope, $http, $q, $log, $filter, $interval, $localStorage) {
+  app.factory('dashboard', ['$rootScope', '$http', '$q', '$log', '$filter', '$interval', '$timeout', '$localStorage', function($rootScope, $http, $q, $log, $filter, $interval, $timeout, $localStorage) {
     var dashboard = {};
 
     // sets up the properties needed for the dashboard
@@ -26,10 +26,10 @@
       // pull saved params from local storage, otherwise use the defaults
       var params = {
         // for readability I use moment's duration objects here to
-        // define the available chart windows and sample periods.
+        // define the available chart periods and sample intervals.
         // the .as('seconds') call will return an integer value of seconds,
         // allowing for easy comparison and sorting of the values
-        chartWindows: [// available chart window options
+        chartWindows: [// available chart period options
           moment.duration(1, 'hour').as('seconds'),
           moment.duration(2, 'hours').as('seconds'),
           moment.duration(6, 'hours').as('seconds'),
@@ -39,7 +39,7 @@
           moment.duration(3, 'days').as('seconds'),
           moment.duration(4, 'days').as('seconds')
         ],
-        samplePeriods: [// available sample period options
+        samplePeriods: [// available sample interval options
           moment.duration(1, 'minute').as('seconds'),
           moment.duration(5, 'minute').as('seconds'),
           moment.duration(15, 'minute').as('seconds'),
@@ -95,7 +95,6 @@
             if (dashboard.meta.debug.rest) { // server returns an error object. Print it if debug is true
               $log.error(resp.data);
             }
-
             reject(data);
           });
       });
@@ -136,7 +135,7 @@
 
     dashboard.getChartData = function(namespace, sensor, item, startTime) {
       return $q(function(resolve, reject) {
-        // If no start time is defined get the whole chart window of data
+        // If no start time is defined get the whole chart period of data
         if (!startTime) startTime = dashboard.getStartTime(dashboard.meta.chartWindow);
         // If start time is -1 then only get the newest data
         if (startTime === -1) startTime = dashboard.getStartTime(0);
@@ -176,7 +175,7 @@
 
     dashboard.getCalculatedData = function(namespace, sensor, item, startTime) {
       return $q(function(resolve, reject) {
-        // If no start time is defined get the whole chart window of data
+        // If no start time is defined get the whole chart period of data
         if (!startTime) startTime = dashboard.getStartTime(dashboard.meta.chartWindow);
         // If start time is -1 then only get the newest data
         if (startTime === -1) startTime = dashboard.getStartTime(0);
@@ -215,9 +214,9 @@
     // returns the start time for the data returned by the server,
     // subtracts a number of seconds from the current time
     dashboard.getStartTime = function(windowInSeconds) {
-      // adding 2 sample periods pushes the start time back past the desired window enough so points can be averaged up to the end of the chart window
-      // in reality this shows more than the chart window but the graphs plot based on the newest time so a couple sample periods of older data need
-      // to be averaged to make it look like a whole chart window on the chart.
+      // adding 2 sample intervals pushes the start time back past the desired window enough so points can be averaged up to the end of the chart period
+      // in reality this shows more than the chart period but the graphs plot based on the newest time so a couple sample intervals of older data need
+      // to be averaged to make it look like a whole chart period on the chart.
       var fillChartWindow = windowInSeconds + dashboard.meta.samplePeriod * 2;
       return $filter('toTS')(moment.utc().subtract(fillChartWindow, 'seconds'));
     };
@@ -227,17 +226,16 @@
     autoUpdate();
     function autoUpdate() {
       dashboard.meta.updateClock = $interval(function() {
-        dashboard.updateData({clearData: false});
+        dashboard.notify({clearData: false});
       }, 30000);
     }
 
-    // the actual broadcast (this is angular functionality)
-    dashboard.updateData = function(args) {
-      $rootScope.$broadcast('updateDashboardData', args);
+    dashboard.subscribe = function(scope, callback) {
+      var handler = $rootScope.$on('dashboardApiTick', function(event, args) {callback(args);});
+      scope.$on('destroy', handler);
     };
-    // another broadcast use to update the charts demensions (does not change data or make rest calls)
-    dashboard.updateChart = function() {
-      $rootScope.$broadcast('updateChartSize');
+    dashboard.notify = function(args) {
+      $rootScope.$emit('dashboardApiTick', args);
     };
     return dashboard;
   }]);

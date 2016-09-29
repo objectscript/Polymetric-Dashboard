@@ -1,7 +1,3 @@
-<div layout="row" layout-align="left center" flex="100" class="md-padding">
-  <h2 class="md-display-1 no-margin">Dashboard Promises</h2>
-</div>
-
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - All Sensors - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
@@ -29,7 +25,7 @@
     dashboard<span class="smp-funct">.</span><span class="smp-call">getSensors</span>()
       <span class="smp-funct">.</span><span class="smp-call">then</span>(<span class="smp-funct">function</span>(<span class="smp-arg">data</span>) {
         <span class="smp-cmt">// success callback</span>
-      }, <span class="smp-funct">function</span>(<span class="smp-arg">data</span>) {
+      }, <span class="smp-funct">function</span>(<span class="smp-arg">error</span>) {
         <span class="smp-cmt">// failure callback</span>
       });
   </code>
@@ -139,7 +135,7 @@
     dashboard<span class="smp-funct">.</span><span class="smp-call">getSensor</span>(<span class="smp-arg">namespace</span>, <span class="smp-arg">sensor</span>, <span class="smp-arg">item</span>)
       <span class="smp-funct">.</span><span class="smp-call">then</span>(<span class="smp-funct">function</span>(<span class="smp-arg">data</span>) {
         <span class="smp-cmt">// success callback</span>
-      }, <span class="smp-funct">function</span>(<span class="smp-arg">data</span>) {
+      }, <span class="smp-funct">function</span>(<span class="smp-arg">error</span>) {
         <span class="smp-cmt">// failure callback</span>
       });
   </code>
@@ -243,7 +239,7 @@
     dashboard<span class="smp-funct">.</span><span class="smp-call">getChartData</span>(<span class="smp-arg">namespace</span>, <span class="smp-arg">sensor</span>, <span class="smp-arg">item</span>, <span class="smp-arg">startTime</span>)
       <span class="smp-funct">.</span><span class="smp-call">then</span>(<span class="smp-funct">function</span>(<span class="smp-arg">data</span>) {
         <span class="smp-cmt">// success callback</span>
-      }, <span class="smp-funct">function</span>(<span class="smp-arg">data</span>) {
+      }, <span class="smp-funct">function</span>(<span class="smp-arg">error</span>) {
         <span class="smp-cmt">// failure callback</span>
       });
   </code>
@@ -347,7 +343,7 @@
     dashboard<span class="smp-funct">.</span><span class="smp-call">getCalculatedData</span>(<span class="smp-arg">namespace</span>, <span class="smp-arg">sensor</span>, <span class="smp-arg">item</span>)
       <span class="smp-funct">.</span><span class="smp-call">then</span>(<span class="smp-funct">function</span>(<span class="smp-arg">data</span>) {
         <span class="smp-cmt">// success callback</span>
-      }, <span class="smp-funct">function</span>(<span class="smp-arg">data</span>) {
+      }, <span class="smp-funct">function</span>(<span class="smp-arg">error</span>) {
         <span class="smp-cmt">// failure callback</span>
       });
   </code>

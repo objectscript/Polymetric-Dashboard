@@ -46,7 +46,7 @@
               ],
             'Optional':
               [
-                {name: 'startTime', type: 'Integer', desc: 'A number of seconds in the past defining oldest reading to return. The start time can also take the value -1 to only return the newest reading, or undefined to return a set of readings that range the entire chart window.', default: 'undefined'},
+                {name: 'startTime', type: 'Integer', desc: 'A number of seconds in the past defining oldest reading to return. The start time can also take the value -1 to only return the newest reading, or undefined to return a set of readings that range the entire chart period.', default: 'undefined'},
               ],
           },
         }
@@ -64,7 +64,7 @@
               ],
             'Optional':
               [
-                {name: 'startTime', type: 'Integer', desc: 'A number of seconds in the past defining oldest reading to return. The start time can also take the value -1 to only return the newest reading, or undefined to return a set of readings that range the entire chart window.', default: 'undefined'},
+                {name: 'startTime', type: 'Integer', desc: 'A number of seconds in the past defining oldest reading to return. The start time can also take the value -1 to only return the newest reading, or undefined to return a set of readings that range the entire chart period.', default: 'undefined'},
               ],
           },
         }

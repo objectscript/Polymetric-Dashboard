@@ -3,23 +3,17 @@
 
   var core = angular.module('core');
 
-  core.controller('widgetCtrl', ['$scope', '$element', '$compile', '$timeout', 'WidgetProvider', 'dashboard', function($scope, $element, $compile, $timeout, WidgetProvider, dashboard) {
+  core.controller('staticWidgetCtrl', ['$scope', '$q', '$element', '$compile', '$timeout', 'WidgetProvider', 'dashboard', function($scope, $q, $element, $compile, $timeout, WidgetProvider, dashboard) {
     var _this = this;
-    // get the correct widget from the widget provider
-    _this.widget = $scope.widget = WidgetProvider.widget($scope.widgetId);
 
-    // local vars to allow access to functions
-    _this.openMenu = openMenu;
+    init();
+    function init() {
+      var defaults = WidgetProvider.getDefaultSettings();
 
-    // use the widget to open the correct menu
-    function openMenu($event) {
-      _this.widget.openMenu($event);
-    }
-
-    _this.widget.update = function() {
+      // overwrites default settings with $scope.data
+      _this.widget = _.merge(defaults, $scope.data);
       drawWidget();
-    };
-    _this.widget.update();
+    }
 
     function drawWidget() {
       // get the span container for all content
@@ -33,54 +27,7 @@
 
       // compile it so angular stuff works
       $compile(holder)($scope);
-
     }
-
-    // on resizestop the widgets should be saved so their positions are kept
-    $('.playground-stack').on('resizestop', function(event, ui) {
-      if (_this.widget.settings.type.indexOf('Chart') !== -1) {
-        $scope.$broadcast('updateChartSize');
-      }
-      updateWidgetDems();
-    });
-
-    // on dragstop, the widgets should be saved so their positions are kept
-    $('.playground-stack').on('dragstop', function(event, ui) {
-      updateWidgetPos();
-    });
-
-    // updates the widget's position in the playgrounds data
-    function updateWidgetPos() {
-      $timeout(function() {
-        // the acutal gridstack item is 2 levels above the widget directive.
-        var gridItem = $element.parent().parent();
-
-        _this.widget.x = gridItem.attr('data-gs-x');
-        _this.widget.y = gridItem.attr('data-gs-y');
-      }, 0);
-    }
-
-    // updates the widget's demensions in the playgrounds data
-    function updateWidgetDems() {
-      $timeout(function() {
-        // the acutal gridstack item is 2 levels above the widget directive.
-        var gridItem = $element.parent().parent();
-
-        _this.widget.w = gridItem.attr('data-gs-width');
-        _this.widget.h = gridItem.attr('data-gs-height');
-      }, 0);
-    }
-
-    // updates the widget's position and demensions in the playgrounds data
-    function updateWidgetPosDems() {
-      updateWidgetPos();
-      updateWidgetDems();
-    }
-
-    // watches the scope var of the widget to update the position of the widget when it is placed (autoPos will most likely place it somewhere other than 0,0)
-    $scope.$watch('widget', function(nV, oV) {
-      updateWidgetPosDems();
-    });
 
     // builds the string needed to show the widgets visulization
     function getVizHtml() {
@@ -202,5 +149,12 @@
 
       return rString;
     }
+
+    // on resizestop the widgets should be saved so their positions are kept
+    $element.parent().parent().on('resizestop', function(event, ui) {
+      if (_this.widget.settings.type.indexOf('Chart') !== -1) {
+        $scope.$broadcast('updateChartSize');
+      }
+    });
   }]);
 })();

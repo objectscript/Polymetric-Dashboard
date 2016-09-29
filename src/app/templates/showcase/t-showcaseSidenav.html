@@ -9,10 +9,10 @@
   <md-content>
     <!-- Dashbaord API -->
     <div layout="row" layout-align="left center" flex="100">
-      <md-button disabled class="showcaseSideNavBtn" ng-click="">Dashboard REST Service</md-button>
+      <md-button disabled class="showcaseSideNavBtn" ng-click="">Dashboard Service</md-button>
     </div>
     <div layout="row" layout-align="left center" flex="80" flex-offset="10">
-      <md-button class="showcaseSideNavBtn" ng-class="{ 'md-accent': (showcase.curShowcaseSection === 'DashboardMethods') }" ng-click="showcase.goToSection('DashboardMethods')" >Methods</md-button>
+      <md-button class="showcaseSideNavBtn" ng-class="{ 'md-accent': (showcase.curShowcaseSection === 'DashboardMethods') }" ng-click="showcase.goToSection('DashboardMethods')" >REST API Routes</md-button>
     </div>
     <div layout="row" layout-align="left center" flex="80" flex-offset="10">
       <md-button class="showcaseSideNavBtn" ng-class="{ 'md-accent': (showcase.curShowcaseSection === 'DashboardSettings') }" ng-click="showcase.goToSection('DashboardSettings')" >Other Functionality</md-button>
@@ -31,16 +31,13 @@
     <div layout="row" layout-align="left center" flex="80" flex-offset="10">
       <md-button class="showcaseSideNavBtn" ng-class="{ 'md-accent': (showcase.curShowcaseSection === 'Sensor') }" ng-click="showcase.goToSection('Sensor')" >Sensor Display</md-button>
     </div>
-    <!-- <div layout="row" layout-align="left center" flex="80" flex-offset="10">
-      <md-button class="showcaseSideNavBtn" ng-class="{ 'md-accent': (showcase.curShowcaseSection === 'AllSensorRow') }" ng-click="showcase.curShowcaseSection = 'AllSensorRow'" >All Sensors Row</md-button>
-    </div> -->
 
     <!-- Content -->
     <div layout="row" layout-align="left center" flex="100">
-      <md-button disabled class="showcaseSideNavBtn" ng-click="" >Content</md-button>
+      <md-button disabled class="showcaseSideNavBtn" ng-click="" >Content Display</md-button>
     </div>
     <div layout="row" layout-align="left center" flex="80" flex-offset="10">
-      <md-button class="showcaseSideNavBtn" ng-class="{ 'md-accent': (showcase.curShowcaseSection === 'Tab') }" ng-click="showcase.goToSection('Tab')" >Tab</md-button>
+      <md-button class="showcaseSideNavBtn" ng-class="{ 'md-accent': (showcase.curShowcaseSection === 'Tab') }" ng-click="showcase.goToSection('Tab')" >Tabs</md-button>
     </div>
     <div layout="row" layout-align="left center" flex="80" flex-offset="10">
       <md-button class="showcaseSideNavBtn" ng-class="{ 'md-accent': (showcase.curShowcaseSection === 'Expando') }" ng-click="showcase.goToSection('Expando')" >Expando</md-button>

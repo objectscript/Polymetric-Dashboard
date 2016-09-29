@@ -11,7 +11,7 @@
       updateData = applyAdvancedSettings() || updateData;
 
       // if there are updates broadcast the event
-      if (updateData) dashboard.updateData({clearData: true});
+      if (updateData) dashboard.notify({clearData: true});
 
       $scope.closeDialog();
     };
@@ -28,43 +28,43 @@
       return moment.duration(s, 'seconds').humanize();
     };
 
-    // extracts a reasonable subset of the available sample periods.
-    // this is done because having a minute sample period for a 30 day chart window
+    // extracts a reasonable subset of the available sample intervals.
+    // this is done because having a minute sample interval for a 30 day chart period
     // does not preform well and gives way to much information than is really visible.
-    // Additionally having a larger sample periods than chart window would just be silly.
+    // Additionally having a larger sample intervals than chart period would just be silly.
     $scope.availableSamplePeriods = function() {
       var availSP = [];
       var minLim;
       var maxLim;
-      // set the sample period limits based on the chart window
+      // set the sample interval limits based on the chart period
       switch (true) {
-        // if the chart window is below 12 hours sample periods 1 minute -> 30 minutes
+        // if the chart period is below 12 hours sample intervals 1 minute -> 30 minutes
         case ($scope.chartWindow <= moment.duration(12, 'hours').as('seconds')):
           minLim = moment.duration(1, 'minute').as('seconds');
           maxLim = moment.duration(30, 'minutes').as('seconds');
           break;
-        // if the chart window is below 4 hours sample periods 30 minutes -> 6 hourss
+        // if the chart period is below 4 hours sample intervals 30 minutes -> 6 hourss
         case ($scope.chartWindow <= moment.duration(4, 'days').as('seconds')):
           minLim = moment.duration(30, 'minutes').as('seconds');
           maxLim = moment.duration(6, 'hours').as('seconds');
           break;
-        //else the sample periods 6 hours -> 1 day
+        //else the sample intervals 6 hours -> 1 day
         default:
           minLim = moment.duration(6, 'hours').as('seconds');
           maxLim = moment.duration(1, 'day').as('seconds');
       }
 
-      // extract the sample periods that are inside the limits set above
+      // extract the sample intervals that are inside the limits set above
       for (var i = 0; i < $scope.samplePeriods.length; i++) {
         if ($scope.samplePeriods[i] >= minLim && $scope.samplePeriods[i] <= maxLim) {
           availSP.push($scope.samplePeriods[i]);
         }
       }
 
-      // if the current sample period is less than the available minimum set it to the avail min
+      // if the current sample interval is less than the available minimum set it to the avail min
       if ($scope.samplePeriod < availSP[0]) {
         $scope.samplePeriod = availSP[0];
-      // else if the current sample period is greater than the available maximum set it to the avail max
+      // else if the current sample interval is greater than the available maximum set it to the avail max
       } else if ($scope.samplePeriod > availSP[availSP.length - 1]) {
         $scope.samplePeriod = availSP[availSP.length - 1];
       }
@@ -84,7 +84,7 @@
 
         // if the localstorage object has not be initialized, do so
         if (!angular.isObject($localStorage.Dashboard)) $localStorage.Dashboard = {};
-        // Update localStorage to remember the current sample period
+        // Update localStorage to remember the current sample interval
         $localStorage.Dashboard.samplePeriod = sP;
       }
       if ($scope.chartWindows.indexOf(cW) !== -1) {
@@ -94,7 +94,7 @@
 
         // if the localstorage object has not be initialized, do so
         if (!angular.isObject($localStorage.Dashboard)) $localStorage.Dashboard = {};
-        // Update localStorage to remember the current sample period
+        // Update localStorage to remember the current sample interval
         $localStorage.Dashboard.chartWindow = cW;
       }
 

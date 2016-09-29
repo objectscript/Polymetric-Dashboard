@@ -32,8 +32,25 @@
         // build the chart with the validated options
         buildGraph(options)
           .then(function(options) {
-            // get data for the chart
-            getNewData();
+            // Once the chart has been built then add listeners
+            // update data listener
+            $scope.$on('updateData', function(event, args) {dashboardUpdate(event, args);});
+            // update charts size listener (for instance when a widget is resized)
+            $scope.$on('updateChartSize', function(event) {update();});
+
+            // emit the render complete event which tells the tab to update its contents data
+            $scope.$emit('renderComplete', {clearData: false});
+
+            // if the units have not been defined (passed to the chart), request for them from the server
+            if ($scope.units === undefined) {
+              dashboard.getSensor($scope.namespace, $scope.sensor, $scope.item)
+                .then(function(data) {
+                  // extract the units and store
+                  if (data) {
+                    $scope.units = data.units;
+                  }
+                });
+            }
           });
       });
 
@@ -106,7 +123,7 @@
         o.yAxis.visible = (['true', 'false'].indexOf($scope.yaxisVisible) === -1 ? defaults.yAxis.visible : $scope.yaxisVisible === 'true');
         // Validate yAxis label
         o.yAxis.label = (!$scope.yaxisLabel ? defaults.yAxis.label : $scope.yaxisLabel);
-        o.yAxis.distance = 30;
+        o.yAxis.distance = -20;
 
         resolve(o);
         // return o;
@@ -115,8 +132,6 @@
 
     // javascript necessary to set up the nvd3 chart and place it on the DOM
     function buildGraph(options) {
-      /*These lines are all chart setup.  Pick and choose which chart features you want to utilize. */
-      // $timeout(function() {
       return $q(function(resolve, reject) {
         nv.addGraph(function() {
           $scope.chart = nv.models.lineChart()
@@ -173,39 +188,23 @@
           nv.utils.windowResize(update);
 
           resolve($scope.chart);
-          //
-          // getNewData();
-          //
-          // return $scope.chart;
         });
       });
-      // }, 0);
     }
 
-    // updates the charts size (for instance when a widget is resized)
-    $scope.$on('updateChartSize', function(event) {
-      // cancel the resize event listener
-      // if this is not done MANY resizings are done making the chart
-      // flash and causing much more redrawing to be done
-      $timeout.cancel(resizeListener);
-
-      // delay the resizing of the chart for 100 ms, thus allowing the user to have
-      // finished resizing the window/container before the chart is redrawn.
-      resizeListener = $timeout(function() {
-        update();
-      }, 100);
-    });
-
-    function update() {
+    function update(fill) {
       // Update the SVG with the new data and call chart
       if ($scope.chartData) {
         $scope.chartData.datum($scope.data).transition().duration(500).call($scope.chart);
+
+        // show/remove the fill below the line based on return from calculatedDataRespHandler
+        var area = $element.find('path[class=nv-area]');
+        area.css('fill-opacity', fill);
       }
     }
 
-    // listen for update calls, and get data if needed
-    $scope.$on('updateDashboardData', function(event, args) {
-      if (args.clearData) { // if new chart windows/sample periods are defined remove all existing data from the chart
+    function dashboardUpdate(event, args) {
+      if (args.clearData) { // if new chart periods/sample intervals are defined remove all existing data from the chart
         clearChart()
           .then(function() {
             getNewData();
@@ -213,59 +212,47 @@
       } else {
         getNewData(); // otherwise get new data to add to the chart
       }
-    });
+    }
 
     // get the data needed to display on the chart (async)
     function getNewData() {
-      // since sensor information will not change only call it once during ititialization
-      if (!$scope.lastUpdate) {
-        // if the units were not passed to the line chart make the rest call to get them
-        if ($scope.units === undefined) {
-          dashboard.getSensor($scope.namespace, $scope.sensor, $scope.item)
-            .then(function(data) {
-              // extract the units and store
-              if (data) {
-                $scope.units = data.units;
-              }
-            });
-        }
-      }
-
+      var needsData = needNewData();
       // if new data is needed (or its the initial call) get data
-      if (!$scope.lastUpdate || needNewData()) {
-        // get the (x,y) pairs of data shown on the chart, using $scope.lastUpdate to only get the necessary time period (the whole chart window intitially
+      if (needsData) {
+        // get the (x,y) pairs of data shown on the chart, using $scope.lastUpdate to only get the necessary time period (the whole chart period intitially
         // but subsiquent calls only get the small set of data needed to update the chart )
         dashboard.getChartData($scope.namespace, $scope.sensor, $scope.item, $scope.lastUpdate)
           .then(function(data) {
             chartDataRespHandler(data)
               .then(function(data) {
-                // get the calculated data used to change the style of the chart, use undefined as last update so it will always get a full chart windows data. This is done
-                // because the state needs to be based off the entire chart window not just the newest set of data
+                // get the calculated data used to change the style of the chart, use undefined as last update so it will always get a full chart periods data. This is done
+                // because the state needs to be based off the entire chart period not just the newest set of data
                 dashboard.getCalculatedData($scope.namespace, $scope.sensor, $scope.item, undefined)
                   .then(function(data) {
                     calculatedDataRespHandler(data)
                       .then(function(data) {
-                        // update the chart to show new data
-                        update();
-
-                        // parse out the worst state so the chart styling represents the worst of the chart window
-                        removeOldData();
-
-                        // show/remove the fill below the line based on return from calculatedDataRespHandler
-                        var area = $element.find('path[class=nv-area]');
-                        area.css('fill-opacity', data);
+                        var fill = data;
+                        // parse out the worst state so the chart styling represents the worst of the chart period
+                        removeOldData()
+                          .then(function() {
+                            // update the chart to show new data
+                            update(fill);
+                          });
                       });
                   });
               });
           });
+
+        // if a call was made but no response recieved, set the last update to null so it is known not to make another call
+        if ($scope.lastUpdate === undefined) $scope.lastUpdate = null;
       }
     }
 
-    // test to see if new data is needed (last update is more than a sample period in the past)
+    // test to see if new data is needed (last update is more than a sample interval in the past)
+    // returns true if $scope.lastUpdate is undefined, but false if $scope.lastUpdate=null
     function needNewData() {
       var lastUpdate = $filter('TStoUnix')($scope.lastUpdate);
       var now = moment.utc().subtract(dashboard.meta.samplePeriod, 'seconds').valueOf();
-
       return (lastUpdate < now);
     }
 
@@ -308,6 +295,17 @@
             chart.style('stroke-dasharray', ('0, 1'));
           }
 
+          // formats charts with all data points having same y value
+          if (data.max === data.min) {
+            if (data.max === 0) {
+              $scope.chart.forceY([0, 1]);
+            } else {
+              $scope.chart.forceY([0, data.max]);
+            }
+          } else {
+            $scope.chart.forceY(null);
+          }
+
           resolve(fill);
         }
       });
@@ -343,28 +341,31 @@
     }
 
     function removeOldData() {
-      // calculate the time frame the chart should display
-      var unix = $filter('TStoUnix')($scope.lastUpdate);
-      var oldestPoint = moment.utc(unix).subtract(dashboard.meta.chartWindow, 'seconds').valueOf();
-      var curData = $scope.data[0].values;
+      return $q(function(resolve, reject) {
+        // calculate the time frame the chart should display
+        var unix = $filter('TStoUnix')($scope.lastUpdate);
+        var oldestPoint = moment.utc(unix).subtract(dashboard.meta.chartWindow, 'seconds').valueOf();
+        var curData = $scope.data[0].values;
 
-      // if the chart has more than the desired number of points, then remove old data
-      var desiredNumPoints = dashboard.meta.chartWindow / dashboard.meta.samplePeriod;
-      var totalPoints = curData.length;
-      if (desiredNumPoints < totalPoints) {
-        // walk through the chart data oldest->newest (this should mean less itterations) and when a
-        // point in the chart is found to be newers than the oldest point break (this is where the data should be split)
-        // now = 4
-        // chartData = [0,1,2,3,4,5,6,7]
-        //                      <------- i = 4
-        // [0,1,2,3,4,5,6,7].splice(i, chartData.length) = [4,5,6,7]
-        for (var i = curData.length - 1; i >= 0; i--) {
-          if (curData[i].x < oldestPoint) break;
+        // if the chart has more than the desired number of points, then remove old data
+        var desiredNumPoints = dashboard.meta.chartWindow / dashboard.meta.samplePeriod;
+        var totalPoints = curData.length;
+        if (desiredNumPoints < totalPoints) {
+          // walk through the chart data oldest->newest (this should mean less itterations) and when a
+          // point in the chart is found to be newers than the oldest point break (this is where the data should be split)
+          // now = 4
+          // chartData = [0,1,2,3,4,5,6,7]
+          //                      <------- i = 4
+          // [0,1,2,3,4,5,6,7].splice(i, chartData.length) = [4,5,6,7]
+          for (var i = curData.length - 1; i >= 0; i--) {
+            if (curData[i].x < oldestPoint) break;
+          }
+
+          // splice the data to get return the array without the old data
+          $scope.data[0].values = curData.splice(i, curData.length);
         }
-
-        // splice the data to get return the array without the old data
-        $scope.data[0].values = curData.splice(i, curData.length);
-      }
+        resolve();
+      });
     }
 
     // removes all data from the chart

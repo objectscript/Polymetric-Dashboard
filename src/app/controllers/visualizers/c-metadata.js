@@ -13,6 +13,7 @@
     var overListener;
     var outListener;
     var visible = false;
+    var gotData = false;
 
     // default position (although it will never been shown in this position)
     $scope.pos = {left:  0, top: 0};
@@ -30,13 +31,18 @@
         // event is triggered (that would be A LOT of useless REST calls)
         overListener = $timeout(function() {
           // Get the meda data, and chain the promises so only after the data was retieved will the data be parsed, and only after that the popup will be shown
-          dashboard.getSensor($scope.namespace, $scope.sensor, $scope.item)
-            .then(function(data) {
-              populateMetadata(data)
-                .then(function() {
-                  showMetadata(event);
-                });
-            });
+          if (!gotData) {
+            dashboard.getSensor($scope.namespace, $scope.sensor, $scope.item)
+              .then(function(data) {
+                populateMetadata(data)
+                  .then(function() {
+                    showMetadata(event);
+                    gotData = true;
+                  });
+              });
+          } else {
+            showMetadata(event);
+          }
         }, 1000);
       }
     });

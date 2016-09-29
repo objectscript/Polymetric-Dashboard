@@ -3,7 +3,7 @@
 
   var showcase = angular.module('showcase');
 
-  showcase.directive('smpShowcaseSidenav', function() {
+  showcase.directive('smpShowcaseSidenav', ['$mdSidenav', function($mdSidenav) {
       return {
         restrict: 'E',
         replace: true,
@@ -21,9 +21,11 @@
               var scSideNav = $('#showcaseSideNav').detach();
 
               scSideNav.appendTo(dash);
+
+              $mdSidenav('showcaseSidenav').toggle();
             }
           };
         }
       };
-    });
+    }]);
 })();

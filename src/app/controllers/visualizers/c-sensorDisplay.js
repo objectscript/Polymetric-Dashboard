@@ -3,7 +3,7 @@
 
   var viz = angular.module('visualizers');
 
-  viz.controller('sensorDisplayCtrl', ['$scope', '$filter', '$element', '$compile', 'dashboard', function($scope, $filter, $element, $compile, dashboard) {
+  viz.controller('sensorDisplayCtrl', ['$scope', '$filter', '$element', '$compile', '$q', 'dashboard', function($scope, $filter, $element, $compile, $q, dashboard) {
     $scope.lastUpdate = undefined;
 
     // parent hight is used to format the sensor display (it makes it the full height)
@@ -18,66 +18,72 @@
     // initialize sensor by finding out what data it needs to display, as well as any custom widths or classes to applyChanges
     // to each of its displayed metrics.
     // the user can set these but there are defaults if no data is given (for the widths and style, metrics must be given)
-    setupSensor();
+    setupSensor()
+      .then(function() {
+        // Once the chart has been set up then add listeners
+        // update data listener
+        $scope.$on('updateData', function(event, args) {getInfo();});
+
+        // emit the render complete event which tells the tab to update its contents data
+        $scope.$emit('renderComplete', {clearData: false});
+
+        // always need to get sensor data initially
+        if (callSensor) {
+          dashboard.getSensor($scope.namespace, $scope.sensor, $scope.item)
+            .then(function(data) {
+              handleResponse(data);
+            });
+        }
+      });
     function setupSensor() {
-      // convert the DOMs string attrs into arrays for parsing
-      var metricArr = $scope.metrics.split(',');
-      var widthArr = !$scope.widths ? [] : $scope.widths.split(',');
-      var classArr = !$scope.classes ? [] : $scope.classes.split(',');
+      return $q(function(resolve, reject) {
 
-      // these are split into three arrays because the data is retrieved via three routes.
-      // if data from a route is not needed then that call will not be made.
-      var validSensor = ['criticalValue', 'warningValue', 'units']; // getSensor
-      var validChartData = ['value', 'timestamp']; // getChartData
-      var validCalculatedData = ['state', 'max', 'min', 'mean', 'stdDev']; // getCalculatedData
+        // convert the DOMs string attrs into arrays for parsing
+        var metricArr = $scope.metrics.split(',');
+        var widthArr = !$scope.widths ? [] : $scope.widths.split(',');
+        var classArr = !$scope.classes ? [] : $scope.classes.split(',');
 
-      // go through all the properties
-      $scope.elems = [];
-      var metric;
-      var width;
-      var elemClass;
-      for (var i = 0; i < metricArr.length; i++) {
-        metric = metricArr[i];
-        // flags for the type of calls to make
-        callSensor = callSensor || (validSensor.indexOf(metric) !== -1); // getSensor
-        callChartData = callChartData || (validChartData.indexOf(metric) !== -1); // getChartData
-        callCalculatedData = callCalculatedData || (validCalculatedData.indexOf(metric) !== -1); // getCalculatedData
+        // these are split into three arrays because the data is retrieved via three routes.
+        // if data from a route is not needed then that call will not be made.
+        var validSensor = ['criticalValue', 'warningValue', 'units']; // getSensor
+        var validChartData = ['value', 'timestamp']; // getChartData
+        var validCalculatedData = ['state', 'max', 'min', 'mean', 'stdDev']; // getCalculatedData
 
-        // width defaults to auto, but can be overrided by the developer
-        width = 'auto';
-        if (!!widthArr[i] && (widthArr[i] !== '')) width = Number(widthArr[i]);
+        // go through all the properties
+        $scope.elems = [];
+        var metric;
+        var width;
+        var elemClass;
+        for (var i = 0; i < metricArr.length; i++) {
+          metric = metricArr[i];
+          // flags for the type of calls to make
+          callSensor = callSensor || (validSensor.indexOf(metric) !== -1); // getSensor
+          callChartData = callChartData || (validChartData.indexOf(metric) !== -1); // getChartData
+          callCalculatedData = callCalculatedData || (validCalculatedData.indexOf(metric) !== -1); // getCalculatedData
 
-        // class defaults to '' (none), but can be overrided by the developer
-        elemClass = '';
-        if (!!classArr[i] && (classArr[i] !== '')) elemClass = classArr[i];
+          // width defaults to auto, but can be overrided by the developer
+          width = 'auto';
+          if (!!widthArr[i] && (widthArr[i] !== '')) width = Number(widthArr[i]);
 
-        $scope.elems.push({'metric': metric.trim(), 'width': width, 'class': elemClass.trim()});
-      }
+          // class defaults to '' (none), but can be overrided by the developer
+          elemClass = '';
+          if (!!classArr[i] && (classArr[i] !== '')) elemClass = classArr[i];
 
-      // convert string elem attrs into flag bools
-      $scope.showUnit = ($scope.showUnit === 'true');
-      $scope.showMetadata = ($scope.showMetadata === 'true');
+          $scope.elems.push({'metric': metric.trim(), 'width': width, 'class': elemClass.trim()});
+        }
 
-      // initial get of display metrics
-      getInfo();
+        // convert string elem attrs into flag bools
+        $scope.showUnit = ($scope.showUnit === 'true');
+        $scope.showMetadata = ($scope.showMetadata === 'true');
+
+        resolve();
+      });
     }
 
-    // on get new data broadcasts update displayed data
-    $scope.$on('updateDashboardData', function(event, args) {
-      getInfo();
-    });
-
     function getInfo() {
-      // since sensor information will not change only call it once during ititialization
-      if (!$scope.lastUpdate)  {
-        if (callSensor) dashboard.getSensor($scope.namespace, $scope.sensor, $scope.item)
-          .then(function(data) {
-            handleResponse(data);
-          });
-      }
-      if (!$scope.lastUpdate || needNewInfo()) {
+      if (needNewInfo()) {
         // always need to call for chart data so the timestamp is updated
-        dashboard.getChartData($scope.namespace, $scope.sensor, $scope.item, -1)
+        if (callChartData) dashboard.getChartData($scope.namespace, $scope.sensor, $scope.item, -1)
           .then(function(data) {
             handleResponse(data);
           });
@@ -85,10 +91,14 @@
           .then(function(data) {
             handleResponse(data);
           });
+
+        // if a call was made but no response recieved, set the last update to null so it is known not to make another call
+        if ($scope.lastUpdate === undefined) $scope.lastUpdate = null;
       }
     }
 
     // Tests if the current data is out-of-date (needs to update it)
+    // returns true if $scope.lastUpdate is undefined, but false if $scope.lastUpdate=null
     function needNewInfo() {
       var lastUpdate = $filter('TStoUnix')($scope.lastUpdate);
       var now = moment.utc().subtract(dashboard.meta.samplePeriod, 'seconds').valueOf();

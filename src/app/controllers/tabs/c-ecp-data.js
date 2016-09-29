@@ -3,75 +3,228 @@
 
   var tab = angular.module('tabs');
 
-  tab.controller('ecpDataCtrl', ['$scope', '$timeout', '$compile', 'dashboard', function($scope, $timeout, $compile, dashboard) {
+  tab.controller('ecpDataCtrl', ['$scope', '$q', '$timeout', '$compile', 'dashboard', function($scope, $q, $timeout, $compile, dashboard) {
     var _this = this;
 
-    _this.widgets = [];
+    _this.widgets = [
+      {
+        'id': 'ECPDATA-activconn',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'ECPSConn',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Active Connections'}
+        }
+      },
+      {
+        'id': 'ECPDATA-maxconn',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'ECPSConnMax',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Maximum Connections'}
+        }
+      },
+      {
+        'id': 'ECPDATA-globref',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'ECPSGloRefPerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Global Referenecs Per Second'}
+        }
+      },
+      {
+        'id': 'ECPDATA-globupdates',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'ECPSGloUpdatePerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Global Updates Per Second'}
+        }
+      },
+      {
+        'id': 'ECPDATA-reqrec',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'ECPSReqRcvdPerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Request Recieved Per Second'}
+        }
+      },
+      {
+        'id': 'ECPDATA-reqbuffproc',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'ECPSReqBuffPerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Request Buffers Processed Per Second'}
+        }
+      },
+      {
+        'id': 'ECPDATA-blocksent',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'ECPSBlockSentPerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Blocks Sent Per Second'}
+        }
+      },
+      {
+        'id': 'ECPDATA-lockgrant',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'ECPSLockGrantPerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Lock Grant Per Second'}
+        }
+      },
+      {
+        'id': 'ECPDATA-lockfail',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'ECPSLockFailPerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Lock Fail Per Second'}
+        }
+      },
+      {
+        'id': 'ECPDATA-lockqgrant',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'ECPSLockQueGrantPerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Lock Que Grant Per Second'}
+        }
+      },
+      {
+        'id': 'ECPDATA-lockqfail',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'ECPSLockQueFailPerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Lock Que Fail Per Second'}
+        }
+      },
+      {
+        'id': 'ECPDATA-bytesent',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'ECPSByteSentPerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Bytes Sent Per Second'}
+        }
+      },
+      {
+        'id': 'ECPDATA-byterec',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'ECPSByteRcvdPerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Bytes Recieved Per Second'}
+        }
+      },
+      {
+        'id': 'ECPDATA-blockpurge',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'ECPSSvrBlockPurgePerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Blocks Purged By Server Per Second'}
+        }
+      },
+      {
+        'id': 'ECPDATA-rtnpurge',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'ECPSRoutinePurgePerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Routines Purged Per Second'}
+        }
+      },
+      {
+        'id': 'ECPDATA-bigkill',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'ECPSBigKillPerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Big Kill Per Second'}
+        }
+      },
+      {
+        'id': 'ECPDATA-bigstring',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'ECPSBigStringPerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Big String Per Second'}
+        }
+      }
+    ];
 
     init();
     function init() {
-      createGrid();
-      createWidgets();
+      createGrid()
+        .then(function(grid) {
+          createWidgets(grid);
+        });
     }
 
     function createGrid() {
-      // create application server grid
-      $('.ecp-data-stack').gridstack({
-        cellHeight: '48px',
-        verticalMargin: 20,
-        animate: true,
-        float: false,
+      return $q(function(resolve, reject) {
+        // create the grid
+        $('.ecp-data-stack').gridstack({
+          cellHeight: '48px',
+          verticalMargin: 20,
+          animate: true,
+        });
+        resolve($('.ecp-data-stack').data('gridstack'));
       });
-      _this.appGrid = $('.ecp-data-stack').data('gridstack');
     }
 
-    function createWidgets() {
-      // create application server widgets
-      _this.widgets = [
-        {'id': 'DATA-activconn', 'title': 'Active Connections', 'namespace': '%SYS', 'sensor': 'ECPSConn', 'item': '-'},
-        {'id': 'DATA-maxconn', 'title': 'Maximum Connections', 'namespace': '%SYS', 'sensor': 'ECPSConnMax', 'item': '-'},
-        {'id': 'DATA-globref', 'title': 'Global Referenecs Per Second', 'namespace': '%SYS', 'sensor': 'ECPSGloRefPerSec', 'item': '-'},
-        {'id': 'DATA-globupdates', 'title': 'Global Updates Per Second', 'namespace': '%SYS', 'sensor': 'ECPSGloUpdatePerSec', 'item': '-'},
-        {'id': 'DATA-reqrec', 'title': 'Request Recieved Per Second', 'namespace': '%SYS', 'sensor': 'ECPSReqRcvdPerSec', 'item': '-'},
-        {'id': 'DATA-reqbuffproc', 'title': 'Request Buffers Processed Per Second', 'namespace': '%SYS', 'sensor': 'ECPSReqBuffPerSec', 'item': '-'},
-        {'id': 'DATA-blocksent', 'title': 'Blocks Sent Per Second', 'namespace': '%SYS', 'sensor': 'ECPSBlockSentPerSec', 'item': '-'},
-        {'id': 'DATA-lockgrant', 'title': 'Lock Grant Per Second', 'namespace': '%SYS', 'sensor': 'ECPSLockGrantPerSec', 'item': '-'},
-        {'id': 'DATA-lockfail', 'title': 'Lock Fail Per Second', 'namespace': '%SYS', 'sensor': 'ECPSLockFailPerSec', 'item': '-'},
-        {'id': 'DATA-lockqgrant', 'title': 'Lock Que Grant Per Second', 'namespace': '%SYS', 'sensor': 'ECPSLockQueGrantPerSec', 'item': '-'},
-        {'id': 'DATA-lockqfail', 'title': 'Lock Que Fail Per Second', 'namespace': '%SYS', 'sensor': 'ECPSLockQueFailPerSec', 'item': '-'},
-        {'id': 'DATA-bytesent', 'title': 'Bytes Sent Per Second', 'namespace': '%SYS', 'sensor': 'ECPSByteSentPerSec', 'item': '-'},
-        {'id': 'DATA-byterec', 'title': 'Bytes Recieved Per Second', 'namespace': '%SYS', 'sensor': 'ECPSByteRcvdPerSec', 'item': '-'},
-        {'id': 'DATA-blockpurge', 'title': 'Blocks Purged By Server Per Second', 'namespace': '%SYS', 'sensor': 'ECPSSvrBlockPurgePerSec', 'item': '-'},
-        {'id': 'DATA-rtnpurge', 'title': 'Routines Purged Per Second', 'namespace': '%SYS', 'sensor': 'ECPSRoutinePurgePerSec', 'item': '-'},
-        {'id': 'DATA-bigkill', 'title': 'Big Kill Per Second', 'namespace': '%SYS', 'sensor': 'ECPSBigKillPerSec', 'item': '-'},
-        {'id': 'DATA-bigstring', 'title': 'Big String Per Second', 'namespace': '%SYS', 'sensor': 'ECPSBigStringPerSec', 'item': '-'}
-      ];
-
-      addWidgets(_this.widgets);
-    }
-
-    function addWidgets(widgets) {
-      for (var i = 0; i < widgets.length; i++) {
-        var html = $('#ecpDataWidget').html();
-        // replace the holder _ with the correct index for the data;
-        html = html.replace(new RegExp(/[_]/, 'g'), i);
+    function createWidgets(grid) {
+      for (var i = 0; i < _this.widgets.length; i++) {
+        var html = '<div><div flex="100" class="grid-stack-item-content hideOverflow" md-whiteframe="1"><smp-static-widget data="ecpData.widgets[' + i + ']"></smp-static-widget></div></div>';
         var el = $compile(html)($scope);
 
-        // put the widget on the data grid
-        //                   el, x, y, width, height, autoPos, minWidth, minHeight
-        _this.appGrid.addWidget(el, 0, 0, 6, 3, true, 1, 12, 3, 3);
+        // put the widget on the grid
+        // addWidget(el, x, y, width, height, autoPos, minWidth, maxWidth, minHeight, maxHeight)
+        grid.addWidget(el,  _this.widgets[i].x,  _this.widgets[i].y,  6, 3, true, 4, 12, 3, 3);
       }
     }
-
-    var appUpdateResizeListener;
-    // on resize the widgets should be saved so their positions are kept
-    $('.ecp-data-stack').on('resizestop', function(event, ui) {
-      $timeout.cancel(appUpdateResizeListener);
-
-      appUpdateResizeListener = $timeout(function() {
-        dashboard.updateChart();
-      }, 250);
-    });
-
   }]);
 })();

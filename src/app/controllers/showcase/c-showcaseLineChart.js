@@ -33,7 +33,8 @@
       $scope.activeSensor.item = _this.item;
       $scope.activeSensor.unit = _this.unit;
 
-      dashboard.updateData({clearData: true});
+      // emit the render complete event which tells the tab to update its contents data
+      $scope.$emit('renderComplete', {clearData: true});
     }
 
     _this.lineChartAttributes = {

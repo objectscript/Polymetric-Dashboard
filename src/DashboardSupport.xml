@@ -3534,7 +3534,6 @@ FINDNAME(name)
     <link rel="stylesheet" href="assets\libs\jqueryui\jquery-ui.min.css">
     <link rel="stylesheet" href="assets\libs\gridstack\gridstack.min.css">
 
-    <!-- <link href='https://fonts.googleapis.com/css?family=Roboto:400,400italic,300,500,700' rel='stylesheet' type='text/css'> -->
     <link href='assets\css\font.css' rel='stylesheet' type='text/css'>
 
     <!-- Custom CSS-->
@@ -3544,7 +3543,7 @@ FINDNAME(name)
 
   </head>
 
-  <body id="SMPDashbaord" ng-app="Dashboard" ng-cloak style="overflow:hidden">
+  <body id="SMPDashbaord" ng-app="Dashboard" ng-cloak style="overflow:hidden;">
   <!-- =========================== CONTENT OF APP =========================== -->
     <smp-content> </smp-content>
 
@@ -3586,6 +3585,7 @@ FINDNAME(name)
       <script src="app/directives/core/d-content.js" type="text/javascript"></script>
       <script src="app/directives/core/d-pagination.js" type="text/javascript"></script>
       <script src="app/directives/core/d-expando.js" type="text/javascript"></script>
+      <script src="app/directives/core/d-staticWidget.js" type="text/javascript"></script>
       <script src="app/directives/core/d-widget.js" type="text/javascript"></script>
 
       <script src="app/directives/tabs/d-allsensors.js" type="text/javascript"></script>
@@ -3615,6 +3615,7 @@ FINDNAME(name)
       <!-- CONTROLLERS -->
       <script src="app/controllers/core/c-content.js" type="text/javascript"></script>
       <script src="app/controllers/core/c-pagination.js" type="text/javascript"></script>
+      <script src="app/controllers/core/c-staticWidget.js" type="text/javascript"></script>
       <script src="app/controllers/core/c-widget.js" type="text/javascript"></script>
       <script src="app/controllers/core/c-widgetMenu.js" type="text/javascript"></script>
       <script src="app/controllers/core/c-widgetAdvancedMenu.js" type="text/javascript"></script>
@@ -4169,12 +4170,12 @@ Initialize all basic Cache Dashboard Sensors</Description>
 	d ..CreateSensor("JournalSize","","","",0,"kb",">","Current size (in kilobytes) of the journal file")
 	d ..CreateSensor("JournalSpace","",50,250,0,"mb","<","Free space (in megabytes) available on the journal directory's storage volume")
 	d ..CreateSensor("JournalGrowthRate","","","",0,"kbytes per second",">","Kilobytes added to the journal file (per second)")
-	d ..CreateSensor("CSPSessions","","","",0,"",">","")
-	d ..CreateSensor("CSPPrivateConnections","","","",0,"",">","")
-	d ..CreateSensor("CSPActualConnections","","","",0,"",">","")
-	d ..CreateSensor("CSPInUseConnections","","","",0,"",">","")
-	d ..CreateSensor("CSPActivity","","","",0,"",">","Requests (per minute) to the CSP gateway server")
-	d ..CreateSensor("CSPGatewayLatency","",2000,1000,1,"ms",">","Time (milliseconds) required to obtain a response from the CSP gateway server when fetching metrics represented by  CSP sensors")
+	d ..CreateSensor("CSPSessions","","","",0,"",">","Currently active CSP session IDs on this Caché server")
+	d ..CreateSensor("CSPPrivateConnections","","","",0,"",">","Current connections to this Caché server by the CSP Gateway Server that are reserved for state-aware applications (Preserve mode 1)")
+	d ..CreateSensor("CSPActualConnections","","","",0,"",">","Current connections to this Caché server by the CSP Gateway Server")
+	d ..CreateSensor("CSPInUseConnections","","","",0,"",">","Current connections to this Caché server by the CSP Gateway Server that are processing a CSP request")
+	d ..CreateSensor("CSPActivity","","","",0,"",">","CSP requests served by the CSP Gateway Server since it was started")
+	d ..CreateSensor("CSPGatewayLatency","",2000,1000,1,"ms",">","Time (milliseconds) required to obtain a response from the CSP Gateway Server when fetching metrics represented by CSP sensors")
 	d ..CreateSensor("ProcessCount","","","",0,"",">","Total number of active processes")
 	d ..CreateSensor("CPUPct","",90,50,1,"%",">","CPU usage (percentage) by process type")
 	d ..CreateSensor("ShadowConnectionsLatency","",2000,1000,1,"ms",">","Latency (miliseconds) between the shadow source and the shadow destination")

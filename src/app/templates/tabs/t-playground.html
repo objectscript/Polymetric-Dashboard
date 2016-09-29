@@ -1,10 +1,10 @@
 <!-- Div that all the widgets will be placed in (this is set up in the controller using Gridstack)-->
 <div class="grid-stack playground-stack">
 </div>
-
 <!-- PLAYGROUND OPTIONS FAB -->
 <md-fab-speed-dial
   id="playgroundFAB"
+  ng-show="curTab === 'playground'"
   md-open="playground.fabOpen"
   md-direction="up"
   class="playgroundOptionsFab"

@@ -17,15 +17,15 @@
       if (state === -1) {
         // keep track of when the last update was so new data can be retrieved at correct time
         _this.lastUpdate = undefined;
-
-        getData();
         _this.getOwnData = true;
 
         // set up broadcast listener for automatic updates
-        _this.dashboardListener = $scope.$on('updateDashboardData', function(event, args) {
-          if (needsNewData())
-            getData();
-        });
+        _this.dashboardListener = $scope.$on('updateData', function(event, args) {getData();});
+
+        // get initial data
+        // emit the render complete event which tells the tab to update its contents data
+        $scope.$emit('renderComplete', {clearData: false});
+
         // sometimes the passed value will be undefined if the page has not yet rendered fully
         // otherwise if the state is the null string "" the state should show no data (this is what the
         // server returns for no data)
@@ -39,7 +39,7 @@
 
     // FUNCTINALITY FOR THE STATE ICON TO GET ITS OWN DATA IF NECESSARY
 
-    // if the last update is before the sample period (or never), get new data
+    // if the last update is before the sample interval (or never), get new data
     function needsNewData() {
       var lastUpdate = $filter('TStoUnix')(_this.lastUpdate);
       var now = moment.utc().subtract(dashboard.meta.samplePeriod, 'seconds').valueOf();
@@ -47,12 +47,14 @@
       return lastUpdate < now;
     }
 
-    // call the dashboard Api to get a whole chart window of calcuated data
+    // call the dashboard Api to get a whole chart period of calcuated data
     function getData() {
-      dashboard.getCalculatedData($scope.namespace, $scope.sensor, $scope.item, undefined)
-        .then(function(data) {
-          calculatedDataRespHandler(data);
-        });
+      if (needsNewData()) {
+        dashboard.getCalculatedData($scope.namespace, $scope.sensor, $scope.item, undefined)
+          .then(function(data) {
+            calculatedDataRespHandler(data);
+          });
+      }
     }
 
     // parse the response to get the state of the sensor

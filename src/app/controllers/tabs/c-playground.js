@@ -3,7 +3,7 @@
 
   var tab = angular.module('tabs');
 
-  tab.controller('playgroundCtrl', ['$scope', '$timeout', '$interval', '$compile', 'WidgetProvider', function($scope, $timeout, $interval, $compile, WidgetProvider) {
+  tab.controller('playgroundCtrl', ['$rootScope', '$scope', '$timeout', '$interval', '$compile', 'dashboard', 'WidgetProvider', function($rootScope, $scope, $timeout, $interval, $compile, dashboard, WidgetProvider) {
     var _this = this;
 
     _this.widgets = WidgetProvider.widgets();
@@ -200,6 +200,21 @@
         mouseLeaveListener = $timeout(function() {
           _this.fabOpen = false;
         }, 1500);
+      }
+    }
+
+    // the tabs themselves are a midway point for the update call
+    // this allows only the viz tools that are shown to be updated (reducing lag)
+    dashboard.subscribe($scope, update); // subscribe to the dashboard update call
+    $scope.$on('renderComplete', function(event, args) {update(args);}); // when visualization tool held in the tab are done rendering they emit this so they will be populated
+
+    // intercept the broadcast, and only update the data if currently selected tab.
+    var clearData = false;
+    function update(args) {
+      clearData = clearData || args.clearData;
+      if ($rootScope.curTab === 'playground') {
+        $scope.$broadcast('updateData', {'clearData': clearData});
+        clearData = false;
       }
     }
   }]);

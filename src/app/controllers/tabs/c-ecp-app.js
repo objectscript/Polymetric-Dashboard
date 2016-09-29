@@ -3,72 +3,196 @@
 
   var tab = angular.module('tabs');
 
-  tab.controller('ecpAppCtrl', ['$scope', '$timeout', '$compile', 'dashboard', function($scope, $timeout, $compile, dashboard) {
+  tab.controller('ecpAppCtrl', ['$scope', '$q', '$timeout', '$compile', 'dashboard', function($scope, $q, $timeout, $compile, dashboard) {
     var _this = this;
 
-    _this.widgets = [];
+    _this.widgets =  [
+      {
+        'id': 'ECPAPP-activconn',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'ECPConn',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Active Connections'}
+        }
+      },
+      {
+        'id': 'ECPAPP-maxconn',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'ECPConnMax',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Maximum Connections'}
+        }
+      },
+      {
+        'id': 'ECPAPP-lglobref',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'GloRefPerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Local Global References Per Second'}
+        }
+      },
+      {
+        'id': 'ECPAPP-rglobref',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'GloRefRemPerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Remote Global References Per Second'}
+        }
+      },
+      {
+        'id': 'ECPAPP-lglobupdate',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'GloUpdatePerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Local Global Updates Per Second'}
+        }
+      },
+      {
+        'id': 'ECPAPP-rglobupdate',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'GloUpdateRemPerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Remote Global Updates Per Second'}
+        }
+      },
+      {
+        'id': 'ECPAPP-lrtncall',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'RtnCallLocalPerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Local Routine Calls Per Second'}
+        }
+      },
+      {
+        'id': 'ECPAPP-rrtncall',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'RtnCallRemotePerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Remote Routine Calls Per Second'}
+        }
+      },
+      {
+        'id': 'ECPAPP-globref',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'ECPGloRefPerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Global Referenecs Per Second'}
+        }
+      },
+      {
+        'id': 'ECPAPP-bytesent',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'ECPByteSentPerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Bytes Sent Per Second'}
+        }
+      },
+      {
+        'id': 'ECPAPP-byterec',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'ECPByteRcvdPerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Bytes Recieved Per Second'}
+        }
+      },
+      {
+        'id': 'ECPAPP-blockadd',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'ECPBlockAddPerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Blocks Added Per Second'}
+        }
+      },
+      {
+        'id': 'ECPAPP-blockpurgeB',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'ECPBlockPurgeBuffPerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Blocks Purged By Buffer Per Second'}
+        }
+      },
+      {
+        'id': 'ECPAPP-blockpergeS',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'ECPBlockPurgeSvrPerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Blocks Purged By Server Per Second'}
+        }
+      },
+    ];
 
     init();
     function init() {
-      createGrid();
-      createWidgets();
+      createGrid()
+        .then(function(grid) {
+          createWidgets(grid);
+        });
     }
 
     function createGrid() {
       // create application server grid
-      $('.ecp-app-stack').gridstack({
-        cellHeight: '48px',
-        verticalMargin: 20,
-        animate: true,
-        float: false,
+      return $q(function(resolve, reject) {
+        // create the grid
+        $('.ecp-app-stack').gridstack({
+          cellHeight: '48px',
+          verticalMargin: 20,
+          animate: true,
+        });
+        resolve($('.ecp-app-stack').data('gridstack'));
       });
-      _this.appGrid = $('.ecp-app-stack').data('gridstack');
     }
 
-    function createWidgets() {
-      // create application server widgets
-      _this.widgets = [
-        {'id': 'APP-activconn', 'title': 'Active Connections', 'namespace': '%SYS', 'sensor': 'ECPConn', 'item': '-'},
-        {'id': 'APP-maxconn', 'title': 'Maximum Connections', 'namespace': '%SYS', 'sensor': 'ECPConnMax', 'item': '-'},
-        {'id': 'APP-lglobref', 'title': 'Local Global References Per Second', 'namespace': '%SYS', 'sensor': 'GloRefPerSec', 'item': '-'},
-        {'id': 'APP-rglobref', 'title': 'Remote Global References Per Second', 'namespace': '%SYS', 'sensor': 'GloRefRemPerSec', 'item': '-'},
-        {'id': 'APP-lglobupdate', 'title': 'Local Global Updates Per Second', 'namespace': '%SYS', 'sensor': 'GloUpdatePerSec', 'item': '-'},
-        {'id': 'APP-rglobupdate', 'title': 'Remote Global Updates Per Second', 'namespace': '%SYS', 'sensor': 'GloUpdateRemPerSec', 'item': '-'},
-        {'id': 'APP-lrtncall', 'title': 'Local Routine Calls Per Second', 'namespace': '%SYS', 'sensor': 'RtnCallLocalPerSec', 'item': '-'},
-        {'id': 'APP-rrtncall', 'title': 'Remote Routine Calls Per Second', 'namespace': '%SYS', 'sensor': 'RtnCallRemotePerSec', 'item': '-'},
-        {'id': 'APP-globref', 'title': 'Global Referenecs Per Second', 'namespace': '%SYS', 'sensor': 'ECPGloRefPerSec', 'item': '-'},
-        {'id': 'APP-bytesent', 'title': 'Bytes Sent Per Second', 'namespace': '%SYS', 'sensor': 'ECPByteSentPerSec', 'item': '-'},
-        {'id': 'APP-byterec', 'title': 'Bytes Recieved Per Second', 'namespace': '%SYS', 'sensor': 'ECPByteRcvdPerSec', 'item': '-'},
-        {'id': 'APP-blockadd', 'title': 'Blocks Added Per Second', 'namespace': '%SYS', 'sensor': 'ECPBlockAddPerSec', 'item': '-'},
-        {'id': 'APP-blockpurgeB', 'title': 'Blocks Purged By Buffer Per Second', 'namespace': '%SYS', 'sensor': 'ECPBlockPurgeBuffPerSec', 'item': '-'},
-        {'id': 'APP-blockpergeS', 'title': 'Blocks Purged By Server Per Second', 'namespace': '%SYS', 'sensor': 'ECPBlockPurgeSvrPerSec', 'item': '-'},
-      ];
-
-      addWidgets(_this.widgets);
-    }
-
-    function addWidgets(widgets) {
-      for (var i = 0; i < widgets.length; i++) {
-        var html = $('#ecpAppWidget').html();
-        // replace the holder _ with the correct index for the data;
-        html = html.replace(new RegExp(/[_]/, 'g'), i);
+    function createWidgets(grid) {
+      for (var i = 0; i < _this.widgets.length; i++) {
+        var html = '<div><div flex="100" class="grid-stack-item-content hideOverflow" md-whiteframe="1"><smp-static-widget data="ecpApp.widgets[' + i + ']"></smp-static-widget></div></div>';
         var el = $compile(html)($scope);
 
-        // put the widget on the data grid
-        //                   el, x, y, width, height, autoPos, minWidth, minHeight
-        _this.appGrid.addWidget(el, 0, 0, 6, 3, true, 1, 12, 3, 3);
+        // put the widget on the grid
+        // addWidget(el, x, y, width, height, autoPos, minWidth, maxWidth, minHeight, maxHeight)
+        grid.addWidget(el,  _this.widgets[i].x,  _this.widgets[i].y,  6, 3, true, 4, 12, 3, 3);
       }
     }
-
-    var appUpdateResizeListener;
-    // on resize the widgets should be saved so their positions are kept
-    $('.ecp-app-stack').on('resizestop', function(event, ui) {
-      $timeout.cancel(appUpdateResizeListener);
-
-      appUpdateResizeListener = $timeout(function() {
-        dashboard.updateChart();
-      }, 250);
-    });
-
   }]);
 })();

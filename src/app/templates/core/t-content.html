@@ -1,8 +1,8 @@
 <md-content style="height:100%;overflow:hidden;">
   <!-- TAB STRUCTURE -->
-  <md-tabs class="md-primary" md-selected="content.selectedIndex" md-enable-disconnect="true">
+  <md-tabs class="md-primary" md-selected="content.curTabIdx">
     <!-- Tab content directives are held within an array in the content controller and built dynamically here -->
-    <md-tab ng-repeat="tab in tabs" id="{{tab.id}}" md-on-select="content.selectedIndexChange($index)">
+    <md-tab ng-repeat="tab in content.tabs" id="{{tab.id}}" md-on-select="content.setTab($index)">
       <md-tab-label>{{tab.title}}</md-tab-label>
       <md-tab-body>
         <md-content bind-html-compile="tab.content" class="md-padding transparent-fill" flex="{{tab.width}}" flex-offset="{{(100-tab.width) / 2}}">
@@ -32,5 +32,4 @@
     >
     </md-icon>
   </md-button>
-
 </md-content>

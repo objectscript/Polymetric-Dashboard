@@ -66,7 +66,7 @@
     if (!angular.isObject($localStorage.Dashboard)) $localStorage.Dashboard = {};
     // pull data from local storage if exists, otherwise go with defaults
     _this.curShowcaseSection = $localStorage.Dashboard.showcaseSection ? $localStorage.Dashboard.showcaseSection : 'DashboardMethods';
-    _this.open = false;
+    _this.open = true;
 
     _this.goToSection = function(section) {
       _this.curShowcaseSection = section;
@@ -80,10 +80,47 @@
       return _this.open;
     };
 
+    _this.getParentCategory = function() {
+      var parentCategory = '';
+      if (['DashboardMethods', 'DashboardSettings'].indexOf(_this.curShowcaseSection) !== -1) {
+        parentCategory = 'Dashboard Service';
+      } else if (['Line', 'Sparkline', 'Sensor'].indexOf(_this.curShowcaseSection) !== -1) {
+        parentCategory = 'Visualization Tools';
+      } else if (['Tab', 'Expando'].indexOf(_this.curShowcaseSection) !== -1) {
+        parentCategory = 'Content Display';
+      }
+      return parentCategory;
+    };
+
+    _this.sectionDisplayNames = {
+      'DashboardMethods': 'REST API Routes',
+      'DashboardSettings': 'Other Functionality',
+      'Line': 'Line Chart',
+      'Sparkline': 'Sparkline Chart',
+      'Sensor': 'Sensor Display',
+      'Tab': 'Tabs',
+      'Expando': 'Expando',
+    };
+
     _this.toggleSidenav = function() {
       $mdSidenav('showcaseSidenav').toggle();
       _this.open = !_this.open;
     };
+
+    // the tabs themselves are a midway point for the update call
+    // this allows only the viz tools that are shown to be updated (reducing lag)
+    dashboard.subscribe($scope, update); // subscribe to the dashboard update call
+    $scope.$on('renderComplete', function(event, args) {update(args);}); // when visualization tool held in the tab are done rendering they emit this so they will be populated
+
+    // intercept the broadcast, and only update the data if currently selected tab.
+    var clearData = false;
+    function update(args) {
+      clearData = clearData || args.clearData;
+      if ($rootScope.curTab === 'showcase') {
+        $scope.$broadcast('updateData', {'clearData': clearData});
+        clearData = false;
+      }
+    }
   }]);
 
 })();

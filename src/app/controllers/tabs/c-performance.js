@@ -3,56 +3,111 @@
 
   var tab = angular.module('tabs');
 
-  tab.controller('performanceCtrl', ['$scope', '$timeout', '$compile', 'dashboard', function($scope, $timeout, $compile, dashboard) {
+  tab.controller('performanceCtrl', ['$rootScope', '$scope', '$q', '$timeout', '$compile', 'dashboard', function($rootScope, $scope, $q, $timeout, $compile, dashboard) {
     var _this = this;
 
-    _this.widgets = [];
+    _this.widgets = [
+      {
+        'id': 'performance-lroutref',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'RtnCallLocalPerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Local Routine References'}
+        }
+      },
+      {
+        'id': 'performance-globupdates',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'GloUpdatePerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Global Sets and Kills'}
+        }
+      },
+      {
+        'id': 'performance-lofrec',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'LogReadsPerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Logical Requests'}
+        }
+      },
+      {
+        'id': 'performance-dreads',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'PhysReadsPerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Disk Reads'}
+        }
+      },
+      {
+        'id': 'performance-dwrites',
+        'settings': {
+          'type': 'Line Chart',
+          'namespace': '%SYS',
+          'sensor': 'PhysWritesPerSec',
+          'item': '-',
+          'unit': '',
+          'advanced': {'title': 'Disk Writes'}
+        }
+      },
+    ];
 
     init();
     function init() {
-      createGrid();
-      createWidgets();
+      createGrid()
+        .then(function(grid) {
+          createWidgets(grid);
+        });
     }
 
     function createGrid() {
-      // create the grid
-      $('.performance-stack').gridstack({
-        cellHeight: '48px',
-        verticalMargin: 20,
-        animate: true,
-        float: false,
+      return $q(function(resolve, reject) {
+        // create the grid
+        $('.performance-stack').gridstack({
+          cellHeight: '48px',
+          verticalMargin: 20,
+          animate: true,
+        });
+        resolve($('.performance-stack').data('gridstack'));
       });
-      _this.grid = $('.performance-stack').data('gridstack');
     }
 
-    function createWidgets() {
-      _this.widgets = [
-        {'id': 'lroutref', 'title': 'Local Routine References', 'namespace': '%SYS', 'sensor': 'RtnCallLocalPerSec', 'item': '-', 'unit': ''},
-        {'id': 'globupdates', 'title': 'Global Sets and Kills', 'namespace': '%SYS', 'sensor': 'GloUpdatePerSec', 'item': '-', 'unit': ''},
-        {'id': 'lofrec', 'title': 'Logical Requests', 'namespace': '%SYS', 'sensor': 'LogReadsPerSec', 'item': '-', 'unit': ''},
-        {'id': 'dreads', 'title': 'Disk Reads', 'namespace': '%SYS', 'sensor': 'PhysReadsPerSec', 'item': '-', 'unit': ''},
-        {'id': 'dwrites', 'title': 'Disk Writes', 'namespace': '%SYS', 'sensor': 'PhysWritesPerSec', 'item': '-', 'unit': ''},
-      ];
+    function createWidgets(grid) {
       for (var i = 0; i < _this.widgets.length; i++) {
-        var html = $('#performanceWidget').html();
-        // replace the holder _ with the correct index for the data;
-        html = html.replace(new RegExp(/[_]/, 'g'), i);
+        var html = '<div><div flex="100" class="grid-stack-item-content hideOverflow" md-whiteframe="1"><smp-static-widget data="performance.widgets[' + i + ']"></smp-static-widget></div></div>';
         var el = $compile(html)($scope);
 
-        // put the widget on the playground
-        //                   el, x, y, width, height, autoPos, minWidth, minHeight
-        _this.grid.addWidget(el, 0, 0, 6, 3, true, 1, 12, 3, 3);
+        // put the widget on the grid
+        // addWidget(el, x, y, width, height, autoPos, minWidth, maxWidth, minHeight, maxHeight)
+        grid.addWidget(el,  _this.widgets[i].x,  _this.widgets[i].y,  6, 3, true, 4, 12, 3, 3);
       }
     }
 
-    var updateResizeListener;
-    // on resize the widgets should be saved so their positions are kept
-    $('.performance-stack').on('resizestop', function(event, ui) {
-      $timeout.cancel(updateResizeListener);
+    // the tabs themselves are a midway point for the update call
+    // this allows only the viz tools that are shown to be updated (reducing lag)
+    dashboard.subscribe($scope, update); // subscribe to the dashboard update call
+    $scope.$on('renderComplete', function(event, args) {update(args);}); // when visualization tool held in the tab are done rendering they emit this so they will be populated
 
-      updateResizeListener = $timeout(function() {
-        dashboard.updateChart();
-      }, 250);
-    });
+    // intercept the broadcast, and only update the data if currently selected tab.
+    var clearData = false;
+    function update(args) {
+      clearData = clearData || args.clearData;
+      if ($rootScope.curTab === 'performance') {
+        $scope.$broadcast('updateData', {'clearData': clearData});
+        clearData = false;
+      }
+    }
   }]);
 })();

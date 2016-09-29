@@ -34,6 +34,9 @@
       widgets: function() {
         return widgets;
       },
+      getDefaultSettings: function() {
+        return jQuery.extend(true, {}, DEFAULTS);
+      },
       // function that removes all the widgets
       removeAll: function() {
         // remove all of the widgets from the playground
@@ -202,6 +205,7 @@
           trapFocus: true, // no other elements outside the dialog can be accesed when it is open
           focusOnOpen: true,
           zIndex: 78,
+          panelClass: 'dialogShadow',
           clickOutsideToClose: false,
           escapeToClose: true,
         };
@@ -321,10 +325,10 @@
           alignment: 'center center', // how to align the text in a text widget
           lineChartHeight: 3, // the height of a line chart (measured in cells of the grid which are 3 em tall, so 1 = 3em)
           sparklineChartHeight: 2, // the height of a sparkline chart (measured in cells of the grid which are 3 em tall, so 1 = 3em)
-          showTitle: true, // should a chart have a title (displaying sensor information)
+          showTitle: true, // should a chart have a title
           showXAxis: true, // should a chart show the x axis
           showYAxis: true, // should a chart show the y axis
-          chartTitle: '', // should a chart show the x axis
+          chartTitle: '', // The title string (if left blank title will be [namespace] sensor, item)
           labelXAxis: '', // should a chart show the x axis
           labelYAxis: '', // should a chart show the y axis
           numMetrics: 5, // how many metrics are shown on a sensor display
