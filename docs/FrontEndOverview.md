@@ -23,7 +23,7 @@ There are three default visualization tools: a line chart, a sparkline chart, an
 ### Line Chart
 The line chart implements [NVD3's line chart](http://nvd3.org/examples/line.html), it will display a green dashed line when the sensor is in a normal state, a yellow solid line when the sensor is in a warning state, and a red solid line with the area below it filled when the sensor is in an alert state. Additionally, when hovering over a point on the line numerical data will be shown about that point in the form of a tooltip
 
-![an example of all the states a chart can display](https://github.com/CDTiernan/DashboardProject/blob/master/docs/img/Line%20Chart%20STATES.png "Line Chart STATES.png")
+![an example of all the states a chart can display](img/chartstates.png "Chart STATES.png")
 > Above is three screenshots of the same line chart super imposed on top of each other to show all three styles a line chart takes to show state. From left to right: normal, warning, alert.
 
 ### Sparkline Chart
@@ -31,8 +31,8 @@ The sparkline chart implements NVD3's line chart as well, but with a more conden
 
 ### Sensor Display
 The sensor display is a numerical display that can show all of a sensors properties and data. The state is depicted by three horizontal bars, the bottom is green in a normal state, the middle is yellow in a warning state, and the top is red if in an alert state. Which of the eleven available metrics to show on a sensor display is user definable, as well as the color and width of each metrics cell on the display.
-![example of all the states of a sensor display](https://github.com/CDTiernan/DashboardProject/blob/master/docs/img/sensor%20icon.png "sensor icon.png")
+![example of all the states of a sensor display](img/iconstates.png "sensor icon.png")
 > Above is four screenshots of a sensor icon shown on a sensor display. From left to right: no data, normal, warning, alert.
 
 ### Metadata Popup
-The metadata popup is a custom tooltip that shows a sensors properties, such as warning and critical value as well as description. By hovering over a charts title, or a row on the all sensors tab the metadata popup will be displayed. 
+The metadata popup is a custom tooltip that shows a sensors properties, such as warning and critical value as well as description. By hovering over a charts title, or a row on the all sensors tab the metadata popup will be displayed.
