@@ -7,7 +7,7 @@
       return {
         restrict: 'E',
         templateUrl: 'app/templates/visualizers/t-sensorDisplay.html',
-        controller: 'sensorDisplayCtrl',
+        controller: 'sensorDisplayCtrl as sensorDisplay',
         replace: false,
         scope: {
           namespace: '@',

@@ -8,16 +8,11 @@
     <div flex="{{showLabel === 'true' ? 50 : 0}}" ng-if="showLabel === 'true'" class="md-padding">
       <p class="no-margin" style="opacity: .5">{{elem.metric}}</p>
     </div>
-    <!-- The metric -->
-    <div flex="{{showLabel === 'true' ? 50 : 100}}" layout-align="{{elem.metric === 'state' ? 'center center' : 'left center'}}" ng-class="elem.metric !== 'state' ? 'md-padding' : 'putInCenter'">
-      <!-- the span used for everything but the sensor and state cells -->
-      <span ng-if="['state', 'sensor'].indexOf(elem.metric) === -1" class="md-body-1" style="{{elem.val === undefined || elem.val === 'Not Set' ? 'opacity: .5;' : 'opacity: 1;'}}"> {{getElemValDisplay(elem, $index)}}</span>
-      <!-- Sensor has a special cell because they are a combination of [namespace] SensorName, ItemName -->
-      <span ng-if="elem.metric === 'sensor'">
-        <span ng-repeat="el in elem.val" class="{{el.class}}" style="{{el.style}}">{{el.display}}</span>
-      </span>
-      <!-- State has a special because it is a directive itself (the three bars)-->
-      <smp-state-icon layout-padding ng-if="elem.metric === 'state'" state="{{elem.val}}" style="height:49px;"/>
+    <div ng-if="elem.metric !== 'state'" flex="{{showLabel === 'true' ? 50 : 100}}"  class="md-padding">
+      <p class="md-body-1 no-margin">{{elem.value}}</p>
+    </div>
+    <div ng-if="elem.metric === 'state'">
+      <smp-state-icon layout-padding state="{{elem.value}}" style="height:49px;"/>
     </div>
   </div>
 </div>

@@ -31,8 +31,13 @@
       // get the saved tab
       var tab = $localStorage.Dashboard.tab;
       if (tab) {
-        _this.curTabIdx = tab;
-        $rootScope.curTab = _this.tabs[_this.curTabIdx].id;
+        if (_this.tabs[tab]) {
+          _this.curTabIdx = tab;
+          $rootScope.curTab = _this.tabs[_this.curTabIdx].id;
+        } else {
+          _this.curTabIdx = 0;
+          $rootScope.curTab = _this.tabs[_this.curTabIdx].id;
+        }
       }
     }
 

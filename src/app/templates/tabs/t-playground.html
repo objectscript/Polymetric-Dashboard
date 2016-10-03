@@ -16,7 +16,6 @@
       aria-label="Playground Options"
       class="md-fab accent-fill white-text"
       ng-mouseenter="playground.fabAction($event, 'enter')"
-      ng-mouseover="playground.isLocked()"
     >
       <md-tooltip md-direction="right">Playground Options</md-tooltip>
       <md-icon md-svg-src="assets/icons/ic_dashboard_24px.svg"></md-icon>
@@ -33,9 +32,9 @@
       <md-icon class="blend-text" md-svg-src="assets/icons/ic_menu_24px.svg" aria-label="List Widgets"></md-icon>
     </md-button>
     <md-button aria-label="Grid Lock Toggle" class="md-fab md-raised md-mini white-fill" ng-click="playground.fabAction($event, 'lock')">
-      <md-tooltip md-direction="right">{{playground.isLocked() ? 'Unl' : 'L'}}ock Widgets</md-tooltip>
-      <md-icon class="blend-text" ng-if="playground.isLocked()" md-svg-src="assets/icons/ic_lock_24px.svg" aria-label="Lock Grid"></md-icon>
-      <md-icon class="blend-text" ng-if="!playground.isLocked()" md-svg-src="assets/icons/ic_lock_open_24px.svg" aria-label="Lock Grid"></md-icon>
+      <md-tooltip md-direction="right">{{playground.lockedGrid ? 'Unl' : 'L'}}ock Widgets</md-tooltip>
+      <md-icon class="blend-text" ng-if="playground.lockedGrid" md-svg-src="assets/icons/ic_lock_24px.svg" aria-label="Lock Grid"></md-icon>
+      <md-icon class="blend-text" ng-if="!playground.lockedGrid" md-svg-src="assets/icons/ic_lock_open_24px.svg" aria-label="Lock Grid"></md-icon>
     </md-button>
     <md-button aria-label="Clear Grid" class="md-fab md-raised md-mini white-fill" ng-mousedown="playground.fabAction($event, 'startClear')" ng-mouseup="playground.fabAction($event, 'cancelClear')" ng-click="playground.fabAction($event, 'doNothing')">
       <md-tooltip md-direction="right">Clear Widgets</md-tooltip>

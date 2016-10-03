@@ -24,6 +24,7 @@
 
     _this.saveStatus = 0; //0: not saved, 1: sucessfully saved, -1: error saving, 2: saving
     _this.clearGridPercent = 0;
+    _this.lockedGrid = isLocked();
 
     init();
     // tries to load saved widgets from sessionStorage to populate the playground with
@@ -75,6 +76,7 @@
           break;
       }
 
+      _this.lockedGrid = isLocked();
       // stop propogation of events so FAB stays open
       $event.stopImmediatePropagation();
     }
@@ -144,10 +146,11 @@
     }
 
     function lockWidgets() {
-      WidgetProvider.lockAll(!isLocked());
+      WidgetProvider.lockAll(!_this.lockedGrid);
     }
 
     function isLocked() {
+      console.log('lcoleas');
       return WidgetProvider.allLocked();
     }
 

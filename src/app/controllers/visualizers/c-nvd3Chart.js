@@ -332,6 +332,11 @@
               val = data[i].value;
               dataArray.unshift({x: unix, y: val});
             }
+            // if the first data response has no data, $scope.lastUpdate will be remain null and no new data will
+            // even be retrieved. By setting $scope.lastupdate back to undefined new data will be requested for (even if it does not exist)
+            if ($scope.lastUpdate === null) {
+              $scope.lastUpdate = undefined;
+            }
             $scope.data[0].values = $scope.data[0].values.concat(dataArray);
 
             resolve();

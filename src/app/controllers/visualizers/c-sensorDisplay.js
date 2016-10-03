@@ -6,14 +6,12 @@
   viz.controller('sensorDisplayCtrl', ['$scope', '$filter', '$element', '$compile', '$q', 'dashboard', function($scope, $filter, $element, $compile, $q, dashboard) {
     $scope.lastUpdate = undefined;
 
-    // parent hight is used to format the sensor display (it makes it the full height)
-    $scope.parentHeight = $element.parent()[0].clientHeight;
-
-    // flags to see if new data is needed from the server
-    var callSensor = false; // getSensor
-    var callChartData = false; // getChartData
+    // flag to see if calculated data should be retrieved from the server
+    var localFormat = 'MMM D, h:mma';
     var callCalculatedData = false; // getCalculatedData
-    var format = 'MMM D, h:mma'; // format for the timestamp
+
+    // object to hold all the metric data, this will be accessed by each cell in the sensor display to show the mretrics value
+    var metricValues = {};
 
     // initialize sensor by finding out what data it needs to display, as well as any custom widths or classes to applyChanges
     // to each of its displayed metrics.
@@ -24,14 +22,20 @@
         // update data listener
         $scope.$on('updateData', function(event, args) {getInfo();});
 
-        // emit the render complete event which tells the tab to update its contents data
-        $scope.$emit('renderComplete', {clearData: false});
-
-        // always need to get sensor data initially
-        if (callSensor) {
+        // initially the sensor display needs to get properties of the sensor
+        if ($scope.namespace && $scope.sensor && $scope.item) {
           dashboard.getSensor($scope.namespace, $scope.sensor, $scope.item)
             .then(function(data) {
-              handleResponse(data);
+              // extract the sensor properties and store them locally
+              if (data) {
+                metricValues.sensor = '[' + $scope.namespace + '] ' + $scope.sensor + ', ' + $scope.item;
+                metricValues.units = data.units;
+                metricValues.criticalValue = (data.criticalValue === '' ? 'Not Set' : data.criticalValue);
+                metricValues.warningValue = (data.warningValue === '' ? 'Not Set' : data.warningValue);
+              }
+
+              // emit the render complete event which tells the tab to update its contents data
+              $scope.$emit('renderComplete', {clearData: false});
             });
         }
       });
@@ -45,20 +49,16 @@
 
         // these are split into three arrays because the data is retrieved via three routes.
         // if data from a route is not needed then that call will not be made.
-        var validSensor = ['criticalValue', 'warningValue', 'units']; // getSensor
-        var validChartData = ['value', 'timestamp']; // getChartData
         var validCalculatedData = ['state', 'max', 'min', 'mean', 'stdDev']; // getCalculatedData
 
         // go through all the properties
-        $scope.elems = [];
+        var elems = [];
         var metric;
         var width;
         var elemClass;
         for (var i = 0; i < metricArr.length; i++) {
           metric = metricArr[i];
           // flags for the type of calls to make
-          callSensor = callSensor || (validSensor.indexOf(metric) !== -1); // getSensor
-          callChartData = callChartData || (validChartData.indexOf(metric) !== -1); // getChartData
           callCalculatedData = callCalculatedData || (validCalculatedData.indexOf(metric) !== -1); // getCalculatedData
 
           // width defaults to auto, but can be overrided by the developer
@@ -69,8 +69,9 @@
           elemClass = '';
           if (!!classArr[i] && (classArr[i] !== '')) elemClass = classArr[i];
 
-          $scope.elems.push({'metric': metric.trim(), 'width': width, 'class': elemClass.trim()});
+          elems.push({'metric': metric.trim(), 'width': width, 'class': elemClass.trim()});
         }
+        $scope.elems = elems;
 
         // convert string elem attrs into flag bools
         $scope.showUnit = ($scope.showUnit === 'true');
@@ -82,14 +83,19 @@
 
     function getInfo() {
       if (needNewInfo()) {
+        var promises = [];
+
         // always need to call for chart data so the timestamp is updated
-        if (callChartData) dashboard.getChartData($scope.namespace, $scope.sensor, $scope.item, -1)
-          .then(function(data) {
-            handleResponse(data);
-          });
-        if (callCalculatedData) dashboard.getCalculatedData($scope.namespace, $scope.sensor, $scope.item, undefined)
-          .then(function(data) {
-            handleResponse(data);
+        promises.push(dashboard.getChartData($scope.namespace, $scope.sensor, $scope.item, -1));
+        // if calculated data is needed for the sensor display make that call as well
+        if (callCalculatedData) promises.push(dashboard.getCalculatedData($scope.namespace, $scope.sensor, $scope.item, undefined));
+
+        // $q.all combines multiple promises into one response
+        $q.all(promises)
+          .then(function(resp) {
+            if (resp) {
+              handleResponse(resp);
+            }
           });
 
         // if a call was made but no response recieved, set the last update to null so it is known not to make another call
@@ -102,96 +108,52 @@
     function needNewInfo() {
       var lastUpdate = $filter('TStoUnix')($scope.lastUpdate);
       var now = moment.utc().subtract(dashboard.meta.samplePeriod, 'seconds').valueOf();
-
       return lastUpdate < now;
     }
 
-    // extracts the data returned by the server
-    // this is a bit complicated because it relies on
-    // the data the dev wants to show and this method is accepting of any general config
-    function handleResponse(data) {
-      // if the server responded with data
-      if (data) {
-        // if this is the data returned from the chartData call it is inside an array,
-        // so extract the newest piece of data and update the lastUpdate var
-        if (angular.isArray(data)) {
-          data = data[0];
-          $scope.lastUpdate = data.timestamp;
-        }
-
-        var returnedMetrics = Object.keys(data);
-        // parse through all the returned data
-        for (var i = 0; i < returnedMetrics.length; i++) {
-          // parse through all the metrics to display
-          for (var j = 0; j < $scope.elems.length; j++) {
-            // if the returned data is supposed to be shown
-            if (returnedMetrics[i] === $scope.elems[j].metric) {
-
-              if (['sensor', 'item', 'timestamp'].indexOf($scope.elems[j].metric) !== -1) { // sensors and items are plane strings
-                $scope.elems[j].val = data[returnedMetrics[i]];
-              } else if ($scope.elems[j].metric === 'state') {
-                if (data[returnedMetrics[i]] === undefined) {
-                  $scope.elems[j].val = -2;
-                } else {
-                  $scope.elems[j].val = data[returnedMetrics[i]];
-                }
-              } else if (['criticalValue', 'warningValue'].indexOf($scope.elems[j].metric) !== -1) {
-                if (data[returnedMetrics[i]] === '' || data[returnedMetrics[i]] === undefined) {
-                  $scope.elems[j].val = 'Not Set';
-                } else {
-                  $scope.elems[j].val = $filter('number')(data[returnedMetrics[i]], 1).replace('.0', '');
-                }
-              }else { // otherwise format the number to be of 1 decimal accuracy
-                $scope.elems[j].val = $filter('number')(data[returnedMetrics[i]], 1).replace('.0', '');
-              }
-            }
-          }
-
-          for (var k = 0; k < $scope.elems.length; k++) {
-            if ($scope.elems[k].metric === 'sensor') {
-              $scope.elems[k].val = [
-                {display: '[' + $scope.namespace + ']', style: 'opacity: .82;', class: 'md-body-1'},
-                {display: $scope.sensor + ',', style: 'padding: 0 1em 0 1em;', class: 'md-body-1'},
-                {display: $scope.item, class: 'md-body-1'}
-              ];
-            }
-            if ($scope.elems[k].metric === 'units') {
-              $scope.elems[k].val = $scope.units;
-            }
-          }
-        }
+    // extracts the data returned by the server and saves it in a local variable so it can be displayed
+    function handleResponse(resp) {
+      // since the sensor display can get data from two routes, I use lodash to merge the responses into one object
+      // merge overwrites existing data, so newest data will be shown
+      for (var i = 0; i < resp.length; i++) {
+        // ChartData returns an array of one object, CalcData returns an object
+        // so extract the chartData object and merge, or just merge the CalcData object
+        metricValues = _.merge(metricValues, (angular.isArray(resp[i]) ? resp[i][0] : resp[i]));
       }
+
+      for (var j = 0; j < $scope.elems.length; j++) {
+        $scope.elems[j].value = getMetricValue($scope.elems[j].metric);
+      }
+
+      // if the first data response has no data, $scope.lastUpdate will be remain null and no new data will
+      // even be retrieved. By setting $scope.lastupdate back to undefined new data will be requested for (even if it does not exist)
+      if ($scope.lastUpdate === null) $scope.lastUpdate = undefined;
+      else $scope.lastUpdate = metricValues.timestamp;
     }
 
-    // returns the display string for all the metrics
-    $scope.getElemValDisplay = function(elem, index) {
-      var display;
-      if (elem.val !== undefined) {
-        var val = elem.val;
-
-        // times should be formatted for ease of reading and locale
-        if (elem.metric === 'timestamp') {
-          display = formatTime(val);
-        // for value based metrics concat the unit
-        } else if (['value', 'max', 'min', 'mean', 'stdDev', 'criticalValue', 'warningValue'].indexOf(elem.metric) !== -1) {
-          if (elem.val !== '' && elem.val !== 'Not Set') {
-            display = val + $scope.units;
-          }
+    // reutrns the values of the metrics to be shown
+    function getMetricValue(metric) {
+      var display = '';
+      // if there is no data format it correctly
+      if (metricValues[metric] !== undefined) {
+        // timestamps to local time
+        if (metric === 'timestamp') {
+          display = $filter('TStoLocal')(metricValues[metric], localFormat);
+        // values append the unit
+        } else if (['value', 'max', 'min', 'mean', 'stdDev'].indexOf(metric) !== -1) {
+          display = $filter('number')(metricValues[metric], 1).replace('.0', '') + metricValues.units;
         // otherwise just return the value
+        } else if (['criticalValue', 'warningValue'].indexOf(metric) !== -1) {
+          display = metricValues[metric] + metricValues.units;
         } else {
-          display = val;
+          display = metricValues[metric];
         }
+      // if there is no data return No Data
       } else {
         display = 'No Data';
       }
 
       return display;
-    };
-
-    // formats the time for display
-    function formatTime(time) {
-      return $filter('TStoLocal')(time, format);
     }
-
   }]);
 })();

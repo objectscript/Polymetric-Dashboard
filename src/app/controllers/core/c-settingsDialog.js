@@ -24,15 +24,16 @@
     $scope.chartWindow = dashboard.meta.chartWindow;
     $scope.samplePeriod = dashboard.meta.samplePeriod;
 
-    $scope.getDisplayString = function(s) {
-      return moment.duration(s, 'seconds').humanize();
+    // get the avaiblable sample intervals for the current chart window
+    $scope.updateAvailableSamplePeriods = function() {
+      $scope.availableSamplePeriods = $scope.getAvailableSamplePeriods();
     };
-
+    $scope.updateAvailableSamplePeriods();
     // extracts a reasonable subset of the available sample intervals.
     // this is done because having a minute sample interval for a 30 day chart period
     // does not preform well and gives way to much information than is really visible.
     // Additionally having a larger sample intervals than chart period would just be silly.
-    $scope.availableSamplePeriods = function() {
+    $scope.getAvailableSamplePeriods = function() {
       var availSP = [];
       var minLim;
       var maxLim;
@@ -56,14 +57,14 @@
 
       // extract the sample intervals that are inside the limits set above
       for (var i = 0; i < $scope.samplePeriods.length; i++) {
-        if ($scope.samplePeriods[i] >= minLim && $scope.samplePeriods[i] <= maxLim) {
+        if ($scope.samplePeriods[i].val >= minLim && $scope.samplePeriods[i].val <= maxLim) {
           availSP.push($scope.samplePeriods[i]);
         }
       }
 
       // if the current sample interval is less than the available minimum set it to the avail min
-      if ($scope.samplePeriod < availSP[0]) {
-        $scope.samplePeriod = availSP[0];
+      if ($scope.samplePeriod < availSP[0].val) {
+        $scope.samplePeriod = availSP[0].val;
       // else if the current sample interval is greater than the available maximum set it to the avail max
       } else if ($scope.samplePeriod > availSP[availSP.length - 1]) {
         $scope.samplePeriod = availSP[availSP.length - 1];
@@ -74,28 +75,25 @@
     function applyChartProperties() {
       var updateData = false;
 
-      var sP = parseInt($scope.samplePeriod);
-      var cW = parseInt($scope.chartWindow);
-
-      if ($scope.samplePeriods.indexOf(sP) !== -1 && $scope.samplePeriod !== dashboard.meta.samplePeriod) {
+      if ($scope.samplePeriod !== dashboard.meta.samplePeriod) {
         // update the dashboard param
-        dashboard.meta.samplePeriod = sP;
+        dashboard.meta.samplePeriod = $scope.samplePeriod;
         updateData = true;
 
         // if the localstorage object has not be initialized, do so
         if (!angular.isObject($localStorage.Dashboard)) $localStorage.Dashboard = {};
         // Update localStorage to remember the current sample interval
-        $localStorage.Dashboard.samplePeriod = sP;
+        $localStorage.Dashboard.samplePeriod = $scope.samplePeriod;
       }
-      if ($scope.chartWindows.indexOf(cW) !== -1) {
+      if ($scope.chartWindow !== dashboard.meta.chartWindow) {
         // update the dashboard param
-        dashboard.meta.chartWindow = cW;
+        dashboard.meta.chartWindow = $scope.chartWindow;
         updateData = true;
 
         // if the localstorage object has not be initialized, do so
         if (!angular.isObject($localStorage.Dashboard)) $localStorage.Dashboard = {};
         // Update localStorage to remember the current sample interval
-        $localStorage.Dashboard.chartWindow = cW;
+        $localStorage.Dashboard.chartWindow = $scope.chartWindow;
       }
 
       return updateData;
@@ -200,6 +198,7 @@
     /* --------------------------------------------------------------------------------------------- */
 
     $scope.closeDialog = function() {
+      console.log('ng click better not');
       $mdDialog.cancel();
     };
 

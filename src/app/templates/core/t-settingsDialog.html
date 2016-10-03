@@ -20,8 +20,8 @@
               <h2 class="md-headline smpHeader">Chart Period</h2>
             </div>
             <md-input-container flex="95" flex-offset="5" layout-padding style="display: block">
-              <md-select flex="95" class="white-fill" md-whiteframe="1" ng-model="chartWindow" aria-label="Set Chart Period">
-                <md-option ng-repeat="cW in chartWindows" value="{{cW}}">{{getDisplayString(cW)}}</md-option>
+              <md-select flex="95" class="white-fill" md-whiteframe="1" ng-model="chartWindow" ng-change="updateAvailableSamplePeriods()" aria-label="Set Chart Period">
+                <md-option ng-repeat="cW in chartWindows" value="{{cW.val}}">{{cW.display}}</md-option>
               </md-select>
             </md-input-container>
           </div>
@@ -33,7 +33,7 @@
             <div layout="row" flex="95" flex-offset="5">
               <md-input-container flex="95" flex-offset="5" layout-padding style="display: block">
                 <md-select flex="95" class="white-fill" md-whiteframe="1" ng-model="samplePeriod" aria-label="Set Sample Interval">
-                  <md-option ng-repeat="sP in availableSamplePeriods()" value="{{sP}}">{{getDisplayString(sP)}}</md-option>
+                  <md-option ng-repeat="sP in availableSamplePeriods" value="{{sP.val}}">{{sP.display}}</md-option>
                 </md-select>
               </md-input-container>
             </div>

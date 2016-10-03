@@ -30,25 +30,25 @@
         // the .as('seconds') call will return an integer value of seconds,
         // allowing for easy comparison and sorting of the values
         chartWindows: [// available chart period options
-          moment.duration(1, 'hour').as('seconds'),
-          moment.duration(2, 'hours').as('seconds'),
-          moment.duration(6, 'hours').as('seconds'),
-          moment.duration(12, 'hours').as('seconds'),
-          moment.duration(1, 'day').as('seconds'),
-          moment.duration(2, 'days').as('seconds'),
-          moment.duration(3, 'days').as('seconds'),
-          moment.duration(4, 'days').as('seconds')
+          {'val': moment.duration(1, 'hour').as('seconds'), 'display': moment.duration(1, 'hour').humanize()},
+          {'val': moment.duration(2, 'hours').as('seconds'), 'display': moment.duration(2, 'hours').humanize()},
+          {'val': moment.duration(6, 'hours').as('seconds'), 'display': moment.duration(6, 'hours').humanize()},
+          {'val': moment.duration(12, 'hours').as('seconds'), 'display': moment.duration(12, 'hours').humanize()},
+          {'val': moment.duration(1, 'day').as('seconds'), 'display': moment.duration(1, 'day').humanize()},
+          {'val': moment.duration(2, 'days').as('seconds'), 'display': moment.duration(2, 'days').humanize()},
+          {'val': moment.duration(3, 'days').as('seconds'), 'display': moment.duration(3, 'days').humanize()},
+          {'val': moment.duration(4, 'days').as('seconds'), 'display': moment.duration(4, 'days').humanize()}
         ],
         samplePeriods: [// available sample interval options
-          moment.duration(1, 'minute').as('seconds'),
-          moment.duration(5, 'minute').as('seconds'),
-          moment.duration(15, 'minute').as('seconds'),
-          moment.duration(30, 'minute').as('seconds'),
-          moment.duration(1, 'hour').as('seconds'),
-          moment.duration(2, 'hours').as('seconds'),
-          moment.duration(6, 'hours').as('seconds'),
-          moment.duration(12, 'hours').as('seconds'),
-          moment.duration(1, 'day').as('seconds')
+          {'val': moment.duration(1, 'minute').as('seconds'), 'display': moment.duration(1, 'minute').humanize()},
+          {'val': moment.duration(5, 'minute').as('seconds'), 'display': moment.duration(5, 'minute').humanize()},
+          {'val': moment.duration(15, 'minute').as('seconds'), 'display': moment.duration(15, 'minute').humanize()},
+          {'val': moment.duration(30, 'minute').as('seconds'), 'display': moment.duration(30, 'minute').humanize()},
+          {'val': moment.duration(1, 'hour').as('seconds'), 'display': moment.duration(1, 'hour').humanize()},
+          {'val': moment.duration(2, 'hours').as('seconds'), 'display': moment.duration(2, 'hours').humanize()},
+          {'val': moment.duration(6, 'hours').as('seconds'), 'display': moment.duration(6, 'hours').humanize()},
+          {'val': moment.duration(12, 'hours').as('seconds'), 'display': moment.duration(12, 'hours').humanize()},
+          {'val': moment.duration(1, 'day').as('seconds'), 'display': moment.duration(1, 'day').humanize()}
         ]
       };
       params.samplePeriod = $localStorage.Dashboard.samplePeriod;
@@ -152,12 +152,12 @@
             if (resp.status === 200) {
               data = resp.data;
             } else if (resp.status === 204) {
-              data = {data: []};
+              data = [];
               if (dashboard.meta.debug.rest) {
                 $log.warn('No chart data was found on the server for "[' + namespace + '] ' + sensor + ', ' + item + '"');
               }
             } else {
-              data = {data: []};
+              data = [];
               $log.warn('The server was successful, but something went wrong.');
             }
 

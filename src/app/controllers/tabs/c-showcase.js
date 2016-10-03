@@ -80,7 +80,8 @@
       return _this.open;
     };
 
-    _this.getParentCategory = function() {
+    _this.parentCategory = getParentCategory();
+    function getParentCategory() {
       var parentCategory = '';
       if (['DashboardMethods', 'DashboardSettings'].indexOf(_this.curShowcaseSection) !== -1) {
         parentCategory = 'Dashboard Service';
@@ -90,7 +91,7 @@
         parentCategory = 'Content Display';
       }
       return parentCategory;
-    };
+    }
 
     _this.sectionDisplayNames = {
       'DashboardMethods': 'REST API Routes',
