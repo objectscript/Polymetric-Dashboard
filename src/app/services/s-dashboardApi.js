@@ -175,6 +175,7 @@
 
     dashboard.getCalculatedData = function(namespace, sensor, item, startTime) {
       return $q(function(resolve, reject) {
+        if (startTime === null) startTime = undefined;
         // If no start time is defined get the whole chart period of data
         if (!startTime) startTime = dashboard.getStartTime(dashboard.meta.chartWindow);
         // If start time is -1 then only get the newest data
@@ -217,7 +218,7 @@
       // adding 2 sample intervals pushes the start time back past the desired window enough so points can be averaged up to the end of the chart period
       // in reality this shows more than the chart period but the graphs plot based on the newest time so a couple sample intervals of older data need
       // to be averaged to make it look like a whole chart period on the chart.
-      var fillChartWindow = windowInSeconds + dashboard.meta.samplePeriod * 2;
+      var fillChartWindow = parseInt(windowInSeconds) + parseInt(dashboard.meta.samplePeriod) * 2;
       return $filter('toTS')(moment.utc().subtract(fillChartWindow, 'seconds'));
     };
 

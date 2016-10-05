@@ -150,7 +150,6 @@
     }
 
     function isLocked() {
-      console.log('lcoleas');
       return WidgetProvider.allLocked();
     }
 

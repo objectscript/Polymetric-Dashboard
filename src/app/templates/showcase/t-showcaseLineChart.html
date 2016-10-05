@@ -25,8 +25,8 @@
 
         <div layout="row" layout-wrap flex="100" layout-align="center center" layout-margin>
           <!-- Namespace Select for Widget -->
-          <div flex="30">
-            <md-input-container flex="90" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
+          <div flex-xs="100" flex-sm="100" flex-gt-sm="30">
+            <md-input-container  flex="100" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
               <label style="padding-bottom:0">Widget Namespace</label>
               <md-select
                 ng-model="scLineChart.namespace"
@@ -43,8 +43,8 @@
           </div>
 
           <!-- Sensor Select for Widget -->
-          <div flex="30">
-            <md-input-container flex="90" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
+          <div flex-xs="100" flex-sm="100" flex-gt-sm="30">
+            <md-input-container flex="100" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
               <label style="padding-bottom:0">Widget Sensor</label>
               <md-select
                 ng-disabled="!scLineChart.namespace"
@@ -62,8 +62,8 @@
           </div>
 
           <!-- Item Select for Widget -->
-          <div flex="30">
-            <md-input-container flex="90" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
+          <div flex-xs="100" flex-sm="100" flex-gt-sm="30">
+            <md-input-container  flex="100" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
               <label style="padding-bottom:0">Widget Item</label>
               <md-select
                 ng-disabled="!scLineChart.sensor || !scLineChart.namespace"
@@ -135,18 +135,18 @@
             <md-subheader class="md-no-sticky accent-text">Required</md-subheader>
             <md-list-item layout="row" class="md-offset">
               <p layout="row" flex="100">
-                <span flex="15" style="font-weight:bold;" class="md-subhead">Attribute</span>
-                <span flex="10" style="font-weight:bold;" class="md-subhead">Type</span>
+                <span flex-xs="30" flex-sm="20" flex-gt-sm="15" style="font-weight:bold;" class="md-subhead">Attribute</span>
+                <span flex-xs="20" flex-sm="15" flex-gt-sm="10" style="font-weight:bold;" class="md-subhead">Type</span>
                 <span flex="" style="font-weight:bold;" class="md-subhead">Description</span>
-                <span flex="10" style="font-weight:bold;" class="md-subhead">Default</span>
+                <span flex-xs="20" flex-sm="15" flex-gt-sm="10" style="font-weight:bold;text-align:right;" class="md-subhead">Default</span>
               </p>
             </md-list-item>
             <md-list-item layout="row" class="md-offset" ng-repeat="attr in scLineChart.lineChartAttributes.Required">
               <p layout="row" flex="100">
-                <span flex="15" class="md-body-1">{{attr.attr}}</span>
-                <span flex="10" class="md-body-1">{{attr.type}}</span>
+                <span flex-xs="30" flex-sm="20" flex-gt-sm="15" class="md-body-1">{{attr.attr}}</span>
+                <span flex-xs="20" flex-sm="15" flex-gt-sm="10" class="md-body-1">{{attr.type}}</span>
                 <span flex="" class="md-body-1">{{attr.desc}}</span>
-                <span flex="10" class="md-body-1">{{attr.default}}</span>
+                <span flex-xs="20" flex-sm="15" flex-gt-sm="10" class="md-body-1" style="text-align:right;">{{attr.default}}</span>
               </p>
             </md-list-item>
             <md-divider></md-divider>
@@ -154,18 +154,18 @@
             <md-subheader class="md-no-sticky">Optional</md-subheader>
             <md-list-item layout="row" class="md-offset">
               <p layout="row" flex="100">
-                <span flex="15" style="font-weight:bold;" class="md-subhead">Attribute</span>
-                <span flex="10" style="font-weight:bold;" class="md-subhead">Type</span>
+                <span flex-xs="30" flex-sm="20" flex-gt-sm="15" style="font-weight:bold;" class="md-subhead">Attribute</span>
+                <span flex-xs="20" flex-sm="15" flex-gt-sm="10" style="font-weight:bold;" class="md-subhead">Type</span>
                 <span flex="" style="font-weight:bold;" class="md-subhead">Description</span>
-                <span flex="10" style="font-weight:bold;" class="md-subhead">Default</span>
+                <span flex-xs="20" flex-sm="15" flex-gt-sm="10" style="font-weight:bold;text-align:right;" class="md-subhead">Default</span>
               </p>
             </md-list-item>
             <md-list-item layout="row" class="md-offset" ng-repeat="attr in scLineChart.lineChartAttributes.Optional">
               <p layout="row" flex="100">
-                <span flex="15" class="md-body-1">{{attr.attr}}</span>
-                <span flex="10" class="md-body-1">{{attr.type}}</span>
+                <span flex-xs="30" flex-sm="20" flex-gt-sm="15" class="md-body-1">{{attr.attr}}</span>
+                <span flex-xs="20" flex-sm="15" flex-gt-sm="10" class="md-body-1">{{attr.type}}</span>
                 <span flex="" class="md-body-1">{{attr.desc}}</span>
-                <span flex="10" class="md-body-1">{{attr.default}}</span>
+                <span flex-xs="20" flex-sm="15" flex-gt-sm="10" class="md-body-1" style="text-align:right;">{{attr.default}}</span>
               </p>
             </md-list-item>
 

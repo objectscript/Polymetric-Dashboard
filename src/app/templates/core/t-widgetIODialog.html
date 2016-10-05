@@ -9,7 +9,7 @@
   </md-toolbar>
 
   <!-- Content -->
-  <md-dialog-content layout="column" class="dialogContent background-fill">
+  <md-dialog-content layout="row" layout-wrap class="dialogContent background-fill">
     <div layout="row" flex="auto" layout-wrap layout-align="center center" >
       <p flex="90" class="md-body-1" style="margin-bottom:0;">
         The textarea below is automatically populated with a json string that contains all the data that is used to create the current widgets on the playground. Therefore, this string can be saved allowing for the current set up of widgets to be imported later or shared with others.<br />
@@ -27,7 +27,7 @@
         </li>
       </ul>
     </div>
-    <div layout="row" flex="auto" layout-wrap layout-align="center center" >
+    <div layout="row" flex="100" layout-wrap layout-align="center center" >
       <!-- Text area where widget JSON is eported or imported, by default it is populated with the current widgets JSON data -->
         <md-input-container flex="90" style="margin-bottom:0;" md-is-error="json.$invalid">
           <!-- The text area has a max length of 0 and some functionality within the widgetIO Controller to only allow copying and pasting -->
@@ -53,7 +53,7 @@
     </div>
 
     <!-- Button to re-export the current widgets data -->
-    <div layout="row" flex="none" layout-align="center center">
+    <div layout="row" flex="100" layout-align="center center">
       <md-button class=" md-accent" ng-click="widgetIO.export()">
         Export
       </md-button>

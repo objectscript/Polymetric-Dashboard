@@ -192,15 +192,20 @@
       });
     }
 
+    var updateSpamFilter;
     function update(fill) {
-      // Update the SVG with the new data and call chart
-      if ($scope.chartData) {
-        $scope.chartData.datum($scope.data).transition().duration(500).call($scope.chart);
+      $timeout.cancel(updateSpamFilter);
 
-        // show/remove the fill below the line based on return from calculatedDataRespHandler
-        var area = $element.find('path[class=nv-area]');
-        area.css('fill-opacity', fill);
-      }
+      updateSpamFilter = $timeout(function() {
+        // Update the SVG with the new data and call chart
+        if ($scope.chartData) {
+          $scope.chartData.datum($scope.data).transition().duration(500).call($scope.chart);
+
+          // show/remove the fill below the line based on return from calculatedDataRespHandler
+          var area = $element.find('path[class=nv-area]');
+          area.css('fill-opacity', fill);
+        }
+      }, 100);
     }
 
     function dashboardUpdate(event, args) {

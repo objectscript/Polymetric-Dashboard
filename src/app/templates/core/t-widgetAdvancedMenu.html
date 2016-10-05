@@ -19,272 +19,272 @@
       layout-wrap
       class="advSettingsContents md-padding"
     ></div>
-  </md-dialog-conent>
+  </md-dialog-content>
 
   <!-- Buttons -->
   <md-dialog-actions flex="100" layout="row" class="white-fill">
-      <md-button ng-click="widgetAdvMenu.cancel()" class="primary-text">Cancel</md-button>
-      <md-button ng-mouseenter="widgetAdvMenu.validate()" ng-click="widgetAdvMenu.apply()" class="md-raised md-primary">Apply</md-button>
+    <span flex></span>
+    <md-button ng-click="widgetAdvMenu.cancel()" class="primary-text">Cancel</md-button>
+    <md-button ng-mouseenter="widgetAdvMenu.validate()" ng-click="widgetAdvMenu.apply()" class="md-raised md-primary">Apply</md-button>
   </md-dialog-actions>
-
+</md-dialog>
 
 
   <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
   <!--                                            TEMPLATES                                            -->
   <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
-  <!-- TEXT WIDGET SETTINGS -->
-  <script type="text/ng-template" id="/textAdvMenu.html">
-    <div flex="100" layout="row" layout-wrap>
-      <!-- Input to define what text to show -->
-      <div flex="100" layout="row" layout-wrap layout-align="start center">
+<!-- TEXT WIDGET SETTINGS -->
+<script type="text/ng-template" id="/textAdvMenu.html">
+  <div flex="100" layout="row" layout-wrap>
+    <!-- Input to define what text to show -->
+    <div flex="100" layout="row" layout-wrap layout-align="start center">
+      <md-input-container flex="90" flex-offset="5" class="md-block" style="margin-top:0;">
+        <md-tooltip ng-if="widgetAdvMenu.errorType === 'Text'" md-visible="true" md-direction="right">{{widgetAdvMenu.errorMsg}}</md-tooltip>
+        <input flex="100" type="text" id="widgetAdvMenuTextInput" md-autofocus ng-model="widgetAdvMenu.text" placeholder="Text">
+      </md-input-container>
+    </div>
+  </div>
+  <!-- Menu to select the typography of the widget (aka text size) -->
+  <div flex="100" layout="row" layout-align="center center">
+    <div flex="40">
+      <md-input-container layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
+        <label style="padding-bottom:0">Class</label>
+        <md-select ng-model="widgetAdvMenu.class" class="white-fill"  md-whiteframe="1" style="padding-top: 0;">
+          <md-option ng-repeat="class in widgetAdvMenu.classes" value="{{class.value}}">
+            {{class.display}}
+          </md-option>
+        </md-select>
+      </md-input-container>
+    </div>
+
+    <!-- Menu to select the alignment of the text -->
+    <div flex="40" flex-offset="5" >
+      <md-input-container layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
+        <label style="padding-bottom:0">Alignment</label>
+        <md-select ng-model="widgetAdvMenu.alignment" class="white-fill"  md-whiteframe="1" style="padding-top: 0;">
+          <md-option ng-repeat="alignment in widgetAdvMenu.alignments" value="{{alignment.value}}">
+            {{alignment.display}}
+          </md-option>
+        </md-select>
+      </md-input-container>
+    </div>
+  </div>
+
+  <!-- A preview of how the text will look-->
+  <div flex="100" layout="row" layout-align="{{widgetAdvMenu.alignment}}">
+    <p flex="none" class="{{widgetAdvMenu.class}}">{{widgetAdvMenu.text}}</p>
+  </div>
+</script>
+
+
+<!-- LINE CHART WIDGET SETTINGS -->
+<script type="text/ng-template" id="/lineAdvMenu.html">
+
+  <div layout="row" layout-wrap>
+    <!-- A menu to select the height of the line chart -->
+    <div flex="100" layout="row" layout-wrap layout-align="start center">
+      <div layout="row" flex="100">
+        <h2 class="md-headline smpHeader">Height</h2>
+      </div>
+
+      <md-input-container flex-offset="5" style="margin-top:0;" layout-padding>
+        <md-select ng-model="widgetAdvMenu.lineChartHeight" class="white-fill"  md-whiteframe="1" style="padding-top: 0;" aria-label="line chart height dropdown menu">
+          <md-option ng-repeat="height in widgetAdvMenu.lineHeights" value="{{height}}">
+            {{height}} cell{{height > 1 ? 's' : ''}}
+          </md-option>
+        </md-select>
+      </md-input-container>
+    </div>
+
+    <!-- Toggle Visibility of Chart Title -->
+    <div flex="100" layout="row" layout-wrap layout-align="start center">
+      <div layout="row" flex="100">
+        <h2 flex="" class="md-headline smpHeader">Title</h2>
+      </div>
+
+      <div flex="100" layout="row" layout-wrap>
+        <div flex="90" flex-offset="5" >
+          <md-checkbox ng-model="widgetAdvMenu.showTitle" layout="row" aria-label="Show Chart Title">
+            Show Title
+          </md-checkbox>
+        </div>
         <md-input-container flex="90" flex-offset="5" class="md-block" style="margin-top:0;">
-          <md-tooltip ng-if="widgetAdvMenu.errorType === 'Text'" md-visible="true" md-direction="right">{{widgetAdvMenu.errorMsg}}</md-tooltip>
-          <input flex="100" type="text" id="widgetAdvMenuTextInput" md-autofocus ng-model="widgetAdvMenu.text" placeholder="Text">
-        </md-input-container>
-      </div>
-    </div>
-    <!-- Menu to select the typography of the widget (aka text size) -->
-    <div flex="100" layout="row" layout-align="center center">
-      <div flex="40">
-        <md-input-container layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
-          <label style="padding-bottom:0">Class</label>
-          <md-select ng-model="widgetAdvMenu.class" class="white-fill"  md-whiteframe="1" style="padding-top: 0;">
-            <md-option ng-repeat="class in widgetAdvMenu.classes" value="{{class.value}}">
-              {{class.display}}
-            </md-option>
-          </md-select>
-        </md-input-container>
-      </div>
-
-      <!-- Menu to select the alignment of the text -->
-      <div flex="40" flex-offset="5" >
-        <md-input-container layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
-          <label style="padding-bottom:0">Alignment</label>
-          <md-select ng-model="widgetAdvMenu.alignment" class="white-fill"  md-whiteframe="1" style="padding-top: 0;">
-            <md-option ng-repeat="alignment in widgetAdvMenu.alignments" value="{{alignment.value}}">
-              {{alignment.display}}
-            </md-option>
-          </md-select>
+          <label>Chart Title</label>
+          <input flex="100" type="text" ng-disabled="!widgetAdvMenu.showTitle" ng-model="widgetAdvMenu.chartTitle">
+          <div class="hint md-caption">If Left blank the title will display the sensor name in the form: "[Namespace] Sensor, Item".</div>
         </md-input-container>
       </div>
     </div>
 
-    <!-- A preview of how the text will look-->
-    <div flex="100" layout="row" layout-align="{{widgetAdvMenu.alignment}}">
-      <p flex="none" class="{{widgetAdvMenu.class}}">{{widgetAdvMenu.text}}</p>
-    </div>
-  </script>
+    <!-- Toggle Visibility of Axies -->
+    <div flex="100" layout="row" layout-wrap layout-align="start center">
+      <div layout="row" flex="100">
+        <h2 flex="" class="md-headline smpHeader">Axes</h2>
+      </div>
 
-
-  <!-- LINE CHART WIDGET SETTINGS -->
-  <script type="text/ng-template" id="/lineAdvMenu.html">
-
-    <div layout="row" layout-wrap>
-      <!-- A menu to select the height of the line chart -->
-      <div flex="100" layout="row" layout-wrap layout-align="start center">
-        <div layout="row" flex="100">
-          <h2 class="md-headline smpHeader">Height</h2>
+      <div layout="row" flex="50" layout-wrap>
+        <div flex="90" flex-offset="10" >
+          <md-checkbox flex="90" flex-offset="5" ng-model="widgetAdvMenu.showXAxis" layout="row" aria-label="Show X Axis">
+            Show X Axis
+          </md-checkbox>
         </div>
 
-        <md-input-container flex-offset="5" style="margin-top:0;" layout-padding>
-          <md-select ng-model="widgetAdvMenu.lineChartHeight" class="white-fill"  md-whiteframe="1" style="padding-top: 0;" aria-label="line chart height dropdown menu">
-            <md-option ng-repeat="height in widgetAdvMenu.lineHeights" value="{{height}}">
-              {{height}} cell{{height > 1 ? 's' : ''}}
-            </md-option>
-          </md-select>
+        <md-input-container flex="80" flex-offset="10" layout="row" style="margin-top:0;">
+          <label>X Axis Label</label>
+          <input flex="100" type="text" ng-disabled="!widgetAdvMenu.showXAxis" ng-model="widgetAdvMenu.labelXAxis">
         </md-input-container>
       </div>
 
-      <!-- Toggle Visibility of Chart Title -->
-      <div flex="100" layout="row" layout-wrap layout-align="start center">
-        <div layout="row" flex="100">
-          <h2 flex="" class="md-headline smpHeader">Title</h2>
+      <div layout="row" flex="50" layout-wrap>
+        <div flex="90" flex-offset="10" >
+          <md-checkbox flex="90" flex-offset="5" ng-model="widgetAdvMenu.showYAxis" layout="row" aria-label="Show Y Axis">
+            Show Y Axis?
+          </md-checkbox>
         </div>
 
-        <div flex="100" layout="row" layout-wrap>
-          <div flex="90" flex-offset="5" >
-            <md-checkbox ng-model="widgetAdvMenu.showTitle" layout="row" aria-label="Show Chart Title">
-              Show Title
-            </md-checkbox>
-          </div>
-          <md-input-container flex="90" flex-offset="5" class="md-block" style="margin-top:0;">
-            <label>Chart Title</label>
-            <input flex="100" type="text" ng-disabled="!widgetAdvMenu.showTitle" ng-model="widgetAdvMenu.chartTitle">
-            <div class="hint md-caption">If Left blank the title will display the sensor name in the form: "[Namespace] Sensor, Item".</div>
+        <md-input-container flex="80" flex-offset="10" layout="row" style="margin-top:0;">
+          <label>Y Axis Label</label>
+          <input flex="100" type="text" ng-disabled="!widgetAdvMenu.showYAxis" ng-model="widgetAdvMenu.labelYAxis">
+        </md-input-container>
+      </div>
+    </div>
+  </div>
+</script>
+
+<!-- SPARKLINE CHART WIDGET SETTINGS -->
+<script type="text/ng-template" id="/sparklineAdvMenu.html">
+
+  <div flex="100" layout="row" layout-wrap>
+    <!-- A menu to select the height of the line chart -->
+    <div flex="100" layout="row" layout-wrap layout-align="start center">
+      <div layout="row" flex="100">
+        <h2 class="md-headline smpHeader">Height</h2>
+      </div>
+
+      <md-input-container flex-offset="5" style="margin-top:0;" layout-padding>
+        <md-select ng-model="widgetAdvMenu.sparklineChartHeight" class="white-fill"  md-whiteframe="1" style="padding-top: 0;" aria-label="sparkline chart height dropdown menu">
+          <md-option ng-repeat="height in widgetAdvMenu.sparklineHeights" value="{{height}}">
+            {{height}} cell{{height > 1 ? 's' : ''}}
+          </md-option>
+        </md-select>
+      </md-input-container>
+    </div>
+
+    <!-- Toggle Visibility of Chart Title -->
+    <div flex="100" layout="row" layout-wrap layout-align="start center">
+      <div layout="row" flex="100">
+        <h2 flex="" class="md-headline smpHeader">Title</h2>
+      </div>
+
+      <div flex="100" layout="row" layout-wrap>
+        <div flex="90" flex-offset="5" >
+          <md-checkbox ng-model="widgetAdvMenu.showTitle" layout="row" aria-label="Show Chart Title">
+            Show Title
+          </md-checkbox>
+        </div>
+        <md-input-container flex="90" flex-offset="5" class="md-block" style="margin-top:0;">
+          <label>Chart Title</label>
+          <input flex="100" type="text" ng-disabled="!widgetAdvMenu.showTitle" ng-model="widgetAdvMenu.chartTitle">
+          <div class="hint md-caption">If Left blank the title will display the sensor name in the form: "[Namespace] Sensor, Item".</div>
+        </md-input-container>
+      </div>
+    </div>
+  </div>
+</script>
+
+<!-- SENSOR DISPLAY WIDGET SETTINGS -->
+<script type="text/ng-template" id="/sensorDisplayAdvMenu.html">
+
+  <div flex="100" layout="row" layout-wrap>
+    <!-- A menu to select the height of the line chart -->
+    <div flex="100" layout="row" layout-wrap layout-align="start center">
+      <div layout="row" flex="100">
+        <h2 class="md-headline smpHeader">Display Settings</h2>
+      </div>
+
+      <div layout="row" flex="100">
+
+        <!-- Number Metrics to show and Show Labels toggle for the metrics -->
+        <div flex="50" flex-offset="5" layout="row" layout-align="start center">
+          <label>Number of Metrics</label>
+          <md-input-container lex-offset="5" style="margin-top:0;" layout-padding>
+            <md-select ng-model="widgetAdvMenu.numMetrics" class="white-fill"  md-whiteframe="1" style="padding-top: 0;" aria-label="number of metrics on sensor display">
+              <md-option ng-repeat="metric in widgetAdvMenu.numMetricsOptions" value="{{metric}}">
+                {{metric}}
+              </md-option>
+            </md-select>
           </md-input-container>
         </div>
-      </div>
 
-      <!-- Toggle Visibility of Axies -->
-      <div flex="100" layout="row" layout-wrap layout-align="start center">
-        <div layout="row" flex="100">
-          <h2 flex="" class="md-headline smpHeader">Axes</h2>
+        <div flex="50" flex-offset="5" layout="row" layout-align="start center">
+          <md-checkbox ng-model="widgetAdvMenu.showMetricLabel" aria-label="Show Metric Label" class="no-margin">
+            Show Metric Label
+          </md-checkbox>
         </div>
 
-        <div layout="row" flex="50" layout-wrap>
-          <div flex="90" flex-offset="10" >
-            <md-checkbox flex="90" flex-offset="5" ng-model="widgetAdvMenu.showXAxis" layout="row" aria-label="Show X Axis">
-              Show X Axis
-            </md-checkbox>
-          </div>
-
-          <md-input-container flex="80" flex-offset="10" layout="row" style="margin-top:0;">
-            <label>X Axis Label</label>
-            <input flex="100" type="text" ng-disabled="!widgetAdvMenu.showXAxis" ng-model="widgetAdvMenu.labelXAxis">
-          </md-input-container>
-        </div>
-
-        <div layout="row" flex="50" layout-wrap>
-          <div flex="90" flex-offset="10" >
-            <md-checkbox flex="90" flex-offset="5" ng-model="widgetAdvMenu.showYAxis" layout="row" aria-label="Show Y Axis">
-              Show Y Axis?
-            </md-checkbox>
-          </div>
-
-          <md-input-container flex="80" flex-offset="10" layout="row" style="margin-top:0;">
-            <label>Y Axis Label</label>
-            <input flex="100" type="text" ng-disabled="!widgetAdvMenu.showYAxis" ng-model="widgetAdvMenu.labelYAxis">
-          </md-input-container>
-        </div>
       </div>
     </div>
-  </script>
+  </div>
 
-  <!-- SPARKLINE CHART WIDGET SETTINGS -->
-  <script type="text/ng-template" id="/sparklineAdvMenu.html">
+  <div layout="row" flex="100">
+    <h2 class="md-headline smpHeader">Cell Settings</h2>
+  </div>
 
-    <div flex="100" layout="row" layout-wrap>
-      <!-- A menu to select the height of the line chart -->
-      <div flex="100" layout="row" layout-wrap layout-align="start center">
-        <div layout="row" flex="100">
-          <h2 class="md-headline smpHeader">Height</h2>
-        </div>
+  <!-- Radio button group for selecting which attribute to change about the cell (the metric, width, or color) -->
+  <div flex="100" layout="row" layout-align="center center" layout-padding>
+    <md-radio-group layout="row" ng-model="widgetAdvMenu.sensorDisplayEditOption">
+      <md-radio-button value="metric" ng-click="widgetAdvMenu.sensorDisplayEditOption = 'metric'" class="doesAction">Metrics</md-radio-button>
+      <md-radio-button value="width" ng-click="widgetAdvMenu.sensorDisplayEditOption = 'width'" class="doesAction">Widths</md-radio-button>
+      <md-radio-button value="fill" ng-click="widgetAdvMenu.sensorDisplayEditOption = 'fill'" class="doesAction">Fills</md-radio-button>
+    </md-radio-group>
+  </div>
 
-        <md-input-container flex-offset="5" style="margin-top:0;" layout-padding>
-          <md-select ng-model="widgetAdvMenu.sparklineChartHeight" class="white-fill"  md-whiteframe="1" style="padding-top: 0;" aria-label="sparkline chart height dropdown menu">
-            <md-option ng-repeat="height in widgetAdvMenu.sparklineHeights" value="{{height}}">
-              {{height}} cell{{height > 1 ? 's' : ''}}
-            </md-option>
-          </md-select>
-        </md-input-container>
-      </div>
-
-      <!-- Toggle Visibility of Chart Title -->
-      <div flex="100" layout="row" layout-wrap layout-align="start center">
-        <div layout="row" flex="100">
-          <h2 flex="" class="md-headline smpHeader">Title</h2>
-        </div>
-
-        <div flex="100" layout="row" layout-wrap>
-          <div flex="90" flex-offset="5" >
-            <md-checkbox ng-model="widgetAdvMenu.showTitle" layout="row" aria-label="Show Chart Title">
-              Show Title
-            </md-checkbox>
-          </div>
-          <md-input-container flex="90" flex-offset="5" class="md-block" style="margin-top:0;">
-            <label>Chart Title</label>
-            <input flex="100" type="text" ng-disabled="!widgetAdvMenu.showTitle" ng-model="widgetAdvMenu.chartTitle">
-            <div class="hint md-caption">If Left blank the title will display the sensor name in the form: "[Namespace] Sensor, Item".</div>
-          </md-input-container>
-        </div>
-      </div>
+  <div ng-if="widgetAdvMenu.numMetrics && widgetAdvMenu.sensorDisplayEditOption" flex="100" layout="row" layout-align="center center"  style="margin-bottom:.5em;margin-top:.5em;">
+    <div flex="" layout-align="center center" ng-repeat="idx in widgetAdvMenu.numMetricsOptions | limitTo: widgetAdvMenu.numMetrics">
+      <!-- Metric Selects for each cell -->
+      <md-input-container ng-if="widgetAdvMenu.sensorDisplayEditOption === 'metric'" flex="95" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block;">
+        <md-tooltip ng-if="widgetMenu.errorType === 'Metric'" md-visible="true" md-direction="right">{{widgetMenu.errorMsg}}</md-tooltip>
+        <md-select id="widgetAdvMenuMetricSelect{{idx}}" ng-model="widgetAdvMenu.metrics[idx - 1]" class="white-fill"  md-whiteframe="1" aria-label="metric select for cell number {{idx}}" style="display: block; padding-top: 0;">
+          <md-option ng-repeat="metric in widgetAdvMenu.metricOptions" value="{{metric.value}}">
+            {{metric.display}}
+          </md-option>
+        </md-select>
+      </md-input-container>
+      <!-- Width Selects for each cell -->
+      <md-input-container ng-if="widgetAdvMenu.sensorDisplayEditOption === 'width'" flex="95" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block;">
+        <md-select ng-model="widgetAdvMenu.widths[idx - 1]" class="white-fill"  md-whiteframe="1" aria-label="width select for cell number {{idx}}" style="display: block; padding-top: 0;">
+          <md-option ng-repeat="width in widgetAdvMenu.widthOptions" value="{{width.value}}">
+            {{width.display}}
+          </md-option>
+        </md-select>
+      </md-input-container>
+      <!-- Class Selects for each cell -->
+      <md-input-container ng-if="widgetAdvMenu.sensorDisplayEditOption === 'fill'" flex="95" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block;">
+        <md-select ng-model="widgetAdvMenu.fills[idx - 1]" class="white-fill"  md-whiteframe="1" aria-label="fill select for cell number {{idx}}" style="display: block; padding-top: 0;">
+          <md-option ng-repeat="fill in widgetAdvMenu.fillOptions" value="{{fill.value}}">
+            {{fill.display}}
+          </md-option>
+        </md-select>
+      </md-input-container>
     </div>
-  </script>
+  </div>
 
-  <!-- SENSOR DISPLAY WIDGET SETTINGS -->
-  <script type="text/ng-template" id="/sensorDisplayAdvMenu.html">
+  <!-- Preview of the sensor display -->
+  <div flex="100" layout="row" layout-align="center center">
+    <div ng-if="widgetAdvMenu.numMetrics" ng-repeat="idx in widgetAdvMenu.numMetricsOptions | limitTo: widgetAdvMenu.numMetrics" layout="row" layout-align="center center" flex="{{widgetAdvMenu.widths[idx - 1] ? widgetAdvMenu.widths[idx - 1] : ''}}">
+      <div
 
-    <div flex="100" layout="row" layout-wrap>
-      <!-- A menu to select the height of the line chart -->
-      <div flex="100" layout="row" layout-wrap layout-align="start center">
-        <div layout="row" flex="100">
-          <h2 class="md-headline smpHeader">Display Settings</h2>
-        </div>
-
-        <div layout="row" flex="100">
-
-          <!-- Number Metrics to show and Show Labels toggle for the metrics -->
-          <div flex="50" flex-offset="5" layout="row" layout-align="start center">
-            <label>Number of Metrics</label>
-            <md-input-container lex-offset="5" style="margin-top:0;" layout-padding>
-              <md-select ng-model="widgetAdvMenu.numMetrics" class="white-fill"  md-whiteframe="1" style="padding-top: 0;" aria-label="number of metrics on sensor display">
-                <md-option ng-repeat="metric in widgetAdvMenu.numMetricsOptions" value="{{metric}}">
-                  {{metric}}
-                </md-option>
-              </md-select>
-            </md-input-container>
-          </div>
-
-          <div flex="50" flex-offset="5" layout="row" layout-align="start center">
-            <md-checkbox ng-model="widgetAdvMenu.showMetricLabel" aria-label="Show Metric Label" class="no-margin">
-              Show Metric Label
-            </md-checkbox>
-          </div>
-
-        </div>
+        class="{{widgetAdvMenu.fills[idx - 1] ? widgetAdvMenu.fills[idx - 1] : 'white-fill'}} no-margin"
+        flex=""
+        style="border-radius:0;box-shadow:0;"
+        md-whiteframe="1"
+      >
+        <!-- <md-card-content> -->
+          <p class="md-body-1" style="text-align:center;">{{widgetAdvMenu.metrics[idx - 1] ? widgetAdvMenu.metrics[idx - 1] : ''}}</p>
+        <!-- </md-card-content> -->
       </div>
     </div>
+  </div>
 
-    <div layout="row" flex="100">
-      <h2 class="md-headline smpHeader">Cell Settings</h2>
-    </div>
-
-    <!-- Radio button group for selecting which attribute to change about the cell (the metric, width, or color) -->
-    <div flex="100" layout="row" layout-align="center center" layout-padding>
-      <md-radio-group layout="row" ng-model="widgetAdvMenu.sensorDisplayEditOption">
-        <md-radio-button value="metric" ng-click="widgetAdvMenu.sensorDisplayEditOption = 'metric'" class="doesAction">Metrics</md-radio-button>
-        <md-radio-button value="width" ng-click="widgetAdvMenu.sensorDisplayEditOption = 'width'" class="doesAction">Widths</md-radio-button>
-        <md-radio-button value="fill" ng-click="widgetAdvMenu.sensorDisplayEditOption = 'fill'" class="doesAction">Fills</md-radio-button>
-      </md-radio-group>
-    </div>
-
-    <div ng-if="widgetAdvMenu.numMetrics && widgetAdvMenu.sensorDisplayEditOption" flex="100" layout="row" layout-align="center center"  style="margin-bottom:.5em;margin-top:.5em;">
-      <div flex="" layout-align="center center" ng-repeat="idx in widgetAdvMenu.numMetricsOptions | limitTo: widgetAdvMenu.numMetrics">
-        <!-- Metric Selects for each cell -->
-        <md-input-container ng-if="widgetAdvMenu.sensorDisplayEditOption === 'metric'" flex="95" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block;">
-          <md-tooltip ng-if="widgetMenu.errorType === 'Metric'" md-visible="true" md-direction="right">{{widgetMenu.errorMsg}}</md-tooltip>
-          <md-select id="widgetAdvMenuMetricSelect{{idx}}" ng-model="widgetAdvMenu.metrics[idx - 1]" class="white-fill"  md-whiteframe="1" aria-label="metric select for cell number {{idx}}" style="display: block; padding-top: 0;">
-            <md-option ng-repeat="metric in widgetAdvMenu.metricOptions" value="{{metric.value}}">
-              {{metric.display}}
-            </md-option>
-          </md-select>
-        </md-input-container>
-        <!-- Width Selects for each cell -->
-        <md-input-container ng-if="widgetAdvMenu.sensorDisplayEditOption === 'width'" flex="95" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block;">
-          <md-select ng-model="widgetAdvMenu.widths[idx - 1]" class="white-fill"  md-whiteframe="1" aria-label="width select for cell number {{idx}}" style="display: block; padding-top: 0;">
-            <md-option ng-repeat="width in widgetAdvMenu.widthOptions" value="{{width.value}}">
-              {{width.display}}
-            </md-option>
-          </md-select>
-        </md-input-container>
-        <!-- Class Selects for each cell -->
-        <md-input-container ng-if="widgetAdvMenu.sensorDisplayEditOption === 'fill'" flex="95" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block;">
-          <md-select ng-model="widgetAdvMenu.fills[idx - 1]" class="white-fill"  md-whiteframe="1" aria-label="fill select for cell number {{idx}}" style="display: block; padding-top: 0;">
-            <md-option ng-repeat="fill in widgetAdvMenu.fillOptions" value="{{fill.value}}">
-              {{fill.display}}
-            </md-option>
-          </md-select>
-        </md-input-container>
-      </div>
-    </div>
-
-    <!-- Preview of the sensor display -->
-    <div flex="100" layout="row" layout-align="center center">
-      <div ng-if="widgetAdvMenu.numMetrics" ng-repeat="idx in widgetAdvMenu.numMetricsOptions | limitTo: widgetAdvMenu.numMetrics" layout="row" layout-align="center center" flex="{{widgetAdvMenu.widths[idx - 1] ? widgetAdvMenu.widths[idx - 1] : ''}}">
-        <div
-
-          class="{{widgetAdvMenu.fills[idx - 1] ? widgetAdvMenu.fills[idx - 1] : 'white-fill'}} no-margin"
-          flex=""
-          style="border-radius:0;box-shadow:0;"
-          md-whiteframe="1"
-        >
-          <!-- <md-card-content> -->
-            <p class="md-body-1" style="text-align:center;">{{widgetAdvMenu.metrics[idx - 1] ? widgetAdvMenu.metrics[idx - 1] : ''}}</p>
-          <!-- </md-card-content> -->
-        </div>
-      </div>
-    </div>
-
-  </script>
-</md-dialog>
+</script>

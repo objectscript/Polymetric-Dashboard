@@ -1,6 +1,6 @@
 <div flex="100" class="background-fill allSensorsRow" layout="row" layout-wrap>
   <!-- Sensor Rows are used in the AllSensors Tab, and are a combination of a sensor display, a sparkline chart, and a button to show and hide the sparkline chart -->
-  <div flex="95" style="height:48px;">
+  <div flex="95" ng-if="sensorRow.bigScreen" style="height:48px;">
     <!-- The sensor display is always shown -->
     <smp-sensor-display
       namespace="{{namespace}}"
@@ -11,6 +11,21 @@
       metrics="state,sensor,value,max,min,mean,stdDev"
       widths="5,45,10,10,10,10,10"
       classes="background-fill, primary-hue1-fill white-text,white-fill,white-fill,white-fill,white-fill,white-fill"
+      icon-class="stateBarContainer"
+      show-unit="true"
+      show-metadata="true"
+    ></<smp-sensor-display>
+  </div>
+  <div flex="95" ng-if="!sensorRow.bigScreen" style="height:48px;">
+    <smp-sensor-display
+      namespace="{{namespace}}"
+      sensor="{{sensor}}"
+      item="{{item}}"
+      units="{{units}}"
+      show-label="false"
+      metrics="state,sensor"
+      widths="10,90"
+      classes="background-fill, primary-hue1-fill white-text"
       icon-class="stateBarContainer"
       show-unit="true"
       show-metadata="true"
@@ -28,7 +43,7 @@
   <!-- Sparkline charts are hidden by default using ng-if (ng-if acutally removes/adds them to the DOM) because having a lot of these on screen
   can cause performance issues -->
   <div ng-if="showSparkline" class="expando-if" flex="95">
-    <div flex="95" flex-offset="5" class="">
+    <div flex-xs="90" flex-sm="90" flex-gt-sm="95" flex-offset-xs="10" flex-offset-sm="10" flex-offset-gt-sm="5" class="">
       <smp-nvd3-chart
         type="sparklineChart"
         id="{{chartId}}"

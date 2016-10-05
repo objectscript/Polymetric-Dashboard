@@ -73,18 +73,18 @@
               <md-subheader class="md-no-sticky accent-text">Required</md-subheader>
               <md-list-item layout="row" class="md-offset">
                 <p layout="row" flex="100">
-                  <span flex="15" style="font-weight:bold;" class="md-subhead">Attribute</span>
-                  <span flex="10" style="font-weight:bold;" class="md-subhead">Type</span>
+                  <span flex-xs="30" flex-sm="20" flex-gt-sm="15" style="font-weight:bold;" class="md-subhead">Attribute</span>
+                  <span flex-xs="20" flex-sm="15" flex-gt-sm="10" style="font-weight:bold;" class="md-subhead">Type</span>
                   <span flex="" style="font-weight:bold;" class="md-subhead">Description</span>
-                  <span flex="10" style="font-weight:bold;" class="md-subhead">Default</span>
+                  <span flex-xs="20" flex-sm="15" flex-gt-sm="10"  style="font-weight:bold;text-align:right;" class="md-subhead">Default</span>
                 </p>
               </md-list-item>
               <md-list-item layout="row" class="md-offset" ng-repeat="attr in option.Required">
                 <p layout="row" flex="100">
-                  <span flex="15" class="md-body-1">{{attr.attr}}</span>
-                  <span flex="10" class="md-body-1">{{attr.type}}</span>
+                  <span flex-xs="30" flex-sm="20" flex-gt-sm="15" class="md-body-1">{{attr.attr}}</span>
+                  <span flex-xs="20" flex-sm="15" flex-gt-sm="10" class="md-body-1">{{attr.type}}</span>
                   <span flex="" class="md-body-1">{{attr.desc}}</span>
-                  <span flex="10" class="md-body-1">{{attr.default}}</span>
+                  <span flex-xs="20" flex-sm="15" flex-gt-sm="10" class="md-body-1" style="text-align:right;">{{attr.default}}</span>
                 </p>
               </md-list-item>
 
@@ -94,18 +94,18 @@
                 <md-subheader class="md-no-sticky">Optional</md-subheader>
                 <md-list-item layout="row" class="md-offset">
                   <p layout="row" flex="100">
-                    <span flex="15" style="font-weight:bold;" class="md-subhead">Attribute</span>
-                    <span flex="10" style="font-weight:bold;" class="md-subhead">Type</span>
+                    <span flex-xs="30" flex-sm="20" flex-gt-sm="15" style="font-weight:bold;" class="md-subhead">Attribute</span>
+                    <span flex-xs="20" flex-sm="15" flex-gt-sm="10" style="font-weight:bold;" class="md-subhead">Type</span>
                     <span flex="" style="font-weight:bold;" class="md-subhead">Description</span>
-                    <span flex="10" style="font-weight:bold;" class="md-subhead">Default</span>
+                    <span flex-xs="20" flex-sm="15" flex-gt-sm="10"  style="font-weight:bold;text-align:right;" class="md-subhead">Default</span>
                   </p>
                 </md-list-item>
                 <md-list-item layout="row" class="md-offset" ng-repeat="attr in option.Optional">
                   <p layout="row" flex="100">
-                    <span flex="15" class="md-body-1">{{attr.attr}}</span>
-                    <span flex="10" class="md-body-1">{{attr.type}}</span>
+                    <span flex-xs="30" flex-sm="20" flex-gt-sm="15" class="md-body-1">{{attr.attr}}</span>
+                    <span flex-xs="20" flex-sm="15" flex-gt-sm="10" class="md-body-1">{{attr.type}}</span>
                     <span flex="" class="md-body-1">{{attr.desc}}</span>
-                    <span flex="10" class="md-body-1">{{attr.default}}</span>
+                    <span flex-xs="20" flex-sm="15" flex-gt-sm="10" class="md-body-1" style="text-align:right;">{{attr.default}}</span>
                   </p>
                 </md-list-item>
               </span>

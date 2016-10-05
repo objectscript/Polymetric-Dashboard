@@ -1,6 +1,7 @@
 .smp-code{
     background-color: #0c2238;
     font-size: 1.2em;
+    overflow-x: auto;
 }
 .smp-text {
   color: #b2ccd6;

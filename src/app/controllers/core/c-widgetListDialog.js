@@ -3,11 +3,11 @@
 
   var dialog = angular.module('overlay');
 
-  dialog.controller('widgetListDialogCtrl', ['$scope', 'mdPanelRef', '$filter', '$mdToast', '$compile', 'WidgetProvider', function($scope, mdPanelRef, $filter, $mdToast, $compile, WidgetProvider) {
+  dialog.controller('widgetListDialogCtrl', ['$scope', 'mdPanelRef', '$filter', '$mdToast', '$compile', '$mdMedia', 'WidgetProvider', function($scope, mdPanelRef, $filter, $mdToast, $compile, $mdMedia, WidgetProvider) {
     var _this = this;
 
     // get the pointer to the grid so widgets data can be set/get
-    _this.grid = $('.grid-stack').data('gridstack');
+    _this.grid = $('.playground-stack').data('gridstack');
 
     // local vars allowing access to functions
     _this.apply = apply;
@@ -179,6 +179,11 @@
       WidgetProvider.widgetListPage = _this.curPage;
       widget.openAdvMenu($event, widget.settings.type);
     }
+
+    _this.bigScreen = false;
+    $scope.$watch(function() { return $mdMedia('gt-md'); }, function(big) {
+      _this.bigScreen = big;
+    });
 
   }]);
 })();

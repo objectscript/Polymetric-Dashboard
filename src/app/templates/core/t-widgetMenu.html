@@ -1,4 +1,4 @@
-<md-list class="background-fill blend-text widgetMenu" md-whiteframe="2">
+<md-list class="background-fill blend-text widgetMenu panelScroll" md-whiteframe="2">
   <!-- Type Select for Widget -->
   <md-list-item class="no-padding">
     <md-tooltip ng-if="widgetMenu.errorType === 'Type'" md-visible="true" md-direction="right">{{widgetMenu.errorMsg}}</md-tooltip>
@@ -78,6 +78,7 @@
       <md-button ng-click="widgetMenu.remove = !widgetMenu.remove" class="widgetMenuBtn warn-text">{{widgetMenu.remove ? 'Keep' : 'Remove'}} Widget</md-button>
     </div>
   </md-list-item>
+</md-list>
 
   <!-- Buttons to close the menu or save the new widget data -->
   <md-list-item flex="100" layout="row" layout-align="center center" class="white-fill">
@@ -88,4 +89,3 @@
       <md-button ng-mouseenter="widgetMenu.validate()" ng-click="widgetMenu.apply()" class="md-raised md-primary">Apply</md-button>
     </div>
   </md-list-item>
-</md-list>

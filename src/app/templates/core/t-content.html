@@ -1,6 +1,6 @@
-<md-content style="height:100%;overflow:hidden;">
+<md-content style="height:100%;">
   <!-- TAB STRUCTURE -->
-  <md-tabs class="md-primary" md-selected="content.curTabIdx">
+  <md-tabs class="md-primary" md-selected="content.curTabIdx" md-no-select-click>
     <!-- Tab content directives are held within an array in the content controller and built dynamically here -->
     <md-tab ng-repeat="tab in content.tabs" id="{{tab.id}}" md-on-select="content.setTab($index)">
       <md-tab-label>{{tab.title}}</md-tab-label>
@@ -23,7 +23,7 @@
   </md-button>
 
   <!-- BACK TO SYSTEM DASHBOARD FAB -->
-  <md-button class="white-text md-no-ink" href="/csp/sys/op/UtilDashboard.csp"  style="position:fixed;top:0;right:0;min-width:0;">
+  <!-- <md-button class="white-text md-no-ink" href="/csp/sys/op/UtilDashboard.csp"  style="position:fixed;top:0;right:0;min-width:0;">
     <md-tooltip md-direction="bottom">Back to Origional System Dashboard</md-tooltip>
     <md-icon
       aria-label="Settings"
@@ -31,5 +31,5 @@
       md-svg-src="assets/icons/ic_keyboard_backspace_24px.svg"
     >
     </md-icon>
-  </md-button>
+  </md-button> -->
 </md-content>

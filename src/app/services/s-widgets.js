@@ -4,7 +4,7 @@
   var app = angular.module('Widgets', []);
 
   /*  Holds all the sensor information */
-  app.factory('WidgetProvider', ['$filter', '$mdPanel', '$mdDialog', '$localStorage', '$q', 'dashboard', function($filter, $mdPanel, $mdDialog, $localStorage, $q, dashboard) {
+  app.factory('WidgetProvider', ['$filter', '$mdPanel', '$mdDialog', '$localStorage', '$q', '$log', 'dashboard', function($filter, $mdPanel, $mdDialog, $localStorage, $q, $log, dashboard) {
     // --------------------------------------------------------------------------------- //
     // ------------------------------ THE WIDGET PROVIDER ------------------------------ //
     // --------------------------------------------------------------------------------- //
@@ -465,7 +465,7 @@
 
     // the widgets implement this method to update their data and html.
     Widget.prototype.update = function(e) {
-      console.log('widgets must implement Widget.update() for visualizations to be shown.');
+      $log.info('widgets must implement Widget.update() for visualizations to be shown.');
     };
 
     // --------------------------------------------------------------------------------- //

@@ -3543,7 +3543,7 @@ FINDNAME(name)
 
   </head>
 
-  <body id="SMPDashbaord" ng-app="Dashboard" ng-cloak style="overflow:hidden;">
+  <body id="SMPDashbaord" ng-app="Dashboard" ng-cloak>
   <!-- =========================== CONTENT OF APP =========================== -->
     <smp-content> </smp-content>
 

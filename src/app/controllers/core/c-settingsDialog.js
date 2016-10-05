@@ -24,11 +24,6 @@
     $scope.chartWindow = dashboard.meta.chartWindow;
     $scope.samplePeriod = dashboard.meta.samplePeriod;
 
-    // get the avaiblable sample intervals for the current chart window
-    $scope.updateAvailableSamplePeriods = function() {
-      $scope.availableSamplePeriods = $scope.getAvailableSamplePeriods();
-    };
-    $scope.updateAvailableSamplePeriods();
     // extracts a reasonable subset of the available sample intervals.
     // this is done because having a minute sample interval for a 30 day chart period
     // does not preform well and gives way to much information than is really visible.
@@ -71,6 +66,12 @@
       }
       return availSP;
     };
+
+    // get the avaiblable sample intervals for the current chart window
+    $scope.updateAvailableSamplePeriods = function() {
+      $scope.availableSamplePeriods = $scope.getAvailableSamplePeriods();
+    };
+    $scope.updateAvailableSamplePeriods();
 
     function applyChartProperties() {
       var updateData = false;
@@ -198,7 +199,6 @@
     /* --------------------------------------------------------------------------------------------- */
 
     $scope.closeDialog = function() {
-      console.log('ng click better not');
       $mdDialog.cancel();
     };
 
