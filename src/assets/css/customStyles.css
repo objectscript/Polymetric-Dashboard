@@ -15,6 +15,14 @@
   cursor:pointer;
   outline: none;
 }
+.footer-link {
+  text-decoration: none;
+  cursor: pointer;
+}
+.transitions {
+  -webkit-transition: all .5s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: all .5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
 .unselectable {
    -moz-user-select: -moz-none;
    -webkit-user-select: none;
@@ -110,8 +118,8 @@ md-tabs{
 }
 /* STYLING FOR THE SECTIONS WITHIN TABS  */
 .sectionToggle{
-  -webkit-transition:all .5s;
-  transition:all .5s;
+  -webkit-transition: all .5s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: all .5s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 .tabSection{
   background-color:white;

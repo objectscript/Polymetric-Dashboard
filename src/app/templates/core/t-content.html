@@ -5,8 +5,11 @@
     <md-tab ng-repeat="tab in content.tabs" id="{{tab.id}}" md-on-select="content.setTab($index)">
       <md-tab-label>{{tab.title}}</md-tab-label>
       <md-tab-body>
-        <md-content bind-html-compile="tab.content" class="md-padding transparent-fill" flex="{{tab.width}}" flex-offset="{{(100-tab.width) / 2}}">
+        <md-content bind-html-compile="tab.content" class="md-padding transparent-fill" flex="{{tab.width}}" flex-offset="{{(100-tab.width) / 2}}" style="min-height:100vh;">
         </md-content>
+
+        <smp-footer></smp-footer>
+
       </md-tab-body>
     </md-tab>
   </md-tabs>
