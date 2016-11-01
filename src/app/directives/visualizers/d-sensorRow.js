@@ -16,7 +16,7 @@
           sensor: '@',
           item: '@',
           units: '@',
-          desc: '@',
+          desc: '@'
         },
         compile: function(element, attr) {
           return function postLink(scope, element, attrs) {

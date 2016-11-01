@@ -16,7 +16,7 @@
             // This allows me to keep it within the playground scope but have it in the correct
             // dom position that it is acutally fixed.
             post: function postLink(scope, element, attrs) {
-              var dash = $('#SMPDashbaord');
+              var dash = document.body;
               var pgFab = $('#playgroundFAB').detach();
 
               pgFab.appendTo(dash);

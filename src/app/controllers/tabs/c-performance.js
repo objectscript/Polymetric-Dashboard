@@ -61,7 +61,7 @@
           'unit': '',
           'advanced': {'title': 'Disk Writes'}
         }
-      },
+      }
     ];
 
     init();
@@ -78,7 +78,7 @@
         $('.performance-stack').gridstack({
           cellHeight: '48px',
           verticalMargin: 20,
-          animate: true,
+          animate: true
         });
         resolve($('.performance-stack').data('gridstack'));
       });
@@ -91,14 +91,13 @@
 
         // put the widget on the grid
         // addWidget(el, x, y, width, height, autoPos, minWidth, maxWidth, minHeight, maxHeight)
-        grid.addWidget(el,  _this.widgets[i].x,  _this.widgets[i].y,  6, 3, true, 4, 12, 3, 3);
+        grid.addWidget(el, _this.widgets[i].x, _this.widgets[i].y, 6, 3, true, 4, 12, 3, 3);
       }
     }
 
     // the tabs themselves are a midway point for the update call
     // this allows only the viz tools that are shown to be updated (reducing lag)
     dashboard.subscribe($scope, update); // subscribe to the dashboard update call
-    $scope.$on('renderComplete', function(event, args) {update(args);}); // when visualization tool held in the tab are done rendering they emit this so they will be populated
 
     // intercept the broadcast, and only update the data if currently selected tab.
     var clearData = false;

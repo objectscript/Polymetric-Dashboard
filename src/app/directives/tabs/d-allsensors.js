@@ -7,7 +7,7 @@
       return {
         restrict: 'E',
         templateUrl: 'app/templates/tabs/t-allsensors.html',
-        controller: 'allsensorsCtrl as allsensors',
+        controller: 'allsensorsCtrl as allsensors'
       };
     });
 })();

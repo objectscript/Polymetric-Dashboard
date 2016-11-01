@@ -88,12 +88,12 @@
         {attr: 'sensor', type: 'String', desc: 'The Sensor to display data of.', default: 'N/A'},
         {attr: 'item', type: 'String', desc: 'The Item to display data of.', default: 'N/A'},
         {attr: 'units', type: 'String', desc: 'The units that the Sensor\'s readings are measured in.', default: '" "'},
-        {attr: 'metrics', type: 'String', desc: 'A comma separated string defining the metrics to be shown.', default: 'N/A'},
+        {attr: 'metrics', type: 'String', desc: 'A comma separated string defining the metrics to be shown.', default: 'N/A'}
       ],
       'Optional': [
         {attr: 'widths', type: 'String', desc: 'A comma separated string defining the width of each metric\'s cell, this will be done automatically undefined.', default: '" "'},
         {attr: 'classes', type: 'String', desc: 'A comma separated string defining the class of metric\'s cell.', default: '" "'},
-        {attr: 'show-label', type: 'Integer', desc: 'When true, the metric name will be displayed above its value.', default: false},
+        {attr: 'show-label', type: 'Integer', desc: 'When true, the metric name will be displayed above its value.', default: false}
       ]
     };
   }]);

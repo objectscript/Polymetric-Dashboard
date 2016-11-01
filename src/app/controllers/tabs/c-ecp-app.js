@@ -6,7 +6,7 @@
   tab.controller('ecpAppCtrl', ['$scope', '$q', '$timeout', '$compile', 'dashboard', function($scope, $q, $timeout, $compile, dashboard) {
     var _this = this;
 
-    _this.widgets =  [
+    _this.widgets = [
       {
         'id': 'ECPAPP-activconn',
         'settings': {
@@ -160,7 +160,7 @@
           'unit': '',
           'advanced': {'title': 'Blocks Purged By Server Per Second'}
         }
-      },
+      }
     ];
 
     init();
@@ -178,7 +178,7 @@
         $('.ecp-app-stack').gridstack({
           cellHeight: '48px',
           verticalMargin: 20,
-          animate: true,
+          animate: true
         });
         resolve($('.ecp-app-stack').data('gridstack'));
       });
@@ -191,7 +191,7 @@
 
         // put the widget on the grid
         // addWidget(el, x, y, width, height, autoPos, minWidth, maxWidth, minHeight, maxHeight)
-        grid.addWidget(el,  _this.widgets[i].x,  _this.widgets[i].y,  6, 3, true, 4, 12, 3, 3);
+        grid.addWidget(el, _this.widgets[i].x, _this.widgets[i].y, 6, 3, true, 4, 12, 3, 3);
       }
     }
   }]);

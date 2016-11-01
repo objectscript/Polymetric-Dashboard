@@ -11,7 +11,7 @@
         controller: 'showcaseSparklineChartCtrl as scSparklineChart',
         scope: {
           sensors: '=',
-          activeSensor: '=',
+          activeSensor: '='
         }
       };
     });

@@ -7,7 +7,7 @@
       return {
         restrict: 'E',
         templateUrl: 'app/templates/tabs/t-summary.html',
-        controller: 'summaryCtrl as summary',
+        controller: 'summaryCtrl as summary'
       };
     });
 })();

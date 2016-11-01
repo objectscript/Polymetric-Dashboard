@@ -33,8 +33,8 @@
       $scope.activeSensor.item = _this.item;
       $scope.activeSensor.unit = _this.unit;
 
-      // emit the render complete event which tells the tab to update its contents data
-      $scope.$emit('renderComplete', {clearData: true});
+      // emit the notify dashboard of change to emit update call for sparkline demo
+      dashboard.notify({clearData: true});
     }
 
     _this.sparklineChartAttributes = {
@@ -44,7 +44,7 @@
         {attr: 'namespace', type: 'String', desc: 'The Namespace in which the sensor is stored.', default: 'N/A'},
         {attr: 'sensor', type: 'String', desc: 'The Sensor the chart will display data of.', default: 'N/A'},
         {attr: 'item', type: 'String', desc: 'The Item the chart will display data of.', default: 'N/A'},
-        {attr: 'units', type: 'String', desc: 'The units that the Sensor\'s readings are measured in.', default: '" "'},
+        {attr: 'units', type: 'String', desc: 'The units that the Sensor\'s readings are measured in.', default: '" "'}
 
       ],
       'Optional': [
@@ -52,7 +52,7 @@
         {attr: 'marginLeft', type: 'Integer', desc: 'The width, in pixels of the margin to the left of the chart.', default: 0},
         {attr: 'marginRight', type: 'Integer', desc: 'The width, in pixels of the margin to the right of the chart.', default: 0},
         {attr: 'marginTop', type: 'Integer', desc: 'The height, in pixels of the margin to the top of the chart.', default: 10},
-        {attr: 'marginBottom', type: 'Integer', desc: 'The height, in pixels of the margin to the bottom of the chart.', default: 4},
+        {attr: 'marginBottom', type: 'Integer', desc: 'The height, in pixels of the margin to the bottom of the chart.', default: 4}
       ]
     };
 

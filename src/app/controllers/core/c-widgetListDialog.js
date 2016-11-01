@@ -28,7 +28,7 @@
     init();
     function init() {
       // get all the widgets from the widget service
-      var widgetsObj =  WidgetProvider.widgets();
+      var widgetsObj = WidgetProvider.widgets();
 
       // for all the widgets in the widgetObject (an object containing widget objects)
       var keys = Object.keys(widgetsObj);
@@ -144,7 +144,7 @@
           template: msg,
           position: 'bottom right',
           hideDelay: '3000',
-          parent: mdPanelRef._panelEl,
+          parent: mdPanelRef._panelEl
         };
 
         $mdToast.show(toast);

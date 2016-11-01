@@ -4,21 +4,16 @@
   var viz = angular.module('visualizers');
 
   viz.controller('metadataCtrl', ['$scope', '$element', '$document', '$window', '$timeout', '$q', 'dashboard', function($scope, $element, $document, $window, $timeout, $q, dashboard) {
-    var pElem = $element.parent();
-    var tabElem = $element.parents('md-tab-content');
-
-    var elem = $element.detach();
-    elem.appendTo('body');
-
+    var tabElem;
     var overListener;
     var outListener;
     var visible = false;
     var gotData = false;
 
     // default position (although it will never been shown in this position)
-    $scope.pos = {left:  0, top: 0};
+    $scope.pos = {left: 0, top: 0};
 
-    pElem.on('mouseover', function(event) {
+    $element.parent().on('mouseover', function(event) {
       // Cancel mouseout
       $timeout.cancel(outListener);
       outListener = undefined;
@@ -48,7 +43,7 @@
     });
 
     // when leaving the parent element hide the metadata popup
-    pElem.on('mouseout', function(event) {
+    $element.parent().on('mouseout', function(event) {
       hideMetadata();
     });
 
@@ -83,6 +78,14 @@
     }
 
     function showMetadata(event) {
+      // if the metadata has not been shown it will be a child node of the element it was placed inside
+      // in order to make it hover above all elements on the page it must be moved to the bottom of the body of the DOM
+      // if the elements parent is not the body (only the body has an ng-app attr) then move the metadata popup
+      if ($element.parent().attr('ng-app') !== $(document.body).attr('ng-app')) {
+        var elem = $element.detach();
+        elem.appendTo(document.body);
+      }
+
       // insert the metadata popup's DOM element into the DOM, However it is still "hidden" (opacity = 0), this is changed once the position is set
       visible = true;
 
@@ -90,12 +93,15 @@
       // before this is called (because the insertion is already in the queue due to the visible = tue above).
       // This allows for calls such as clientWidth and height() to be accurate so I can place the popup in the right spot.
       $timeout(function() {
+        // if the tab reference has not been set up do so (saves globally so this query does not need to be done multiple times)
+        if (!tabElem) tabElem = $element.parents('md-tab-content');
+
         // ALL MEASURED IN PX
         var winW = $window.innerWidth; // width of the browser window (including scrollbar width)
         var winH = $window.innerHeight; // height of the iframe (toolbar down to bottom of browser window)
         var scrollW = tabElem.innerWidth() - tabElem.prop('scrollWidth'); // width of the vertical scrollbar
         var scrollX = tabElem.scrollLeft(); // distance the user has scrolled from the absolute left of the page
-        var scrollY = tabElem.scrollTop();  // distance the user has scrolled from the absolute top of the iframe
+        var scrollY = tabElem.scrollTop(); // distance the user has scrolled from the absolute top of the iframe
         //var toolbarHeight = $('md-tabs-wrapper').height(); // height of the toolbar
         var elemW = $element[0].clientWidth; // width of the metadata popup
         var elemH = $element[0].clientHeight; // height of the metadata popup

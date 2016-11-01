@@ -27,6 +27,7 @@
 
       var tz = dashboard.meta.timezone;
 
+      if (!format) format = dashboard.meta.useAdvancedFormat ? dashboard.meta.advTimeDisplayFormat : dashboard.meta.timeDisplayFormat;
       return moment.tz(m, tz).format(format);
     };
   }]);
@@ -35,9 +36,9 @@
   filter.filter('TStoLocal', ['dashboard' ,function(dashboard) {
     return function(timestamp, format) {
       var utc = moment.utc(timestamp, TSFORMAT);
-      //TODO: MAKE IT MORE THAN GUESS TIMEZONE
       var tz = dashboard.meta.timezone;
 
+      if (!format) format = dashboard.meta.useAdvancedFormat ? dashboard.meta.advTimeDisplayFormat : dashboard.meta.timeDisplayFormat;
       return moment.tz(utc, tz).format(format);
     };
   }]);

@@ -210,7 +210,7 @@
         $('.ecp-data-stack').gridstack({
           cellHeight: '48px',
           verticalMargin: 20,
-          animate: true,
+          animate: true
         });
         resolve($('.ecp-data-stack').data('gridstack'));
       });
@@ -223,7 +223,7 @@
 
         // put the widget on the grid
         // addWidget(el, x, y, width, height, autoPos, minWidth, maxWidth, minHeight, maxHeight)
-        grid.addWidget(el,  _this.widgets[i].x,  _this.widgets[i].y,  6, 3, true, 4, 12, 3, 3);
+        grid.addWidget(el, _this.widgets[i].x, _this.widgets[i].y, 6, 3, true, 4, 12, 3, 3);
       }
     }
   }]);

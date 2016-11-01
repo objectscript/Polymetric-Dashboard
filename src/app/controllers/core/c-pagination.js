@@ -75,10 +75,10 @@
         nextPage = 1;
       }
       if (page === 'previous' && $scope.curPage > 1) {
-        nextPage = $scope.curPage  - 1;
+        nextPage = $scope.curPage - 1;
       }
       if (page === 'next' && $scope.curPage < $scope.numButtons) {
-        nextPage =  $scope.curPage + 1;
+        nextPage = $scope.curPage + 1;
       }
       if (page === 'last') {
         nextPage = $scope.numButtons;

@@ -3,17 +3,25 @@
 
   var dialog = angular.module('overlay');
 
-  dialog.controller('settingsDialogCtrl', ['$scope', '$mdDialog', '$filter', '$localStorage', 'dashboard', function($scope, $mdDialog, $filter, $localStorage, dashboard) {
+  dialog.controller('settingsDialogCtrl', ['$scope', '$mdDialog', '$filter', '$localStorage', '$timeout', 'dashboard', function($scope, $mdDialog, $filter, $localStorage, $timeout, dashboard) {
+
+    $scope.validateSamplePeriod = validateSamplePeriod;
+    $scope.error = undefined;
+
     $scope.applyChanges = function() {
+      // $scope.error = undefined;
       // update the settings, (test if there were updates)
       var updateData;
       updateData = applyChartProperties() || updateData;
-      updateData = applyAdvancedSettings() || updateData;
+      if (!$scope.error) updateData = applyAdvancedSettings() || updateData;
 
       // if there are updates broadcast the event
-      if (updateData) dashboard.notify({clearData: true});
-
-      $scope.closeDialog();
+      if ($scope.error) {
+        angular.element($($scope.error.item)).triggerHandler('click');
+      } else {
+        if (updateData) dashboard.notify({clearData: true});
+        $scope.closeDialog();
+      }
     };
 
     /* --------------------------------------------------------------------------------------------- */
@@ -24,80 +32,49 @@
     $scope.chartWindow = dashboard.meta.chartWindow;
     $scope.samplePeriod = dashboard.meta.samplePeriod;
 
-    // extracts a reasonable subset of the available sample intervals.
-    // this is done because having a minute sample interval for a 30 day chart period
-    // does not preform well and gives way to much information than is really visible.
-    // Additionally having a larger sample intervals than chart period would just be silly.
-    $scope.getAvailableSamplePeriods = function() {
-      var availSP = [];
-      var minLim;
-      var maxLim;
-      // set the sample interval limits based on the chart period
-      switch (true) {
-        // if the chart period is below 12 hours sample intervals 1 minute -> 30 minutes
-        case ($scope.chartWindow <= moment.duration(12, 'hours').as('seconds')):
-          minLim = moment.duration(1, 'minute').as('seconds');
-          maxLim = moment.duration(30, 'minutes').as('seconds');
-          break;
-        // if the chart period is below 4 hours sample intervals 30 minutes -> 6 hourss
-        case ($scope.chartWindow <= moment.duration(4, 'days').as('seconds')):
-          minLim = moment.duration(30, 'minutes').as('seconds');
-          maxLim = moment.duration(6, 'hours').as('seconds');
-          break;
-        //else the sample intervals 6 hours -> 1 day
-        default:
-          minLim = moment.duration(6, 'hours').as('seconds');
-          maxLim = moment.duration(1, 'day').as('seconds');
-      }
-
-      // extract the sample intervals that are inside the limits set above
-      for (var i = 0; i < $scope.samplePeriods.length; i++) {
-        if ($scope.samplePeriods[i].val >= minLim && $scope.samplePeriods[i].val <= maxLim) {
-          availSP.push($scope.samplePeriods[i]);
-        }
-      }
-
-      // if the current sample interval is less than the available minimum set it to the avail min
-      if ($scope.samplePeriod < availSP[0].val) {
-        $scope.samplePeriod = availSP[0].val;
-      // else if the current sample interval is greater than the available maximum set it to the avail max
-      } else if ($scope.samplePeriod > availSP[availSP.length - 1]) {
-        $scope.samplePeriod = availSP[availSP.length - 1];
-      }
-      return availSP;
-    };
-
-    // get the avaiblable sample intervals for the current chart window
-    $scope.updateAvailableSamplePeriods = function() {
-      $scope.availableSamplePeriods = $scope.getAvailableSamplePeriods();
-    };
-    $scope.updateAvailableSamplePeriods();
-
     function applyChartProperties() {
       var updateData = false;
 
-      if ($scope.samplePeriod !== dashboard.meta.samplePeriod) {
-        // update the dashboard param
-        dashboard.meta.samplePeriod = $scope.samplePeriod;
-        updateData = true;
+      if (validateSamplePeriod()) {
+        if ($scope.samplePeriod !== dashboard.meta.samplePeriod) {
+          // update the dashboard param
+          dashboard.meta.samplePeriod = $scope.samplePeriod;
+          updateData = true;
 
-        // if the localstorage object has not be initialized, do so
-        if (!angular.isObject($localStorage.Dashboard)) $localStorage.Dashboard = {};
-        // Update localStorage to remember the current sample interval
-        $localStorage.Dashboard.samplePeriod = $scope.samplePeriod;
-      }
-      if ($scope.chartWindow !== dashboard.meta.chartWindow) {
-        // update the dashboard param
-        dashboard.meta.chartWindow = $scope.chartWindow;
-        updateData = true;
+          // if the localstorage object has not be initialized, do so
+          if (!angular.isObject($localStorage.Dashboard)) $localStorage.Dashboard = {};
+          // Update localStorage to remember the current sample interval
+          $localStorage.Dashboard.samplePeriod = $scope.samplePeriod;
+        }
+        if ($scope.chartWindow !== dashboard.meta.chartWindow) {
+          // update the dashboard param
+          dashboard.meta.chartWindow = $scope.chartWindow;
+          updateData = true;
 
-        // if the localstorage object has not be initialized, do so
-        if (!angular.isObject($localStorage.Dashboard)) $localStorage.Dashboard = {};
-        // Update localStorage to remember the current sample interval
-        $localStorage.Dashboard.chartWindow = $scope.chartWindow;
+          // if the localstorage object has not be initialized, do so
+          if (!angular.isObject($localStorage.Dashboard)) $localStorage.Dashboard = {};
+          // Update localStorage to remember the current sample interval
+          $localStorage.Dashboard.chartWindow = $scope.chartWindow;
+        }
       }
 
       return updateData;
+    }
+
+    function validateSamplePeriod() {
+      var valid = false;
+      if (parseInt($scope.chartWindow) > parseInt($scope.samplePeriod)) {
+        $scope.error = undefined;
+        valid = true;
+      } else {
+        $scope.error = {
+          'type': 'samplePeriod',
+          'msg': 'Please select a valid sample period.',
+          'item': '#samplePeriodSelect'
+        };
+      }
+
+      return valid;
     }
 
     /* --------------------------------------------------------------------------------------------- */
@@ -111,7 +88,7 @@
     // get current timezone
     $scope.selectedTimezone = dashboard.meta.timezone;
     // add to the scope the functions used in the search
-    $scope.getTZ   = timezoneSearch;
+    $scope.getTZ = timezoneSearch;
     $scope.selectedTimezoneChange = timezoneChange;
 
     function timezoneSearch(query) {
@@ -140,9 +117,9 @@
         if (event && event.type === 'submit') {
           tz = results[0];
           $scope.searchTimezone = tz;
+          $scope.newTZ = tz;
         }
         if ($scope.searchTimezone) {
-          $scope.searchTimezone = tz;
           $scope.newTZ = tz;
         }
       }
@@ -151,6 +128,39 @@
     function loadAll() {
       // return the name of all possible timezones
       return moment.tz.names();
+    }
+
+    /* --------------------------------------------------------------------------------------------- */
+    /* ---------------------------------TIME FORMATTING--------------------------------------------- */
+    /* --------------------------------------------------------------------------------------------- */
+    $scope.updateTimeFormat = updateTimeFormat;
+
+    $scope.formatString = dashboard.meta.timeDisplayFormat;
+    $scope.militaryTime = $scope.formatString.indexOf('H') !== -1;
+    $scope.showSeconds = $scope.formatString.indexOf('s') !== -1 || $scope.formatString.indexOf('S') !== -1;
+
+    $scope.useAdv = dashboard.meta.useAdvancedFormat;
+    $scope.advFormatString = dashboard.meta.advTimeDisplayFormat;
+
+    function updateTimeFormat(type) {
+      switch (type) {
+        case 'hours':
+          if ($scope.militaryTime) {
+            $scope.formatString = $scope.formatString.replace('h', 'H');
+            $scope.formatString = $scope.formatString.replace('a', '');
+          } else {
+            $scope.formatString = $scope.formatString.replace('H', 'h');
+            $scope.formatString = $scope.formatString + 'a';
+          }
+          break;
+        case 'seconds':
+          if ($scope.showSeconds) {
+            $scope.formatString = $scope.formatString.replace('mm', 'mm:ss');
+          } else {
+            $scope.formatString = $scope.formatString.replace(':ss', '');
+          }
+          break;
+      }
     }
 
     /* --------------------------------------------------------------------------------------------- */
@@ -177,7 +187,7 @@
       if (!angular.isObject($localStorage.Dashboard)) $localStorage.Dashboard = {};
       $localStorage.Dashboard.debug = $scope.debug;
 
-      if ($scope.newTZ) {
+      if ($scope.newTZ && timezones.indexOf($scope.newTZ) !== -1) {
         // if the timezone was changed
         if (dashboard.meta.timezone !== $scope.newTZ) {
           dashboard.meta.timezone = $scope.newTZ;
@@ -189,6 +199,42 @@
 
           updateData = true;
         }
+      }
+
+      if (dashboard.meta.timeDisplayFormat !== $scope.formatString) {
+        dashboard.meta.timeDisplayFormat = $scope.formatString;
+
+        // if the localstorage object has not be initialized, do so
+        if (!angular.isObject($localStorage.Dashboard)) $localStorage.Dashboard = {};
+        // Update localStorage to remember the user set timezone
+        $localStorage.Dashboard.timeDisplayFormat = $scope.formatString;
+
+        // if the basic format string is the one being used then update the displayed times on the app
+        if (!$scope.useAdv) updateData = true;
+      }
+
+      if (dashboard.meta.advTimeDisplayFormat !== $scope.advFormatString) {
+        dashboard.meta.advTimeDisplayFormat = $scope.advFormatString;
+
+        // if the localstorage object has not be initialized, do so
+        if (!angular.isObject($localStorage.Dashboard)) $localStorage.Dashboard = {};
+        // Update localStorage to remember the user set timezone
+        $localStorage.Dashboard.advTimeDisplayFormat = $scope.advFormatString;
+
+        // if the advanced format string is the one being used then update the displayed times on the app
+        if ($scope.useAdv) updateData = true;
+      }
+
+      if (dashboard.meta.useAdvancedFormat !== $scope.useAdv) {
+        dashboard.meta.useAdvancedFormat = $scope.useAdv;
+
+        // if the localstorage object has not be initialized, do so
+        if (!angular.isObject($localStorage.Dashboard)) $localStorage.Dashboard = {};
+        // Update localStorage to remember the user set timezone
+        $localStorage.Dashboard.useAdvancedFormat = $scope.useAdv;
+
+        // if the advanced and basic formats are different update the diaplayed times on the tapp
+        if (dashboard.meta.timeDisplayFormat !== dashboard.meta.advTimeDisplayFormat) updateData = true;
       }
 
       return updateData;

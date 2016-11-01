@@ -52,24 +52,24 @@
               // Give element the general css
               scope.toggleElem.css({
                 'position': 'relative',
-                'z-index': '110',
+                'z-index': '110'
               });
               scope.contentElem.css({
                 'position': 'relative',
                 'z-index': '100',
                 'overflow': 'hidden',
                 'margin-top': 0,
-                'transition': 'height 1s ease-in-out',
+                'transition': 'height 1s ease-in-out'
               });
               // do stuff to open or close it
               if (scope.open) {
                 scope.toggles++;
                 scope.contentElem.css({
-                  'height': scope.contentHeight + 'px',
+                  'height': scope.contentHeight + 'px'
                 });
               } else {
                 scope.contentElem.css({
-                  'height': 0,
+                  'height': 0
                 });
               }
             }, 0);
@@ -104,11 +104,11 @@
                 // functionality to open and close expando
                 if (!scope.$parent.open) { // if the expand is expanding
                   scope.$parent.contentElem.css({
-                    'height': scope.$parent.contentHeight + 'px',
+                    'height': scope.$parent.contentHeight + 'px'
                   });
                 } else { // if the expand is collapsing
                   scope.$parent.contentElem.css({
-                    'height': 0,
+                    'height': 0
                   });
                 }
 
@@ -160,7 +160,7 @@
                 }
               });
             }, 0);
-          },
+          }
         };
       }
     };
@@ -169,7 +169,7 @@
   function updateHeight(elem, height) {
     elem.contentHeight = height;
     elem.contentElem.css({
-      'height': height + 'px',
+      'height': height + 'px'
     });
   }
   // returns the height of the contentContainer

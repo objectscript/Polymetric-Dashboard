@@ -145,71 +145,7 @@ seconds.]]></Description>
 	    	}
 			If $g(ns)'="",ns'="%SYS" ZN ns
 			
-			// Query the db
-			Set rs = ##class(%ResultSet).%New("%SYS.Monitor.Reading:ListSensorUTC")
-			Set sC = rs.Execute(sid, iid, sTime)
-			
-			Set gotData = 0
-			If $$$ISOK(sC) {
-				// Initialize flags
-				Set newInterval = 1
-				
-				While (rs.Next(.sC)) {
-					// Get all data needed from query row
-					Set sampleValue = rs.Data("Value")
-					Set readTime = rs.Data("ReadTime")
-					Set iTime = $zdth(readTime,3)
-					Set sampleDay = $p(iTime,",",1)
-					Set sampleTime = $p(iTime,",",2)
-					// If this is not the first row of the query (or a new interval)
-					If (newInterval = 0){
-						// If the new point is outside the current interval time bounds put store the computed averages into the sensor data proxy
-						If (..OutsideIntervalWindow(sampleTime, sampleDay, intervalStartTime, intervalStartDay, sPer)){
-							Set externalTime = $ZDATETIME(intervalStartDay_","_intervalStartTime, 3)
-							
-    						Set dataObject = ##class(%ZEN.proxyObject).%New()
-    
-							Set dataObject.value = valueAvg
-							Set dataObject.timestamp = externalTime
-							If debug {
-				    			Use debugFile
-				    			Write !,"    ChartData for : ",sid," at ",externalTime," = ",valueAvg
-				    			Use debugIO
-							}
-							Do dataArray.Insert(dataObject)
-							
-							Set gotData = 1
-							// Set new interval flag to true (in essence) set up for new itnerval
-							Set newInterval = 1
-						}
-						// Otherwise compute an average of the data values that are averaged
-						Else {
-							// count samples in interval (used to calculate average)
-							Set samplesInInterval = samplesInInterval + 1
-				
-							// compute a rolling average of the averaged values (rolling allows me not to store sums)
-							Set valueAvg = ..RollingAverage(valueAvg, sampleValue, samplesInInterval)
-						}
-					}
-					
-					// If it is a new interval (or the first row in the query) initialize the data values
-					If (newInterval = 1) {
-						Set samplesInInterval = 1
-
-						// base case of average (avg num = num)
-						Set valueAvg = sampleValue
-						
-						Set intervalStartTime = sampleTime
-						Set intervalStartDay = sampleDay			
-						
-						// it isn't a new interval anymore because the base case was completed
-						Set newInterval = 0
-					}
-				}
-			}
-			If (gotData = 0){
-				Set error.code = 204
-			}
+			Set error.code = ##class(%SYS.Monitor.Reading).GetReadings(sid,iid,sPer,sTime, .dataArray)
     	}
 	} Catch (e) {
 		Set error.code = 500
@@ -317,6 +253,7 @@ Calculates a running average, allowing for no sums to be stored</Description>
 				Set dataObject.min = values("min")
 				Set dataObject.mean = values("mean")
 				Set dataObject.stdDev = values("stdDev")
+				Set dataObject.timestamp = values("timestamp")
 			} Else {
 				Set error.code = 204
 			}
@@ -391,7 +328,8 @@ Calculates a running average, allowing for no sums to be stored</Description>
 					Set sensorObject.warningValue = rs.Data("WarningValue")
 					Set sensorObject.units = rs.Data("Units")
 					Set sensorObject.operator = rs.Data("Operator")
-					Set sensorObject.description = rs.Data("Description")						 
+					Set sensorObject.description = rs.Data("Description")
+					Set sensorObject.readingInterval = rs.Data("ReadingInterval")					 
 					
 					Do sensorArray.Insert(sensorObject)
 					Set count = count + 1
@@ -458,6 +396,7 @@ Calculates a running average, allowing for no sums to be stored</Description>
 				Set sensorObject.units = prop("Units")
 				Set sensorObject.operator = prop("Operator")
 				Set sensorObject.description = prop("Description")
+				Set sensorObject.readingInterval = prop("ReadingInterval")	
 				
 			} Else {
 				Set error.code = 204
@@ -2450,7 +2389,7 @@ Get max, min, mean, stdDev for a Sensor.Item.
 <FormalSpec><![CDATA[Sensor:%String,Item:%String,BeginTime:%TimeStamp,&Values:%String]]></FormalSpec>
 <ReturnType>%Boolean</ReturnType>
 <Implementation><![CDATA[
-	s count=0,total=0,max=0,min=-1
+	s count=0,total=0,max=0,min=-1,ts=""
 	s rs=##class(%ResultSet).%New("%SYS.Monitor.Reading:ListSensorUTC")
 	s sc=rs.Execute(Sensor,Item,BeginTime,$zdt($zts,3)) i $$$ISERR(sc) quit 0
 	while rs.Next() {
@@ -2458,6 +2397,7 @@ Get max, min, mean, stdDev for a Sensor.Item.
 		s value(count)=value,total=total+value
 		i value>max s max=value
 		i (min=-1)||(value<min) s min=value
+		s ts = rs.Get("ReadTime")
 	}
 	i 'count quit 0
 	s Values("max")=max,Values("min")=min,Values("mean")=$Normalize(total/count,2)
@@ -2466,6 +2406,8 @@ Get max, min, mean, stdDev for a Sensor.Item.
 	s Values("stdDev")=$Normalize(variance/count,2)
 	
 	s Values("state") = ##class(%SYS.Monitor.Reading).GetState(Sensor, Item, max, min)
+	
+	s Values("timestamp") = ts
 	q 1
 ]]></Implementation>
 </Method>
@@ -2511,10 +2453,9 @@ Purge old readings, up to 'Time' argument (in %TimeStamp format).</Description>
 Return the sensor data for a given time range</Description>
 <Type>%SQLQuery</Type>
 <FormalSpec>BeginTime:%TimeStamp,EndTime:%TimeStamp={$zdt($h,3)}</FormalSpec>
-<SqlQuery><![CDATA[	SELECT Sensor->Name, Sensor->Item, %SYS_Monitor.Reading_LocalTime(ReadTime), Value
+<SqlQuery><![CDATA[	SELECT Sensor->Name As Sensor, Sensor->Item As Item, %SYS_Monitor.Reading_LocalTime(ReadTime), Value
 	FROM %SYS_Monitor.Reading
-	WHERE %SYS_Monitor.Reading_LocalTime(ReadTime) BETWEEN :BeginTime AND :EndTime
-	ORDER BY ReadTime DESC, Sensor->Name DESC, Sensor->Item DESC]]></SqlQuery>
+	WHERE %SYS_Monitor.Reading_LocalTime(ReadTime) BETWEEN :BeginTime AND :EndTime]]></SqlQuery>
 <Parameter name="CONTAINID" value="1"/>
 </Query>
 
@@ -2523,10 +2464,9 @@ Return the sensor data for a given time range</Description>
 Return the sensor data for a given time range. Uses UTC time for arguments and data.</Description>
 <Type>%SQLQuery</Type>
 <FormalSpec>BeginTime:%TimeStamp,EndTime:%TimeStamp={$zdt($zts,3)}</FormalSpec>
-<SqlQuery><![CDATA[	SELECT Sensor->Name, Sensor->Item, ReadTime, Value
+<SqlQuery><![CDATA[	SELECT Sensor->Name As Sensor, Sensor->Item As Item, ReadTime, Value
 	FROM %SYS_Monitor.Reading
-	WHERE ReadTime BETWEEN :BeginTime AND :EndTime
-	ORDER BY ReadTime DESC, Sensor->Name DESC, Sensor->Item DESC]]></SqlQuery>
+	WHERE ReadTime BETWEEN :BeginTime AND :EndTime]]></SqlQuery>
 <Parameter name="CONTAINID" value="1"/>
 </Query>
 
@@ -2538,8 +2478,7 @@ Return the sensor data for a given Sensor.Item. 'Item' must be '-' for a top lev
 <SqlQuery><![CDATA[	SELECT %SYS_Monitor.Reading_LocalTime(ReadTime),Value
 	FROM %SYS_Monitor.Reading
 	WHERE %SYS_Monitor.Reading_LocalTime(ReadTime) BETWEEN :BeginTime AND :EndTime
-		AND Sensor->Name = :Sensor AND Sensor->Item = :Item
-	ORDER BY ReadTime DESC]]></SqlQuery>
+		AND Sensor->Name = :Sensor AND Sensor->Item = :Item]]></SqlQuery>
 <Parameter name="CONTAINID" value="1"/>
 </Query>
 
@@ -2551,11 +2490,195 @@ Uses UTC time for arguments and data.</Description>
 <FormalSpec>Sensor:%String,Item:%String,BeginTime:%TimeStamp,EndTime:%TimeStamp={$zdt($zts,3)}</FormalSpec>
 <SqlQuery><![CDATA[	SELECT ReadTime,Value
 	FROM %SYS_Monitor.Reading
-	WHERE ReadTime BETWEEN :BeginTime AND :EndTime
-		AND Sensor->Name = :Sensor AND Sensor->Item = :Item
-	ORDER BY ReadTime DESC]]></SqlQuery>
+	WHERE ReadTime > :BeginTime AND ReadTime <= :EndTime
+		AND Sensor->Name = :Sensor AND Sensor->Item = :Item]]></SqlQuery>
 <Parameter name="CONTAINID" value="1"/>
 </Query>
+
+<Method name="GetReadings">
+<Description>
+INPUTS
+sid: A string defining the sensor's name, or null if all sensor's readings should be returned
+iid: A string defining the sensor's item, or null if all sensor's readings should be returned
+sPer: An integer defining the sample period of which to return readings
+sTime: A string in timestamp format that defines the starting point to get data from
+readings: A list of objects passed in by reference that will be populated with sensor data
+RETURNS
+code: the http code (204 if no data was found, 200 if data was found)</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[sid:%String="",iid:%String="",sPer:%Integer,sTime:%String,&readings:%ListOfObjects]]></FormalSpec>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+	// Default to the http code 204 (success no data)
+	Set code = 204
+	
+	// Query for all sensor's readings if no sensor or item is provided
+	If ((sid = "") || (iid = "")) {
+		s rS = ##class(%ResultSet).%New("%SYS.Monitor.Reading:ListAllUTC")
+		s sC = rS.Execute(sTime) //TODO add end time
+	// Otherwise query only for the requested sensors data
+	} Else {
+		s rS = ##class(%ResultSet).%New("%SYS.Monitor.Reading:ListSensorUTC")
+		s sC = rS.Execute(sid, iid, sTime) //TODO add end time
+	}
+	
+	Set sensorList = ##class(%ListOfObjects).%New() // Contains the sensors
+	If $$$ISOK(sC) {
+		
+		// Loop through all the data returned by the query
+		While (rS.Next(.sC)) {
+			// If the loop runs at least once, the query got data and the http code should be 200 (success got data)
+			Set code = 200
+			
+			// Extract the data from the result set
+			Set readSensor = $G(rS.Data("Sensor"), sid) // if no sensor is returned by the query (getting readings for a specific sensor) use the sensor arg value
+			Set readItem = $G(rS.Data("Item"), iid) // if no item is returned by the query (getting readings for a specific sensor) use the item arg value
+			Set readTime = rS.Data("ReadTime")
+			Set readVal = rS.Data("Value")
+			
+			//  If the current sensor or item differs from the readings sensor or item (or is undefined)
+			If (($G(curSensor, -1) '= readSensor) || ($G(curItem, -1) '= readItem)) {
+				// If a sensor object exists (it will only not exist on the first itteration of the loop)
+				If ($Data(sensorObj)) { Do sensorList.Insert(sensorObj) } // put the sensor object on the sensor list 
+				
+				// Create a new sensor object to store the sensor's identifiers and readings
+				Set sensorObj = ##class(%ZEN.proxyObject).%New()
+				
+				Set sensorObj.sensor = readSensor
+				Set sensorObj.item = readItem
+				// The sensors readings will be an list of objects
+				Set sensorObj.readings = ##class(%ListOfObjects).%New()
+				
+				// Update the current sensor and item
+				Set curSensor = readSensor
+				Set curItem = readItem
+				
+				// Set the start time of the interval so readings can be averaged to create the chart data points
+				Set intervalSTime = readTime
+				// Reset the averages
+				Set avgVal = 0
+				// Reset the count of the number of readings in the interval
+				Set numReadingsInInterval = 0
+			}
+			
+			// If the reading was taken outside the current interval's time range
+			If (($G(prevReadTime, -1) '= -1) && ..NewInterval(intervalSTime, readTime, sPer)) {
+				// Create the reading object
+				Set readObj = ##class(%ZEN.proxyObject).%New()
+				set readObj.timestamp = prevReadTime // timestamp is the last timestamp in the interval
+				Set readObj.value = avgVal // value is the average value of the interval
+				
+				// Insert the reading object into the sensor object's reading list
+				Do sensorObj.readings.Insert(readObj)
+				
+				// Set the start time of the interval so readings can be averaged to create the chart data points
+				Set intervalSTime = readTime
+				// Reset the averages
+				Set avgVal = 0
+				// Reset the count of the number of readings in the interval
+				Set numReadingsInInterval = 0
+			}
+			
+			// Increment the total count of the readings in the interval
+			Set numReadingsInInterval = numReadingsInInterval + 1
+			// Calculate the new average 
+			Set avgVal = avgVal + ( (readVal - avgVal ) / numReadingsInInterval )
+			// Store the current read time (used as timestamp of interval if the next reading is outside the interval's time range)
+			Set prevReadTime = readTime
+		}
+		
+		// if there was a previous reading (aka data was 
+		If ($G(prevReadTime, -1) '= -1) {
+			// Insert the final reading object onto the sensor object if it exists (This will return a partially complete sample interval of data)
+			Set readObj = ##class(%ZEN.proxyObject).%New()
+			set readObj.timestamp = prevReadTime // timestamp is the last timestamp in the interval
+			Set readObj.value = avgVal // value is the average value of the interval
+			
+			// Insert the reading object into the sensor object's reading list
+			Do sensorObj.readings.Insert(readObj)
+		}
+		
+		// Insert the final sensor object onto the sensor list if it exists (if no data is found it wont)
+		If ($G(sensorObj, 0)) Do sensorList.Insert(sensorObj)
+	}
+	
+	// Return the whole sensor list if all sensor were requested
+	If ((sid = "") || (iid = "")) { Set readings = sensorList } 
+	// Otherwise only return the readings of the specified sensor
+	ElseIf ($Data(sensorObj)) { Set readings = sensorObj.readings }
+	
+	// return the HTTP code
+	Quit code
+]]></Implementation>
+</Method>
+
+<Method name="NewInterval">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>start:%TimeStamp,read:%TimeStamp,sPer:%Integer</FormalSpec>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+	Set SECPERDAY = 86400
+	Set newInterval = 0
+	
+	// If sample interval is set to a positive value, averaging needs to take place, so figure out if the current reading is in the current interval
+	If (sPer > 0) {
+		// Convert the interval's start time into the internal format
+		Set start = $ZDTH(start, 3)
+		// Split day and time integers
+		Set sDay = $P(start, ",", 1)
+		Set sTime = $P(start, ",", 2)
+		
+		// Convert the readings's timestamp into the internal format
+		Set read = $ZDTH(read, 3)
+		// Split day and time integers
+		Set rDay = $P(read, ",", 1)
+		Set rTime = $P(read, ",", 2)
+		
+		// If the sample interval is longer than a day
+		If (sPer >=  SECPERDAY) {
+			// If the start day of the interval is before the reading's day minus the sample interval
+			If (sDay < (rDay - (sPer / SECPERDAY))){
+				Set newInterval = 1
+			}
+			// If the start day of the interval is the same as the reading's time munus the sample interval
+			If (sDay < (rDay - (sPer / SECPERDAY))){
+				// If the start time is greater than the reading's time
+				If (sTime > rTime){
+					Set newInterval = 1
+				}
+			}
+		// Otherwise the sample interval is less than a day
+		} Else {
+			// Calculate the reading time minus the sample interval
+			Set lTime = rTime - sPer
+			// If it is below zero
+			If (lTime < 0){
+				Set lDay = rDay - 1 // Decrement a day
+				Set lTime = $ZTIMEH("23:59:59") + lTime // Carry over the left over seconds to the time
+			// Otherwise the day is the same as the readings
+			} Else {
+				Set lDay = rDay
+			}
+			// If the start day is less than the last day (meaning the reading's day is further away from the start day, it must be greater than a sample interval of less than a day)
+			If (sDay < lDay){
+				Set newInterval = 1
+			}
+			// If the start day is the same as the last day
+			If (sDay = lDay){
+				// If the start time is less the last time (meaning the reading's time is further away than one sample interval from the start time)
+				If (sTime <= lTime){
+					Set newInterval = 1
+				}
+			}
+		}
+	// Otherwise sample period is set to System Interval and each interval should consist of one point (no averaging)
+	} Else {
+		Set newInterval = 1
+	}
+	
+	Quit newInterval
+]]></Implementation>
+</Method>
 
 <Storage name="Default">
 <Type>%Library.CacheStorage</Type>
@@ -2612,6 +2735,13 @@ or base level sensor.</Description>
 Text description of the Sensor for documentation.</Description>
 <Type>%String</Type>
 <Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="ReadingInterval">
+<Description>
+Number of seconds between each reading
+This value is inherited by %SYS.Monitor.Control in all cases, but could be extended so sensors have induvidual reading delays</Description>
+<Type>%String</Type>
 </Property>
 
 <Property name="WarningValue">
@@ -2705,6 +2835,8 @@ Properties for existing Sensors (e.g. CriticalValue and WarningValue) can be upd
 			s:$d(Description) sensor.Description=Description
 			s:$d(WarningValue) sensor.WarningValue=WarningValue
 			s:$d(CriticalValue) sensor.CriticalValue=CriticalValue
+			// If sensor specific reading intervals are defined, this funcionality must be updated
+			s sensor.ReadingInterval=##class(%SYS.Monitor).Interval()
 			s:$d(Alert) sensor.Alert=Alert
 			s:$d(Operator) sensor.Operator=Operator
 			i Item="-",Operator="" s sensor.Operator=">"
@@ -2746,9 +2878,10 @@ This includes "CriticalValue", "WarningValue", "Alert", "Operator", "Units" and 
 			If sensor.Operator="" Set sensor.Operator=">"
 			If sensor.Units="" Set sensor.Units=top.Units
 			If sensor.Description="" Set sensor.Description=top.Description
+			If sensor.ReadingInterval="" Set sensor.ReadingInterval= ##class(%SYS.Monitor).Interval()
 		}
 	}
-	For prop="CriticalValue", "WarningValue", "Alert", "Operator", "Units", "Description" {
+	For prop="CriticalValue", "WarningValue", "Alert", "Operator", "Units", "Description", "ReadingInterval" {
 		Set Properties(prop)=$Property(sensor,prop)
 	}
 	Quit sc
@@ -2800,7 +2933,7 @@ WHERE Sensor.Name = :Name AND Sensor.Item != '-'</SqlQuery>
 Loop through all registered Namespaces and return all registered Dashboard Sensors.
 If a Sensor has specific Items, do not include the top-level Sensor definition.</Description>
 <Type>%Query</Type>
-<Parameter name="ROWSPEC" value="Name:%String,Item:%String,CriticalValue:%String,WarningValue:%String,Alert:%String,Operator:%String,Units:%String,Description:%String,Namespace:%String"/>
+<Parameter name="ROWSPEC" value="Name:%String,Item:%String,CriticalValue:%String,WarningValue:%String,Alert:%String,Operator:%String,Units:%String,Description:%String,ReadingInterval:%String,Namespace:%String"/>
 </Query>
 
 <Method name="AllDashboardSensorsExecute">
@@ -2831,7 +2964,7 @@ If a Sensor has specific Items, do not include the top-level Sensor definition.<
 							Set item=rs2.Data("Item")
 							Set sc = ..GetInherited(sname,item,.prop)
 							If $$$ISOK(sc) {
-								Set row=$lb(sname,item,prop("CriticalValue"),prop("WarningValue"),prop("Alert"),prop("Operator"),prop("Units"),prop("Description"),namespace)
+								Set row=$lb(sname,item,prop("CriticalValue"),prop("WarningValue"),prop("Alert"),prop("Operator"),prop("Units"),prop("Description"),prop("ReadingInterval"),namespace)
 								Set $$$ISCQUERYTEMP(Index,$I(Index1))=row
 							}
 						}
@@ -2840,7 +2973,7 @@ If a Sensor has specific Items, do not include the top-level Sensor definition.<
 						Kill prop
 						Set sc = ..GetInherited(sname,"-",.prop)
 						If $$$ISOK(sc) {
-							Set row=$lb(sname,"-",prop("CriticalValue"),prop("WarningValue"),prop("Alert"),prop("Operator"),prop("Units"),prop("Description"),namespace)
+							Set row=$lb(sname,"-",prop("CriticalValue"),prop("WarningValue"),prop("Alert"),prop("Operator"),prop("Units"),prop("Description"),prop("ReadingInterval"),namespace)
 							Set $$$ISCQUERYTEMP(Index,$I(Index1))=row
 						}
 					}
@@ -2912,6 +3045,9 @@ If a Sensor has specific Items, do not include the top-level Sensor definition.<
 </Value>
 <Value name="9">
 <Value>Function</Value>
+</Value>
+<Value name="10">
+<Value>ReadingInterval</Value>
 </Value>
 </Data>
 </Storage>
@@ -3543,7 +3679,7 @@ FINDNAME(name)
 
   </head>
 
-  <body id="SMPDashbaord" ng-app="Dashboard" ng-cloak>
+  <body ng-app="Dashboard" ng-cloak>
   <!-- =========================== CONTENT OF APP =========================== -->
     <smp-content> </smp-content>
 
@@ -3581,8 +3717,13 @@ FINDNAME(name)
       <script src="app/services/s-dashboardApi.js" type="text/javascript"></script>
       <script src="app/services/s-widgets.js" type="text/javascript"></script>
 
+      <!-- FILTERS -->
+      <script src="app/filters/f-range.js" type="text/javascript"></script>
+      <script src="app/filters/f-time.js" type="text/javascript"></script>
+
       <!-- DIRECTIVES -->
       <script src="app/directives/core/d-content.js" type="text/javascript"></script>
+      <script src="app/directives/core/d-footer.js" type="text/javascript"></script>
       <script src="app/directives/core/d-pagination.js" type="text/javascript"></script>
       <script src="app/directives/core/d-expando.js" type="text/javascript"></script>
       <script src="app/directives/core/d-staticWidget.js" type="text/javascript"></script>
@@ -3643,10 +3784,6 @@ FINDNAME(name)
       <script src="app/controllers/visualizers/c-stateIcon.js" type="text/javascript"></script>
       <script src="app/controllers/visualizers/c-metadata.js" type="text/javascript"></script>
       <script src="app/controllers/visualizers/c-sensorRow.js" type="text/javascript"></script>
-
-      <!-- FILTERS -->
-      <script src="app/filters/f-range.js" type="text/javascript"></script>
-      <script src="app/filters/f-time.js" type="text/javascript"></script>
   </body>
 </html>
 ]]></CSP>

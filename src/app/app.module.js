@@ -11,7 +11,7 @@
 
   var DashboardApp = angular.module('Dashboard', [
     'ngMaterial', 'ngMessages', 'ngAnimate', 'ngSanitize', 'angular-bind-html-compile', 'ngStorage', /* Angular modules */
-    'dashboardApi', 'Widgets',  /* services  */
+    'dashboardApi', 'Widgets', /* services  */
     'tabs', 'showcase', /* controller/directive modules for content on specific pages */
     'core', 'visualizers', 'filters', /* controller/directive modules for shared app content across pages */
     'overlay' /* controller/directive modules for content overlaying pages */
@@ -34,7 +34,7 @@
       A200: '#9bc1d9',
       A400: '#aecde0',
       A700: '#122530',
-      contrastDefaultColor: 'light',    // whether, by default, text (contrast)
+      contrastDefaultColor: 'light' // whether, by default, text (contrast)
     };
     $mdThemingProvider
       .definePalette('customPrimary',
@@ -55,7 +55,7 @@
       A200: '#ffe0b3',
       A400: '#ffeacc',
       A700: '#804c00',
-      contrastDefaultColor: 'light',
+      contrastDefaultColor: 'light'
     };
     $mdThemingProvider
       .definePalette('customAccent',
@@ -75,7 +75,7 @@
       A100: '#fccbc7',
       A200: '#fde1df',
       A400: '#fff8f7',
-      A700: '#a21309',
+      A700: '#a21309'
     };
     $mdThemingProvider
       .definePalette('customWarn',
@@ -95,7 +95,7 @@
       A100: '#ffffff',
       A200: '#ffffff',
       A400: '#ffffff',
-      A700: '#9d9d9d',
+      A700: '#9d9d9d'
     };
     $mdThemingProvider
       .definePalette('customBackground',

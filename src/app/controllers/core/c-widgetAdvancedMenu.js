@@ -118,7 +118,7 @@
           }
 
           elemToClick = '#widgetAdvMenuMetricSelect' + (i + 1);
-          angular.element($(elemToClick)).triggerHandler('click');  // simulate a click on the metric menu so it opens
+          angular.element($(elemToClick)).triggerHandler('click'); // simulate a click on the metric menu so it opens
         }
       // if everything is valid
       } else {
@@ -129,7 +129,7 @@
         // text settings
         if (_this.type === 'Text') {
           if (_this.widget.settings.advanced.text !== _this.text) {
-            _this.widget.settings.advanced.text  = _this.text;
+            _this.widget.settings.advanced.text = _this.text;
             dataChanged = true;
           }
           if (_this.widget.settings.advanced.class !== _this.class) {

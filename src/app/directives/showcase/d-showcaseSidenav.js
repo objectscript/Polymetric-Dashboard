@@ -17,7 +17,7 @@
             // This allows me to keep it within the playground scope but have it in the correct
             // dom position that it is acutally fixed.
             post: function prelink(scope, element, attrs) {
-              var dash = $('#SMPDashbaord');
+              var dash = document.body;
               var scSideNav = $('#showcaseSideNav').detach();
 
               scSideNav.appendTo(dash);

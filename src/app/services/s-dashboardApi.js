@@ -15,9 +15,12 @@
         chartWindow: moment.duration(1, 'hour').as('seconds'),
         samplePeriod: moment.duration(1, 'minute').as('seconds'), // 1 minute
         timezone: moment.tz.guess(), // method to call if no timezone was set (it guesses where the user is)
+        timeDisplayFormat: 'MMM D, h:mma',
+        useAdvancedFormat: false,
+        advTimeDisplayFormat: 'MMM D, h:mm:ssa',
         debug: {
           rest: false
-        },
+        }
       };
 
       // if the localstorage object has not be initialized, do so
@@ -40,15 +43,14 @@
           {'val': moment.duration(4, 'days').as('seconds'), 'display': moment.duration(4, 'days').humanize()}
         ],
         samplePeriods: [// available sample interval options
+          {'val': moment.duration(0, 'seconds').as('seconds'), 'display': 'System Interval'},
           {'val': moment.duration(1, 'minute').as('seconds'), 'display': moment.duration(1, 'minute').humanize()},
           {'val': moment.duration(5, 'minute').as('seconds'), 'display': moment.duration(5, 'minute').humanize()},
           {'val': moment.duration(15, 'minute').as('seconds'), 'display': moment.duration(15, 'minute').humanize()},
           {'val': moment.duration(30, 'minute').as('seconds'), 'display': moment.duration(30, 'minute').humanize()},
           {'val': moment.duration(1, 'hour').as('seconds'), 'display': moment.duration(1, 'hour').humanize()},
           {'val': moment.duration(2, 'hours').as('seconds'), 'display': moment.duration(2, 'hours').humanize()},
-          {'val': moment.duration(6, 'hours').as('seconds'), 'display': moment.duration(6, 'hours').humanize()},
-          {'val': moment.duration(12, 'hours').as('seconds'), 'display': moment.duration(12, 'hours').humanize()},
-          {'val': moment.duration(1, 'day').as('seconds'), 'display': moment.duration(1, 'day').humanize()}
+          {'val': moment.duration(6, 'hours').as('seconds'), 'display': moment.duration(6, 'hours').humanize()}
         ]
       };
       params.samplePeriod = $localStorage.Dashboard.samplePeriod;
@@ -59,6 +61,15 @@
 
       params.timezone = $localStorage.Dashboard.timezone;
       if (!params.timezone) params.timezone = defaults.timezone;
+
+      params.timeDisplayFormat = $localStorage.Dashboard.timeDisplayFormat;
+      if (!params.timeDisplayFormat) params.timeDisplayFormat = defaults.timeDisplayFormat;
+
+      params.useAdvancedFormat = $localStorage.Dashboard.useAdvancedFormat;
+      if (!params.useAdvancedFormat) params.useAdvancedFormat = defaults.useAdvancedFormat;
+
+      params.advTimeDisplayFormat = $localStorage.Dashboard.advTimeDisplayFormat;
+      if (!params.advTimeDisplayFormat) params.advTimeDisplayFormat = defaults.advTimeDisplayFormat;
 
       params.debug = $localStorage.Dashboard.debug;
       if (!params.debug) params.debug = defaults.debug;
@@ -133,20 +144,20 @@
       });
     };
 
-    dashboard.getChartData = function(namespace, sensor, item, startTime) {
+    dashboard.getChartData = function(namespace, sensor, item, startTime, readingInterval) {
       return $q(function(resolve, reject) {
         // If no start time is defined get the whole chart period of data
-        if (!startTime) startTime = dashboard.getStartTime(dashboard.meta.chartWindow);
+        if (!startTime) startTime = dashboard.getStartTime(dashboard.meta.chartWindow, readingInterval);
         // If start time is -1 then only get the newest data
-        if (startTime === -1) startTime = dashboard.getStartTime(0);
+        if (startTime === -1) startTime = dashboard.getStartTime(0, readingInterval);
         var samplePeriod = dashboard.meta.samplePeriod;
 
         // Use 64bit encryption to avoid errors in Cache Routing
-        var uri = '/api/dashboard/v3/Sensors/' + btoa(sensor) + '/ChartData/' + btoa(item) + '?namespace=' +  btoa(namespace) + '&samplePeriod=' + btoa(samplePeriod) + '&startTime=' + btoa(startTime) + '&encryption=base64'; //
+        var uri = '/api/dashboard/v3/Sensors/' + btoa(sensor) + '/ChartData/' + btoa(item) + '?namespace=' + btoa(namespace) + '&samplePeriod=' + btoa(samplePeriod) + '&startTime=' + btoa(startTime) + '&encryption=base64';
 
         $http({
           method: 'GET',
-          url: uri,
+          url: uri
         }).then(function successCallback(resp) {
             var data;
             if (resp.status === 200) {
@@ -173,19 +184,19 @@
       });
     };
 
-    dashboard.getCalculatedData = function(namespace, sensor, item, startTime) {
+    dashboard.getCalculatedData = function(namespace, sensor, item, startTime, readingInterval) {
       return $q(function(resolve, reject) {
         if (startTime === null) startTime = undefined;
         // If no start time is defined get the whole chart period of data
-        if (!startTime) startTime = dashboard.getStartTime(dashboard.meta.chartWindow);
+        if (!startTime) startTime = dashboard.getStartTime(dashboard.meta.chartWindow, readingInterval);
         // If start time is -1 then only get the newest data
-        if (startTime === -1) startTime = dashboard.getStartTime(0);
+        if (startTime === -1) startTime = dashboard.getStartTime(0, readingInterval);
 
         // Use 64bit encryption to avoid errors in Cache Routing
-        var uri = '/api/dashboard/v3/Sensors/' + btoa(sensor) + '/CalculatedData/' + btoa(item) + '?namespace=' + btoa(namespace) + '&startTime=' + btoa(startTime) + '&encryption=base64'; //
+        var uri = '/api/dashboard/v3/Sensors/' + btoa(sensor) + '/CalculatedData/' + btoa(item) + '?namespace=' + btoa(namespace) + '&startTime=' + btoa(startTime) + '&encryption=base64';
         $http({
           method: 'GET',
-          url: uri,
+          url: uri
         }).then(function successCallback(resp) {
             var data;
             if (resp.status === 200) {
@@ -214,23 +225,21 @@
 
     // returns the start time for the data returned by the server,
     // subtracts a number of seconds from the current time
-    dashboard.getStartTime = function(windowInSeconds) {
+    dashboard.getStartTime = function(windowInSeconds, readingInterval) {
+      // the interval is the number of seconds between each chart data point (defined by the dashboard api)
+      // however, if System Interval is selected, then use the number of seconds between each reading (defined by the backend)
+      var interval;
+      if (dashboard.meta.samplePeriod === '0' && windowInSeconds === 0) {
+        interval = readingInterval;
+      } else {
+        interval = parseInt(dashboard.meta.samplePeriod);
+      }
       // adding 2 sample intervals pushes the start time back past the desired window enough so points can be averaged up to the end of the chart period
       // in reality this shows more than the chart period but the graphs plot based on the newest time so a couple sample intervals of older data need
       // to be averaged to make it look like a whole chart period on the chart.
-      var fillChartWindow = parseInt(windowInSeconds) + parseInt(dashboard.meta.samplePeriod) * 2;
+      var fillChartWindow = parseInt(windowInSeconds) + interval;
       return $filter('toTS')(moment.utc().subtract(fillChartWindow, 'seconds'));
     };
-
-    // a clock that runs every 30 seconds to broadcast the update call for all visualizations
-    // the visualizations themselves have functionality to see if they need data or not
-    autoUpdate();
-    function autoUpdate() {
-      dashboard.meta.updateClock = $interval(function() {
-        dashboard.notify({clearData: false});
-      }, 30000);
-    }
-
     dashboard.subscribe = function(scope, callback) {
       var handler = $rootScope.$on('dashboardApiTick', function(event, args) {callback(args);});
       scope.$on('destroy', handler);

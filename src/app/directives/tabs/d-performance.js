@@ -7,7 +7,7 @@
       return {
         restrict: 'E',
         templateUrl: 'app/templates/tabs/t-performance.html',
-        controller: 'performanceCtrl as performance',
+        controller: 'performanceCtrl as performance'
       };
     });
 })();

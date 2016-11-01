@@ -161,14 +161,14 @@
         if (valid) {
           // check mid level attributes for existence in imported widgets
           defaultAttrs = Object.keys(DEFAULTS.settings);
-          widgetAttrs =  Object.keys(widget.settings);
+          widgetAttrs = Object.keys(widget.settings);
           valid = _.isEqual(defaultAttrs.sort(), widgetAttrs.sort());
 
           // if they are all present
           if (valid) {
             // check low level attributes for existence in imported widgets
             defaultAttrs = Object.keys(DEFAULTS.settings.advanced);
-            widgetAttrs =  Object.keys(widget.settings.advanced);
+            widgetAttrs = Object.keys(widget.settings.advanced);
             valid = _.isEqual(defaultAttrs.sort(), widgetAttrs.sort());
           }
         }
@@ -207,7 +207,7 @@
           zIndex: 78,
           panelClass: 'dialogShadow',
           clickOutsideToClose: false,
-          escapeToClose: true,
+          escapeToClose: true
         };
         var panelRef = $mdPanel.create(config);
         panelRef.open();
@@ -218,10 +218,10 @@
           .show({
             'controller': 'widgetIODialogCtrl as widgetIO',
             'templateUrl': 'app/templates/core/t-widgetIODialog.html',
-            'parent': angular.element(document.getElementById('SMPDashbaord')),
+            'parent': angular.element(document.body),
             'targetEvent': e,
             'clickOutsideToClose': false,
-            'bindToController': true,
+            'bindToController': true
           });
       },
       // default page to open on the widget list dialog
@@ -240,7 +240,7 @@
         {display: 'Min', value: 'min'},
         {display: 'Standard Deviation', value: 'stdDev'},
         {display: 'Mean', value: 'mean'},
-        {display: 'Time Stamp', value: 'timestamp'},
+        {display: 'Time Stamp', value: 'timestamp'}
       ],
       numMetrics: $filter('range')(1, 11, 1),
       widths: [
@@ -294,7 +294,7 @@
         {display: 'left', value: 'start center'},
         {display: 'center', value: 'center center'},
         {display: 'right', value: 'end center'}
-      ],
+      ]
     };
 
     // --------------------------------------------------------------------------------- //
@@ -337,7 +337,7 @@
           fills: ['','primary-fill white-text','','',''], // the style of the metric container and text
           showMetricLabel: true, // label the matrics shown on the sensor display
           sensorDisplayEditOption: 'metric' // default dropdowns to show while editing sensor display
-        },
+        }
       }
     };
 
@@ -396,7 +396,7 @@
         controllerAs: 'widgetMenu',
         locals: {
           'widgetId': this.id,
-          'panelClass': 'widgetMenuPanel',
+          'panelClass': 'widgetMenuPanel'
         },
         position: position,
         animation: animation,
@@ -406,7 +406,7 @@
         focusOnOpen: true,
         zIndex: 80,
         clickOutsideToClose: false,
-        escapeToClose: true,
+        escapeToClose: true
       };
       var panelRef = $mdPanel.create(config);
       panelRef.open()
@@ -457,7 +457,7 @@
             'type': t // the type defines what template will be shown on the advanced menu (text widgets have different settings than line charts)
           },
           'templateUrl': 'app/templates/core/t-widgetAdvancedMenu.html',
-          'parent': angular.element(document.getElementById('SMPDashbaord')),
+          'parent': angular.element(document.body),
           'targetEvent': e,
           'clickOutsideToClose': false
         });

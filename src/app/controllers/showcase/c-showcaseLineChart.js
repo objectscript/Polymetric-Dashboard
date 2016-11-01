@@ -33,8 +33,8 @@
       $scope.activeSensor.item = _this.item;
       $scope.activeSensor.unit = _this.unit;
 
-      // emit the render complete event which tells the tab to update its contents data
-      $scope.$emit('renderComplete', {clearData: true});
+      // emit the notify dashboard of change to emit update call for line demo
+      dashboard.notify({clearData: true});
     }
 
     _this.lineChartAttributes = {
@@ -44,7 +44,7 @@
         {attr: 'namespace', type: 'String', desc: 'The Namespace in which the sensor is stored.', default: 'N/A'},
         {attr: 'sensor', type: 'String', desc: 'The Sensor the chart will display data of.', default: 'N/A'},
         {attr: 'item', type: 'String', desc: 'The Item the chart will display data of.', default: 'N/A'},
-        {attr: 'units', type: 'String', desc: 'The units that the Sensor\'s readings are measured in.', default: '" "'},
+        {attr: 'units', type: 'String', desc: 'The units that the Sensor\'s readings are measured in.', default: '" "'}
 
       ],
       'Optional': [
@@ -57,7 +57,7 @@
         {attr: 'xaxisVisible', type: 'Boolean', desc: 'When true, the x-axis is shown.', default: true},
         {attr: 'xaxisLabel', type: 'String', desc: 'The label below x-asis.', default: '" "'},
         {attr: 'yaxisVisible', type: 'Boolean', desc: 'When true, the y-axis is shown.', default: true},
-        {attr: 'yaxisLabel', type: 'String', desc: 'The label below the y-asis.', default: '" "'},
+        {attr: 'yaxisLabel', type: 'String', desc: 'The label below the y-asis.', default: '" "'}
       ]
     };
 

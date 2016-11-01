@@ -13,7 +13,7 @@
           namespace: '@',
           state: '@',
           sensor: '@',
-          item: '@',
+          item: '@'
         },
         compile: function compile(tElement, tAttrs, transclude) {
           return {

@@ -22,7 +22,7 @@
 
   </head>
 
-  <body id="SMPDashbaord" ng-app="Dashboard" ng-cloak>
+  <body ng-app="Dashboard" ng-cloak>
   <!-- =========================== CONTENT OF APP =========================== -->
     <smp-content> </smp-content>
 
@@ -59,6 +59,10 @@
       <!-- SERVICES -->
       <script src="app/services/s-dashboardApi.js" type="text/javascript"></script>
       <script src="app/services/s-widgets.js" type="text/javascript"></script>
+
+      <!-- FILTERS -->
+      <script src="app/filters/f-range.js" type="text/javascript"></script>
+      <script src="app/filters/f-time.js" type="text/javascript"></script>
 
       <!-- DIRECTIVES -->
       <script src="app/directives/core/d-content.js" type="text/javascript"></script>
@@ -123,9 +127,5 @@
       <script src="app/controllers/visualizers/c-stateIcon.js" type="text/javascript"></script>
       <script src="app/controllers/visualizers/c-metadata.js" type="text/javascript"></script>
       <script src="app/controllers/visualizers/c-sensorRow.js" type="text/javascript"></script>
-
-      <!-- FILTERS -->
-      <script src="app/filters/f-range.js" type="text/javascript"></script>
-      <script src="app/filters/f-time.js" type="text/javascript"></script>
   </body>
 </html>

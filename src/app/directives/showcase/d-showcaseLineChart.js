@@ -11,7 +11,7 @@
         controller: 'showcaseLineChartCtrl as scLineChart',
         scope: {
           sensors: '=',
-          activeSensor: '=',
+          activeSensor: '='
         }
       };
     });

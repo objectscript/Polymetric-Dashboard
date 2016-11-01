@@ -15,7 +15,7 @@
           'Parameters': {
             'Required': [],
             'Optional': []
-          },
+          }
         }
       },
       {
@@ -30,7 +30,7 @@
                 {name: 'item', type: 'String', desc: 'The name of the item to retrieve.', default: 'N/A'}
               ],
             'Optional': []
-          },
+          }
         }
       },
       {
@@ -42,13 +42,13 @@
               [
                 {name: 'namespace', type: 'String', desc: 'The namespace in which the sensor is stored.', default: 'N/A'},
                 {name: 'sensor', type: 'String', desc: 'The name of the sensor to retrieve.', default: 'N/A'},
-                {name: 'item', type: 'String', desc: 'The name of the item to retrieve.', default: 'N/A'},
+                {name: 'item', type: 'String', desc: 'The name of the item to retrieve.', default: 'N/A'}
               ],
             'Optional':
               [
-                {name: 'startTime', type: 'Integer', desc: 'A number of seconds in the past defining oldest reading to return. The start time can also take the value -1 to only return the newest reading, or undefined to return a set of readings that range the entire chart period.', default: 'undefined'},
-              ],
-          },
+                {name: 'startTime', type: 'Integer', desc: 'A number of seconds in the past defining oldest reading to return. The start time can also take the value -1 to only return the newest reading, or undefined to return a set of readings that range the entire chart period.', default: 'undefined'}
+              ]
+          }
         }
       },
       {
@@ -60,15 +60,15 @@
               [
                 {name: 'namespace', type: 'String', desc: 'The namespace in which the sensor is stored.', default: 'N/A'},
                 {name: 'sensor', type: 'String', desc: 'The name of the sensor to retrieve.', default: 'N/A'},
-                {name: 'item', type: 'String', desc: 'The name of the item to retrieve.', default: 'N/A'},
+                {name: 'item', type: 'String', desc: 'The name of the item to retrieve.', default: 'N/A'}
               ],
             'Optional':
               [
-                {name: 'startTime', type: 'Integer', desc: 'A number of seconds in the past defining oldest reading to return. The start time can also take the value -1 to only return the newest reading, or undefined to return a set of readings that range the entire chart period.', default: 'undefined'},
-              ],
-          },
+                {name: 'startTime', type: 'Integer', desc: 'A number of seconds in the past defining oldest reading to return. The start time can also take the value -1 to only return the newest reading, or undefined to return a set of readings that range the entire chart period.', default: 'undefined'}
+              ]
+          }
         }
-      },
+      }
     ];
   }]);
 })();

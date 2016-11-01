@@ -7,7 +7,7 @@
       return {
         restrict: 'E',
         templateUrl: 'app/templates/core/t-content.html',
-        controller: 'contentCtrl as content',
+        controller: 'contentCtrl as content'
       };
     });
 })();

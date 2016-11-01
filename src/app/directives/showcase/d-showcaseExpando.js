@@ -9,7 +9,7 @@
         replace: false,
         templateUrl: 'app/templates/showcase/t-showcaseExpando.html',
         controller: 'showcaseExpandoCtrl as scExpando',
-        scope: {},
+        scope: {}
       };
     });
 })();

@@ -11,7 +11,7 @@
         controller: 'showcaseSensorDisplayCtrl as scSensorDisplay',
         scope: {
           sensors: '=',
-          activeSensor: '=',
+          activeSensor: '='
         }
       };
     });

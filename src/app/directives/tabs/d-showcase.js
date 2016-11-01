@@ -7,7 +7,7 @@
       return {
         restrict: 'E',
         templateUrl: 'app/templates/tabs/t-showcase.html',
-        controller: 'showcaseCtrl as showcase',
+        controller: 'showcaseCtrl as showcase'
       };
     });
 })();

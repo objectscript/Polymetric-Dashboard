@@ -84,6 +84,11 @@ md-next-button > md-icon{
 .no-bottom-margin {
   margin-bottom: 0;
 }
+
+.blockInput {
+  display:block;
+  height: 30px !important;
+}
 md-content {
   background-color:transparent;
 }
@@ -93,14 +98,22 @@ md-content {
   letter-spacing: .010em;
   line-height: 20px;
 }
+
 .orange-border-hover {
-	 box-shadow: none;
+	box-shadow: none;
   -webkit-transition: all 1s cubic-bezier(0.25, 0.8, 0.25, 1);
   transition: all 1s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .orange-border-hover:hover {
-	 box-shadow: -6px 0px 0 -4px #FF9800;
+	box-shadow: -6px 0px 0 -4px #FF9800;
+  -webkit-transition: all .2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: all .2s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+
+.force-orange-border {
+	box-shadow: -6px 0px 0 -4px #FF9800;
   -webkit-transition: all .2s cubic-bezier(0.25, 0.8, 0.25, 1);
   transition: all .2s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
@@ -145,7 +158,15 @@ md-tabs{
 .nv-group > .nv-point:not(.hover) {
   opacity: 0;
 }
-
+svg[type=sparklineChart],svg[type=lineChart] {
+  overflow: visible;
+}
+svg[type=sparklineChart] .nv-axis {
+  display: none;
+}
+svg.nvd3-svg {
+  transition-delay: 0s !important;
+}
 /* STYLING FOR THE CORE DIALOG COMPONENTS */
 .dialogShadow {
   box-shadow: 0 7px 8px -4px rgba(0,0,0,.2),0 13px 19px 2px rgba(0,0,0,.14),0 5px 24px 4px rgba(0,0,0,.12);

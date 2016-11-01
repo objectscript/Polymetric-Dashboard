@@ -16,7 +16,7 @@
       {id: 'ecp', title: 'ECP', content: '<smp-ecp></smp-ecp>', width: 80},
       {id: 'allsensors', title: 'All Sensors', content: '<smp-allsensors></smp-allsensors>', width: 80},
       {id: 'playground', title: 'Playground', content: '<smp-playground></smp-playground>', width: 80},
-      {id: 'showcase', title: 'Showcase', content: '<smp-showcase></smp-showcase>', width: 100},
+      {id: 'showcase', title: 'Showcase', content: '<smp-showcase></smp-showcase>', width: 100}
     ];
     // default to the first tab
     _this.curTabIdx = 0;
@@ -51,20 +51,19 @@
 
       // save the tab
       $localStorage.Dashboard.tab = index;
-    }
 
-    $rootScope.$watch('curTab', function(nv, ov) {
+      // notify registered components to update data if they need to
       dashboard.notify({clearData: false});
-    });
+    }
 
     // Setting Dialog
     $scope.showSettingsDialog = function(ev) {
       $mdDialog.show({
         controller: 'settingsDialogCtrl as settings',
         templateUrl: 'app/templates/core/t-settingsDialog.html',
-        parent: angular.element(document.getElementById('SMPDashbaord')),
+        parent: angular.element(document.body),
         targetEvent: ev,
-        clickOutsideToClose: false,
+        clickOutsideToClose: false
       });
     };
 
