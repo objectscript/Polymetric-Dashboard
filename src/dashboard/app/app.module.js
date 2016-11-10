@@ -11,7 +11,7 @@
 
   var DashboardApp = angular.module('Dashboard', [
     'ngMaterial', 'ngMessages', 'ngAnimate', 'ngSanitize', 'angular-bind-html-compile', 'ngStorage', /* Angular modules */
-    'dashboardApi', 'Widgets', /* services  */
+    'dashboardApi', 'Widgets', 'Update', /* services  */
     'tabs', 'showcase', /* controller/directive modules for content on specific pages */
     'core', 'visualizers', 'filters', /* controller/directive modules for shared app content across pages */
     'overlay' /* controller/directive modules for content overlaying pages */

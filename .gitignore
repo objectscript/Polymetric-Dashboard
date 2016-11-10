@@ -1,0 +1,18 @@
+# Logs
+logs
+npm-debug.log*
+
+#linter configs
+.jshintrc
+.jscsrc
+.htmlhintrc
+
+#Perforce Ignore
+.p4ignore
+
+# Dependency directory
+node_modules
+
+# OS generated files
+.DS_Store
+Thumbs.db

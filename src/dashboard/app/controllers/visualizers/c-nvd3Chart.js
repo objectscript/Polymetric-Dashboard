@@ -3,7 +3,7 @@
 
   var viz = angular.module('visualizers');
 
-  viz.controller('nvd3ChartCtrl', ['$scope', '$filter', '$element', '$timeout', '$interval', '$q', '$window', '$log', 'dashboard', function($scope, $filter, $element, $timeout, $interval, $q, $window, $log, dashboard) {
+  viz.controller('nvd3ChartCtrl', ['$scope', '$filter', '$element', '$timeout', '$q', '$window', '$log', 'dashboard', 'UpdateProvider', function($scope, $filter, $element, $timeout, $q, $window, $log, dashboard, UpdateProvider) {
     var chart;
     var chartSVG;
     var chartData = [{
@@ -13,42 +13,42 @@
     var chartColors = ['#4CAF50', '#FFC107', '#F44336', '#9E9E9E'];
     var chartForceY = null;
     var sensorProps;
-    var lastUpdate;
-    var updateClock;
     var calculatedDataReady;
     var chartDataReady;
     var setupChartReady;
 
-    // This is the main workflow director of the charts. It is called initially (if the chart is visible) and during any tab changes or update ticks from the dashboard
+    // regiester chart to updateprovider, getting the "updater" to handle when to make new update calls
+    var updater = UpdateProvider.updater($element, $scope, undefined, control);
+
+    // This is the main workflow director of the charts. It is called initially (if the chart is visible) and during any tab changes
     // it will initialize the chart (if not already done so) otherwise it will just get new data
-    $scope.$on('updateData', function(event, args) {control(args);});
-    if ($element.css('visibility') === 'visible') control({clearData: false});
     function control(args) {
       // chart will be undefined if the chart has not been initialized
       if (!chart) {
         init() // initialize the chart if it has not been done yet
           .then(function() {
-            requestData(undefined)
+            requestData()
               .then(function(lU) {
-                delayedUpdate(lU); // calculates the appropriate delay and waits until such time has passed to make the next control call to get data
+                // give the updater the new lastUdpate time stamp, so it can calculate when the next call should be made (and make it)
+                updater.delay(lU);
               });
           });
       // Otherwise the chart has already been initialized
       } else {
         if (args.clearData) {
-          lastUpdate = undefined; // set lastUpdate to -1 so a whole chart period of data will be requested
-
           removeData() // passing no arguments removes all data
             .then(function() {
-              requestData(lastUpdate)
+              requestData()
                 .then(function(lU) {
-                  delayedUpdate(lU); // calculates the appropriate delay and waits until such time has passed to make the next control call to get data
+                  // give the updater the new lastUdpate time stamp, so it can calculate when the next call should be made (and make it)
+                  updater.delay(lU);
                 });
             });
         } else {
-          requestData(lastUpdate)
+          requestData()
             .then(function(lU) {
-              delayedUpdate(lU); // calculates the appropriate delay and waits until such time has passed to make the next control call to get data
+              // give the updater the new lastUdpate time stamp, so it can calculate when the next call should be made (and make it)
+              updater.delay(lU);
             });
         }
       }
@@ -61,6 +61,8 @@
         getSensorProps()
           .then(function(p) {
             sensorProps = p;
+            // the updater needs to know the reading interval so it can properly time calls when the sample interval is reading interval
+            updater.readingInterval = sensorProps.readingInterval;
             setupChart(); // sets up the charts DOM element
 
             // only updates the DOM, does not request data
@@ -72,47 +74,6 @@
             reject();
           });
       });
-    }
-
-    function delayedUpdate(lU) {
-      return $q(function(resolve, reject) {
-        // cancel and clear the update clock to keep multiple requests from being sent to the sever at a time
-        $timeout.cancel(updateClock);
-        updateClock = undefined;
-
-        lastUpdate = lU; // update the lastUpdate global
-        var delay = getUpdateDelay(lU);
-        updateClock = $timeout(function() { // $timeout waits the amount of miliseconds returned from getUpdateDelay(lU) before calling control() to get more data
-          // only continue to get data if the component is visible
-          if ($element.css('visibility') === 'visible') control({clearData: false}); // update call
-        }, delay);
-
-        resolve();
-      });
-    }
-
-    // calculates the amount of time to wait until the next set of data is ready on the server
-    function getUpdateDelay(lU) {
-      var delay;
-      // the interval is the number of seconds defined by the dashboard api
-      // however, if System Interval is selected, then use the number of seconds between each reading (defined by the backend)
-      var interval = dashboard.meta.samplePeriod === '0' ? sensorProps.readingInterval : dashboard.meta.samplePeriod;
-      // data was aquired this request
-      if (!lastUpdate && !lU) {
-        delay = interval * 1000; // if the delay is negative wait a full sample period (multiply by 1000 to convert senconds into miliseconds)
-      // no data was aquired this request
-      } else {
-        var nextReadingTime = $filter('TStoUnix')(lU) + interval * 1000; // next reading time is the last update time plus one sample interval (multiply by 1000 to convert senconds into miliseconds)
-        var now = moment.utc().valueOf();
-        delay = nextReadingTime - now;
-        if (delay <= 0) {
-          delay = interval * 1000; // if the delay is negative wait a full sample interval (multiply by 1000 to convert senconds into miliseconds)
-        }
-      }
-
-      // Always add 2 seconds to the delay to make sure that the data is ready on the server
-      // This also makes the sensor display try to get new data in 2 seconds if it previously got data, but no data was retrieved in the last call
-      return delay + 2000;
     }
 
     // gets the sensors properties (state, critical value, warning value and units)
@@ -132,70 +93,57 @@
 
     // request data makes two seperate REST calls, getting calculated data first, then chart data.
     // The order is important as calculated data determines how the chart data should be dipslayed
-    function requestData(lU) {
+    function requestData() {
       return $q(function(resolve, reject) {
-
         // only make the rest calls if the chart needs new data
-        if (!lU || needNewData(lU)) {
-          calculatedDataReady = false;
-          chartDataReady = false;
+        calculatedDataReady = false;
+        chartDataReady = false;
 
-          dashboard.getCalculatedData($scope.namespace, $scope.sensor, $scope.item, undefined, sensorProps.readingInterval)
-            .then(function(resp) {
-              calculatedDataResponseHandler(resp) // determined the charts color, y axis range based of state, max and min values
-                .then(function() {
-                  calculatedDataReady = true;
-                  // if the chart has been initialized (it may not be if the initialization process has not finished, the calls are async) update the charts view
-                  if (chart) drawChart();
-                });
-            });
+        dashboard.getCalculatedData($scope.namespace, $scope.sensor, $scope.item, undefined, sensorProps.readingInterval)
+          .then(function(resp) {
+            calculatedDataResponseHandler(resp) // determined the charts color, y axis range based of state, max and min values
+              .then(function() {
+                calculatedDataReady = true;
+                // if the chart has been initialized (it may not be if the initialization process has not finished, the calls are async) update the charts view
+                if (chart) drawChart();
+              });
+          });
 
-          dashboard.getChartData($scope.namespace, $scope.sensor, $scope.item, lU, sensorProps.readingInterval)
-            .then(function(resp) { // SUCCESS CALLBACK: if call was successful (response could have or not have data)
-              chartDataResponseHandler(resp) // stores the new data and records the newest points timestamp (so it knows when new data is needed in the future)
-                .then(function(newLU) {
-                  var oldestPoint; // the oldest possible point that shold be shown on the chart
-                  // if newLU is not the same as lU then the server responded with data
-                  if (newLU !== lU) {
-                    // calculates the time in the past that is the oldest time data should be displayed on the chart (based off newest point on chart)
-                    var unix = $filter('TStoUnix')(newLU);
-                    oldestPoint = moment.utc(unix).subtract(dashboard.meta.chartWindow, 'seconds').valueOf();
-                  // otherwise the server did not respond with data
-                  } else {
-                    // calculates the time in the past that is the oldest time data should be displayed on the chart (based off current time)
-                    oldestPoint = moment.utc().subtract(dashboard.meta.chartWindow, 'seconds').valueOf();
-                  }
-                  // removes data that is older than the current chart period
-                  removeData(oldestPoint)
-                   .then(function() {
-                      chartDataReady = true;
-                      // if the chart has been initialized (it may not be if the initialization process has not finished, the calls are async) update the charts view
-                      if (chart) drawChart();
-                    });
+        dashboard.getChartData($scope.namespace, $scope.sensor, $scope.item, updater.lastUpdate, sensorProps.readingInterval)
+          .then(function(resp) { // SUCCESS CALLBACK: if call was successful (response could have or not have data)
+            chartDataResponseHandler(resp) // stores the new data and records the newest points timestamp (so it knows when new data is needed in the future)
+              .then(function(newLU) {
+                var oldestPoint; // the oldest possible point that shold be shown on the chart
+                // if newLU is not the same as lU then the server responded with data
+                if (newLU !== updater.lastUpdate) {
+                  // calculates the time in the past that is the oldest time data should be displayed on the chart (based off newest point on chart)
+                  var unix = $filter('TStoUnix')(newLU);
+                  oldestPoint = moment.utc(unix).subtract(dashboard.meta.chartWindow, 'seconds').valueOf();
+                // otherwise the server did not respond with data
+                } else {
+                  // calculates the time in the past that is the oldest time data should be displayed on the chart (based off current time)
+                  oldestPoint = moment.utc().subtract(dashboard.meta.chartWindow, 'seconds').valueOf();
+                }
+                // removes data that is older than the current chart period
+                removeData(oldestPoint)
+                 .then(function() {
+                    chartDataReady = true;
+                    // if the chart has been initialized (it may not be if the initialization process has not finished, the calls are async) update the charts view
+                    if (chart) drawChart();
+                  });
 
-                  resolve(newLU);
-                });
-            }, function(errro) { // FAILURE CALLBACK: if there was an internal server error or incorrect uri
-              resolve(lU);
-            });
-        } else {
-          resolve(lU);
-        }
+                resolve(newLU);
+              });
+          }, function(error) { // FAILURE CALLBACK: if there was an internal server error or incorrect uri
+            resolve(updater.lastUpdate);
+          });
       });
-    }
-
-    // test to see if new data is needed (last update is more than a sample interval in the past)
-    function needNewData(lU) {
-      var prev = $filter('TStoUnix')(lU);
-      var now = moment.utc().subtract(dashboard.meta.samplePeriod, 'seconds').valueOf();
-      return (prev < now);
     }
 
     function calculatedDataResponseHandler(resp) {
       return $q(function(resolve, reject) {
         var area = false; // should the area beneith the line be shadded
         var colorIdx = 3; // what color should the line be displayed in
-        // sensorProps.state = resp.state; //what is the state of the
         switch (resp.state) {
           case 2: // alert
             area = true;
@@ -225,7 +173,6 @@
           chartForceY = null;
         }
 
-        //toggleStateLims(resp.state);
         sensorProps.state = resp.state;
         resolve();
       });
@@ -233,7 +180,7 @@
 
     function chartDataResponseHandler(resp) {
       return $q(function(resolve, reject) {
-        var newLU = lastUpdate;
+        var newLU = updater.lastUpdate;
         if (resp) {
           // if data was returned
           if (resp && resp.length !== 0) {

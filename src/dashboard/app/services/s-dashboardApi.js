@@ -43,7 +43,7 @@
           {'val': moment.duration(4, 'days').as('seconds'), 'display': moment.duration(4, 'days').humanize()}
         ],
         samplePeriods: [// available sample interval options
-          {'val': moment.duration(0, 'seconds').as('seconds'), 'display': 'System Interval'},
+          {'val': moment.duration(0, 'seconds').as('seconds'), 'display': 'Reading Interval'},
           {'val': moment.duration(1, 'minute').as('seconds'), 'display': moment.duration(1, 'minute').humanize()},
           {'val': moment.duration(5, 'minute').as('seconds'), 'display': moment.duration(5, 'minute').humanize()},
           {'val': moment.duration(15, 'minute').as('seconds'), 'display': moment.duration(15, 'minute').humanize()},
@@ -150,7 +150,10 @@
         if (!startTime) startTime = dashboard.getStartTime(dashboard.meta.chartWindow, readingInterval);
         // If start time is -1 then only get the newest data
         if (startTime === -1) startTime = dashboard.getStartTime(0, readingInterval);
+        // default to the defined amount of seconds per sample interval
         var samplePeriod = dashboard.meta.samplePeriod;
+        // if the reading interval is selected, then samplePeriod = 0, thus use the sensors reading interval
+        if (samplePeriod === '0') samplePeriod = readingInterval;
 
         // Use 64bit encryption to avoid errors in Cache Routing
         var uri = '/api/dashboard/v3/Sensors/' + btoa(sensor) + '/ChartData/' + btoa(item) + '?namespace=' + btoa(namespace) + '&samplePeriod=' + btoa(samplePeriod) + '&startTime=' + btoa(startTime) + '&encryption=base64';

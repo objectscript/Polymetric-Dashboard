@@ -1,0 +1,29 @@
+{
+  "name": "Dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The Dashboard project is an open source extension to the Cache System Monitor. It aims to provide an intuitive and complete API for users to tailor the Cache System monitoring to their specific needs.",
+  "author": "Carter Tiernan <cartiernan@gmail.com>",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "jquery": "1.11.3",
+    "jquery-ui-dist": "1.12.0",
+    "angular": "1.5.7",
+    "angular-messages": "1.5.7",
+    "angular-sanitize": "1.5.7",
+    "angular-animate": "1.5.7",
+    "angular-aria": "1.5.7",
+    "angular-material": "1.1.0",
+    "ng-storage": "git://github.com/gsklee/ngStorage#master",
+    "angular-bind-compile": "git://github.com/incuna/angular-bind-html-compile.git#master",
+    "d3": "3.4.13",
+    "nvd3": "1.8.4",
+    "moment": "2.10.6",
+    "moment-timezone": "0.5.4",
+    "lodash": "4.14.0",
+    "gridstack": "0.2.5"
+  },
+  "license": "MIT"
+}

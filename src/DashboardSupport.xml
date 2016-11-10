@@ -425,41 +425,65 @@ Calculates a running average, allowing for no sums to be stored</Description>
 <FormalSpec><![CDATA[type:%String="data",encryption:%String,ns:%String,sTime:%String,sPer:%Integer,&error:%ZEN.proxyObject]]></FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-    Set fields = ##class(%ListOfDataTypes).%New()
-	Set tSC = $$$OK
+	Set fields = ##class(%ListOfDataTypes).%New() 
+	Set tSC = $$$OK 
 	
-	// Chart Data Requests must have startTime, samplePeriod and namespace as Query Params
-	If (type = "chartData"){
-		If (sTime = "") { Do fields.Insert("startTime") }
-	    If (sPer = "") { Do fields.Insert("samplePeriod") }
-	    If (ns = "") { Do fields.Insert("namespace") }
+	// Chart Data Requests must have startTime, samplePeriod and namespace as Query Params 
+	If (type = "chartData"){ 
+		If ((sTime = "") || ('$MATCH(sTime, "\d{4}-[0-1]\d-[0-3]\d [0-2]\d:[0-5]\d:[0-5]\d"))) { 
+			Do fields.Insert("startTime") 
+		} Else { 
+			Set now = $ZTIMESTAMP 
+			Set nowDay = $PIECE(now, ",", 1) 
+			Set nowTime = $PIECE(now, ",", 2) 
+			Set sDay = $ZDATEH($PIECE(sTime, " ", 1), 3) 
+			Set sTimePiece = $ZTIMEH($PIECE(sTime, " ", 2), 1) 
+			
+			If (nowDay < sDay) { Do fields.Insert("startTime") } 
+			ElseIf ((nowDay = sDay) && (nowTime < sTimePiece)) { Do fields.Insert("startTime") } 
+		} 
+		
+		If ((sPer = "") || (sPer < ##class(%SYS.Monitor).Interval())) { Do fields.Insert("samplePeriod") } 
+		If (ns = "") { Do fields.Insert("namespace") } 
+	} 
+		
+	// Calculated Data Requests must have startTime and namespace as Query Params 
+	If (type = "calcData"){ 
+		If ((sTime = "") || ('$MATCH(sTime, "\d{4}-[0-1]\d-[0-3]\d [0-2]\d:[0-5]\d:[0-5]\d"))) { 
+			Do fields.Insert("startTime") 
+		} Else {
+			Set now = $ZTIMESTAMP 
+			Set nowDay = $PIECE(now, ",", 1) 
+			Set nowTime = $PIECE(now, ",", 2) 
+			Set sDay = $ZDATEH($PIECE(sTime, " ", 1), 3) 
+			Set sTimePiece = $ZTIMEH($PIECE(sTime, " ", 2), 1) 
+			
+			If (nowDay < sDay) { Do fields.Insert("startTime") } 
+			ElseIf ((nowDay = sDay) && (nowTime < sTimePiece)) { Do fields.Insert("startTime") } 
+		} 
+		
+		If (ns = "") { Do fields.Insert("namespace") } 
+	} 
+	
+	// Sensor Requests must have namespace as Query Params 
+	If (type = "sensor") { 
+		If (ns = "") { Do fields.Insert("namespace") } 
+	} 
+	
+	// All Requests must specify an encryption type 
+	If ((encryption '= "base64") && (encryption '= "none")) { Do fields.Insert("encryption") } 
+	
+	// if Any of the query params are missing, they are added to the fields list. Thus if field has 
+	// a length larger than 0, there is an error. 
+	If (fields.Size > 0) { 
+		Set msg = "Missing or invalid query parameters." 
+		Set tSC = $$$ERROR(msg) 
+		Set error.code = 400 
+		Set error.message = msg 
+		Set error.error = fields 
 	}
 	
-	// Calculated Data Requests must have startTime and namespace as Query Params
-	If (type = "calcData"){
-		If (sTime = "") { Do fields.Insert("startTime") }
-	    If (ns = "") { Do fields.Insert("namespace") }
-	}
-	
-	// (A) Sensor Requests must have namespace as Query Params
-	If (type = "sensor") {
-	    If (ns = "") { Do fields.Insert("namespace") }
-	}
-	
-	// All Requests must specify an encryption type
-    If ((encryption '= "base64") && (encryption '= "none")) { Do fields.Insert("encryption") }
-    
-    // if Any of the query params are missing, they are added to the fields list. Thus if field has 
-    // a length larger than 0, there is an error.
-    If (fields.Size > 0) {
-	    Set msg = "Missing Required Query Parameters"
-		Set tSC = $$$ERROR(msg)
-		Set error.code = 400
-		Set error.message = msg
-		Set error.error = fields
-    }
-    
-    Quit tSC
+	Quit tSC
 ]]></Implementation>
 </Method>
 </Class>
@@ -664,7 +688,7 @@ Runtime state</Description>
 
 <Method name="Start">
 <Description><![CDATA[
-USER MAY IMPLEMENT THIS CLASS<p>
+USER MAY IMPLEMENT THIS METHOD<p>
 The System Monitor Controller calls this method once when it starts.
 The user may initialize the properties, counters, etc.<p>
 A return code of $$$OK indicates there were no errors.
@@ -676,7 +700,7 @@ A return code of 0 indicates a failure.]]></Description>
 
 <Method name="GetSensors">
 <Description><![CDATA[
-USER MUST IMPLEMENT THIS CLASS<p>
+USER MUST IMPLEMENT THIS METHOD<p>
 The System Monitor Controller calls this method to get sensor readings. It is called every 10 seconds by default.<p>
 Users may return readings for multiple sensors (but only one reading per sensor on each call).
 User calls SetSensor(sensorname, value[,type]) for every sensor reading. The sensors are kept in the property SensorReading(sensor)=value,
@@ -692,7 +716,7 @@ A return code of 0 indicates a failure.]]></Description>
 
 <Method name="SetSensor">
 <Description><![CDATA[
-USER DOES NOT IMPLEMENT THIS CLASS
+USER DOES NOT IMPLEMENT THIS METHOD
 The user must call this method to set a sensor reading. Readings are picked up by the controller after GetSensors() returns.<p>]]></Description>
 <FormalSpec>Sensor:%String,Value:%String,Qualifier:%String=""</FormalSpec>
 <ReturnType>%Integer</ReturnType>
@@ -711,7 +735,7 @@ SetErr
 
 <Method name="ClearSensors">
 <Description>
-USER DOES NOT IMPLEMENT THIS CLASS
+USER DOES NOT IMPLEMENT THIS METHOD
 The controller calls this to initialize the SensorReadings array.</Description>
 <Final>1</Final>
 <ReturnType>%Integer</ReturnType>
@@ -723,7 +747,7 @@ The controller calls this to initialize the SensorReadings array.</Description>
 
 <Method name="ClearNotifications">
 <Description>
-USER DOES NOT IMPLEMENT THIS CLASS
+USER DOES NOT IMPLEMENT THIS METHOD
 This method is called to clear notifications for the SYS.Monitor Controller</Description>
 <Final>1</Final>
 <ReturnType>%Integer</ReturnType>
@@ -735,7 +759,7 @@ This method is called to clear notifications for the SYS.Monitor Controller</Des
 
 <Method name="Notify">
 <Description>
-USER DOES NOT IMPLEMENT THIS CLASS
+USER DOES NOT IMPLEMENT THIS METHOD
 This method is called to post a notification</Description>
 <Final>1</Final>
 <FormalSpec>Sensor:%String,Severity:%Integer,Msg:%String</FormalSpec>
@@ -749,7 +773,7 @@ This method is called to post a notification</Description>
 
 <Method name="OpenLog">
 <Description><![CDATA[
-USER DOES NOT IMPLEMENT THIS CLASS<p>]]></Description>
+USER DOES NOT IMPLEMENT THIS METHOD<p>]]></Description>
 <Final>1</Final>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
@@ -776,7 +800,7 @@ OpenLogErr
 
 <Method name="LogMsg">
 <Description><![CDATA[
-USER DOES NOT IMPLEMENT THIS CLASS<p>
+USER DOES NOT IMPLEMENT THIS METHOD<p>
 User may call this method to log information to the SystemMonitor.log file in the mgr directory.]]></Description>
 <Final>1</Final>
 <FormalSpec>msg:%String=""</FormalSpec>
@@ -800,7 +824,7 @@ LogMsgErr
 
 <Method name="LogCon">
 <Description><![CDATA[
-USER DOES NOT IMPLEMENT THIS CLASS<p>
+USER DOES NOT IMPLEMENT THIS METHOD<p>
 User may call this method to post alerts directly to the cconsole.log file.]]></Description>
 <Final>1</Final>
 <FormalSpec>Msg:%String="",Severity:%Integer=0</FormalSpec>
@@ -3661,22 +3685,20 @@ FINDNAME(name)
     <title>Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- =========================== CSS INCLUDES =========================== -->
+    <!-- Roboto Font -->
+    <link href="assets\css\font.css" rel="stylesheet" type="text/css">
 
-    <!-- Library CSS-->
-    <link rel="stylesheet" href="assets\libs\angular-material\angular-material.min.css">
-    <link rel="stylesheet" href="assets\libs\nvd3\nv.d3.min.css">
-
+    <!-- Library CSS -->
+    <link rel="stylesheet" href="node_modules\angular-material\angular-material.min.css">
+    <link rel="stylesheet" href="node_modules\nvd3\build\nv.d3.min.css">
     <!-- DRAGABLE FUNCTIONALITY -->
-    <link rel="stylesheet" href="assets\libs\jqueryui\jquery-ui.min.css">
-    <link rel="stylesheet" href="assets\libs\gridstack\gridstack.min.css">
+    <link rel="stylesheet" href="node_modules\jquery-ui-dist\jquery-ui.min.css">
+    <link rel="stylesheet" href="node_modules\gridstack\dist\gridstack.min.css">
 
-    <link href='assets\css\font.css' rel='stylesheet' type='text/css'>
-
-    <!-- Custom CSS-->
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="assets\css\colorPallete.css">
     <link rel="stylesheet" href="assets\css\customStyles.css">
     <link rel="stylesheet" href="assets\css\code.css">
-
   </head>
 
   <body ng-app="Dashboard" ng-cloak>
@@ -3684,38 +3706,37 @@ FINDNAME(name)
     <smp-content> </smp-content>
 
   <!-- =========================== JS INCLUDES =========================== -->
-  <script src="assets\libs\jquery\jquery.min.js" type="text/javascript"></script>
-  <script src="assets\libs\moment\moment.min.js" type="text/javascript"></script>
-  <script src="assets\libs\moment-timezone\moment-timezone-with-data.min.js" type="text/javascript"></script>
-
+  <script src="node_modules\jquery\dist\jquery.min.js" type="text/javascript"></script>
+  <script src="node_modules\moment\moment.js" type="text/javascript"></script>
+  <script src="node_modules\moment-timezone\builds\moment-timezone-with-data.min.js" type="text/javascript"></script>
   <!-- DRAGABLE FUNCTIONALITY -->
-  <script src="assets\libs\lodash\lodash.min.js" type="text/javascript"></script>
-  <script src="assets\libs\jqueryui\jquery-ui.min.js" type="text/javascript"></script>
-  <script src="assets\libs\gridstack\gridstack.min.js" type="text/javascript"></script>
-
+  <script src="node_modules\lodash\lodash.min.js" type="text/javascript"></script>
+  <script src="node_modules\jquery-ui-dist\jquery-ui.min.js" type="text/javascript"></script>
+  <script src="node_modules\gridstack\dist\gridstack.min.js" type="text/javascript"></script>
 
 
   <!-- Angular Material requires Angular.js Libraries -->
-  <script src="assets\libs\angular\angular.min.js" type="text/javascript"></script>
-  <script src="assets\libs\angular-animate\angular-animate.min.js" type="text/javascript"></script>
-  <script src="assets\libs\angular-aria\angular-aria.min.js" type="text/javascript"></script>
-  <script src="assets\libs\angular-messages\angular-messages.min.js" type="text/javascript"></script>
-  <script src="assets\libs\angular-sanitize\angular-sanitize.min.js" type="text/javascript"></script>
-  <script src="assets\libs\ng-storage\ngStorage.min.js" type="text/javascript"></script>
   <!-- Bind Compile for directives on tabs -->
-  <script src="assets\libs\angular-bind-html-compile\angular-bind-html-compile.min.js" type="text/javascript"></script>
+  <script src="node_modules\angular\angular.min.js" type="text/javascript"></script>
+  <script src="node_modules\angular-animate\angular-animate.min.js" type="text/javascript"></script>
+  <script src="node_modules\angular-aria\angular-aria.min.js" type="text/javascript"></script>
+  <script src="node_modules\angular-messages\angular-messages.min.js" type="text/javascript"></script>
+  <script src="node_modules\angular-sanitize\angular-sanitize.min.js" type="text/javascript"></script>
+  <script src="node_modules\ngstorage\ngStorage.min.js" type="text/javascript"></script>
   <!-- Angular Material Library -->
-  <script src="assets\libs\angular-material\angular-material.min.js" type="text/javascript"></script>
+  <script src="node_modules\angular-bind-html-compile\angular-bind-html-compile.min.js" type="text/javascript"></script>
 
+  <script src="node_modules\angular-material\angular-material.min.js" type="text/javascript"></script>
 
-  <script src="assets\libs\d3\d3.min.js" type="text/javascript"></script>
-  <script src="assets\libs\nvd3\nv.d3.min.js" type="text/javascript"></script>
+  <script src="node_modules\d3\d3.min.js" type="text/javascript"></script>
+  <script src="node_modules\nvd3\build\nv.d3.min.js" type="text/javascript"></script>
 
     <!-- Angular Modules -->
     <script src="app/app.module.js" type="text/javascript"></script>
       <!-- SERVICES -->
       <script src="app/services/s-dashboardApi.js" type="text/javascript"></script>
       <script src="app/services/s-widgets.js" type="text/javascript"></script>
+      <script src="app/services/s-update.js" type="text/javascript"></script>
 
       <!-- FILTERS -->
       <script src="app/filters/f-range.js" type="text/javascript"></script>
@@ -4162,6 +4183,284 @@ This refreshes the globals immediately.
 
 </AutoPage>
 ]]></CSP>
+
+
+<Class name="SYS.Monitor.DashboardExporter">
+<Super>%RegisteredObject</Super>
+<TimeCreated>64232,36318.770295</TimeCreated>
+
+<Method name="GenerateRelease">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[exportLocation:%String,exportName:%String="unversioned-release",dashboardLocation:%String="../CSP/sys",dashboardName:%String="dashboard",&errors:%String]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s sc=$$$OK
+	s delete = 1
+	w "Validating Arguments",!
+	i $G(dashboardLocation, "")="" s sc=$$$ERROR("The path to the front end Dashboard code is a required argument.")
+	i $$$ISERR(sc) goto error
+	i $G(dashboardName, "")="" s sc=$$$ERROR("The name of the front end Dashboard code directory is a required argument.")
+	i $$$ISERR(sc) goto error
+	
+	w "Validating Front End Code Location",!
+	s uiLocation=##class(%File).SubDirectoryName(dashboardLocation, dashboardName)
+	i '##class(%File).DirectoryExists(dashboardLocation) {
+		s sc=$$$ERROR("The front end Dashboard code does not exist at the path (" _ uiLocation _ "). Please input the path, absolute or relative to the Cache Install directory, to the front end dashboard code and the name of the directory the front end code is held in.")
+		goto error
+	}
+	w "Validating Export Location",!
+	s releaseLocation=##class(%File).SubDirectoryName(exportLocation, exportName)
+	i ##class(%File).DirectoryExists(releaseLocation) {
+		s sc=$$$ERROR("The export locaion for the release (" _ releaseLocation _ ") already exists. Please input a location such that the realease can be made without overwriting a previous release.")
+		s delete = 0
+		goto error
+	}
+	w "Creating Release Directory",!
+	i '##class(%File).CreateNewDir(exportLocation, exportName) {
+		s sc=$$$ERROR("Could not create the release directory (" _ releaseLocation _ ").")
+		goto error
+	}
+	
+	s kitName = "kit-v" _ exportName
+	s sc = ##class(SYS.Monitor.DashboardExporter).ExportKit(releaseLocation, kitName, dashboardLocation, dashboardName)
+	i $$$ISERR(sc) goto error
+	
+	s srcName = "sourcecode-v" _ exportName
+	s sc = ##class(SYS.Monitor.DashboardExporter).ExportSrc(releaseLocation, srcName, dashboardLocation, dashboardName)
+	i $$$ISERR(sc) goto error
+	
+	goto cleanup
+error
+	w !,"ERROR: ",! d $system.Status.DisplayError(sc) w !!
+	i delete && ##class(%File).DirectoryExists(releaseLocation) {
+		d ##class(%File).RemoveDirectoryTree(releaseLocation)
+	}
+	goto cleanup
+cleanup
+	i $$$ISOK(sc) w !,"Successfully Exported Release",!
+	i $$$ISERR(sc) w !,"Failed to Export Release. Check for errors printed above, and returned by the Install Method.",!
+	q sc
+]]></Implementation>
+</Method>
+
+<Method name="ExportSrc">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[exportLocation:%String,exportName:%String="uversioned-source-code",dashboardLocation:%String="../CSP/sys",dashboardName:%String="dashboard",&errors:%String]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s sc=$$$OK
+	s delete = 1
+	w "Validating Arguments",!
+	i $G(dashboardLocation, "")="" s sc=$$$ERROR("The path to the front end Dashboard code is a required argument.")
+	i $$$ISERR(sc) goto error
+	i $G(dashboardName, "")="" s sc=$$$ERROR("The name of the front end Dashboard code directory is a required argument.")
+	i $$$ISERR(sc) goto error
+	
+	w "Validating Front End Code Location",!
+	s uiLocation=##class(%File).SubDirectoryName(dashboardLocation, dashboardName)
+	i '##class(%File).DirectoryExists(dashboardLocation) {
+		s sc=$$$ERROR("The front end Dashboard code does not exist at the path (" _ uiLocation _ "). Please input the path, absolute or relative to the Cache Install directory, to the front end dashboard code and the name of the directory the front end code is held in.")
+		goto error
+	}
+	w "Validating Export Location",!
+	s srcLocation=##class(%File).SubDirectoryName(exportLocation, exportName)
+	i ##class(%File).DirectoryExists(srcLocation) {
+		s sc=$$$ERROR("The export locaion for the kit (" _ srcLocation _ ") already exists. Please input a location such that the source code can be exported without overwriting a previous source code.")
+		s delete = 0
+		goto error
+	}
+	w "Creating src Directory",!
+	i '##class(%File).CreateNewDir(exportLocation, exportName) {
+		s sc=$$$ERROR("Could not create the source code directory (" _ srcLocation _ ").")
+		goto error
+	}
+	s errors = ""
+	w "Exporting Dashboard Support to src",!
+	i '..ExportSupport(srcLocation,,.errors) {
+		s sc=$$$ERROR("Error exporting DashboardSupport.xml " _ errors)
+		goto error
+	}
+	w "Exporting front end Dashboard code to src",!
+	s frontEndLocation=##class(%File).SubDirectoryName(srcLocation, dashboardName)
+	s sc = ##class(%File).CopyDir(uiLocation, frontEndLocation)
+	i $$$ISERR(sc) goto error
+
+	w "Removing dependencies",!
+	s toDelete=##class(%File).SubDirectoryName(frontEndLocation, "node_modules")
+	d ##class(%File).RemoveDirectoryTree(toDelete)
+	s toDelete=##class(%File).SubDirectoryName(frontEndLocation, "unittest")
+	s toDelete=##class(%File).SubDirectoryName(toDelete, "node_modules")
+	d ##class(%File).RemoveDirectoryTree(toDelete)
+	
+	w "Removing unneeded files",!
+	s toDelete=##class(%File).SubDirectoryName(frontEndLocation, ".htmlhintrc")
+	d ##class(%File).Delete(toDelete)
+	s toDelete=##class(%File).SubDirectoryName(frontEndLocation, ".jscsrc")
+	d ##class(%File).Delete(toDelete)
+	s toDelete=##class(%File).SubDirectoryName(frontEndLocation, "Dashboard.csp")
+	d ##class(%File).Delete(toDelete)
+	s toDelete=##class(%File).SubDirectoryName(frontEndLocation, "node_modules")
+	
+	goto cleanup
+error
+	w !,"ERROR: ",! d $system.Status.DisplayError(sc) w !!
+	i delete && ##class(%File).DirectoryExists(srcLocation) {
+		d ##class(%File).RemoveDirectoryTree(srcLocation)
+	}
+	goto cleanup
+cleanup
+	i $$$ISOK(sc) w !,"Successfully Exported source code",!
+	i $$$ISERR(sc) w !,"Failed to Export source code. Check for errors printed above, and returned by the Install Method.",!
+	q sc
+]]></Implementation>
+</Method>
+
+<Method name="ExportKit">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[exportLocation:%String,exportName:%String="uversioned-quick-start-kit",dashboardLocation:%String="../CSP/sys",dashboardName:%String="dashboard",&errors:%String]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s sc=$$$OK
+	s delete = 1
+	w "Validating Arguments",!
+	i $G(dashboardLocation, "")="" s sc=$$$ERROR("The path to the front end Dashboard code is a required argument.")
+	i $$$ISERR(sc) goto error
+	i $G(dashboardName, "")="" s sc=$$$ERROR("The name of the front end Dashboard code directory is a required argument.")
+	i $$$ISERR(sc) goto error
+	
+	w "Validating Front End Code Location",!
+	s uiLocation=##class(%File).SubDirectoryName(dashboardLocation, dashboardName)
+	i '##class(%File).DirectoryExists(dashboardLocation) {
+		s sc=$$$ERROR("The front end Dashboard code does not exist at the path (" _ uiLocation _ "). Please input the path, absolute or relative to the Cache Install directory, to the front end dashboard code and the name of the directory the front end code is held in.")
+		goto error
+	}
+	w "Validating Export Location",!
+	s kitLocation=##class(%File).SubDirectoryName(exportLocation, exportName)
+	i ##class(%File).DirectoryExists(kitLocation) {
+		s sc=$$$ERROR("The export locaion for the Kit (" _ kitLocation _ ") already exists. Please input a location such that the Kit can be exported without overwriting a previous kit.")
+		s delete = 0
+		goto error
+	}
+	w "Creating Kit Directory",!
+	i '##class(%File).CreateNewDir(exportLocation, exportName) {
+		s sc=$$$ERROR("Could not create the Kit directory (" _ kitLocation _ ").")
+		goto error
+	}
+	s errors = ""
+	w "Exporting Dashboard Support to the Kit",!
+	i '..ExportSupport(kitLocation,,.errors) {
+		s sc=$$$ERROR("Error exporting DashboardSupport.xml " _ errors)
+		goto error
+	}
+	s errors = ""
+	w "Exporting Dashboard Installer to the Kit",!
+	i '..ExportInstaller(kitLocation,,.errors) {
+		s sc=$$$ERROR("Error exporting DashboardInstaller.xml " _ errors)
+		goto error
+	}
+	w "Exporting front end Dashboard code to the Kit",!
+	s frontEndLocation=##class(%File).SubDirectoryName(kitLocation, dashboardName)
+	s sc = ##class(%File).CopyDir(uiLocation, frontEndLocation)
+	i $$$ISERR(sc) goto error
+	
+	w "Removing unneeded files",!
+	s toDelete=##class(%File).SubDirectoryName(frontEndLocation, ".htmlhintrc")
+	d ##class(%File).Delete(toDelete)
+	s toDelete=##class(%File).SubDirectoryName(frontEndLocation, ".jscsrc")
+	d ##class(%File).Delete(toDelete)
+	s toDelete=##class(%File).SubDirectoryName(frontEndLocation, "Dashboard.csp")
+	d ##class(%File).Delete(toDelete)
+	s toDelete=##class(%File).SubDirectoryName(frontEndLocation, "node_modules")
+	
+	goto cleanup
+error
+	w !,"ERROR: ",! d $system.Status.DisplayError(sc) w !!
+	i delete && ##class(%File).DirectoryExists(kitLocation) {
+		d ##class(%File).RemoveDirectoryTree(kitLocation)
+	}
+	goto cleanup
+cleanup
+	i $$$ISOK(sc) w !,"Successfully Exported the Kit",!
+	i $$$ISERR(sc) w !,"Failed to Export the Kit. Check for errors printed above, and returned by the Install Method.",!
+	q sc
+]]></Implementation>
+</Method>
+
+<Method name="ExportSupport">
+<Description>
+Export all necessary support classes, routine and CSP pages for Dashboard add-on installation</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[exportLocation:%String="",exportName:%String="DashboardSupport.xml",&errors:%String]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	k list
+	#; build list of needed components, and path to sources
+	s list("%SYS.Monitor.AbstractSensor.CLS")="SYS/Monitor/AbstractSensor.xml"
+	s list("%SYS.Monitor.ComponentClass.CLS")="SYS/Monitor/ComponentClass.xml"
+	s list("%SYS.Monitor.Control.CLS")="SYS/Monitor/Control.xml"
+	s list("%SYS.Monitor.CLS")="SYS/Monitor.xml"
+	s list("%SYS.Monitor.AbstractDashboard.CLS")="SYS/Monitor/AbstractDashboard.xml"
+	s list("%SYS.Monitor.Sensor.CLS")="SYS/Monitor/Sensor.xml"
+	s list("%SYS.Monitor.Reading.CLS")="SYS/Monitor/Reading.xml"
+	s list("SYS.Monitor.DashboardSensors.CLS")="SYS/Monitor/DashboardSensors.xml"
+	s list("SYS.Monitor.DashboardExporter.CLS")="SYS/Monitor/DashboardSensors.xml"
+	s list("%Dashboard.REST.CLS")="Dashboard/REST.xml"
+	s list("%Api.Dashboard.CLS")="Api/Dashboard.xml"
+	s list("%Api.Dashboard.v3.CLS")="Api/Dashboard/v3.xml"
+	s list("%SYSMONMGR.MAC")="sysconfig/_sysmonmgr.mac"
+	s list("/csp/sys/op/UtilDashboard.CSP")=""
+	s list("/csp/sys/dashboard/Dashboard.CSP")=""
+	s sc = ..GetLatest(.list)
+	
+	i (exportLocation '= "") s exportName=##class(%File).SubDirectoryName(exportLocation, exportName)
+	i $$$ISOK(sc) s sc=$System.OBJ.Export(.list,exportName,"",.errors)
+	q sc
+]]></Implementation>
+</Method>
+
+<Method name="ExportInstaller">
+<Description>
+Export the Dashboard Installer class</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[exportLocation:%String="",exportName:%String="DashboardInstaller.xml",&errors:%String]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	k list
+	#; build list of needed components, and path to sources
+	s list("SYS.Monitor.DashboardInstaller.CLS")="SYS/Monitor/DashboardInstaller.xml"
+	s sc = ..GetLatest(.list)
+	
+	i (exportLocation '= "") s exportName=##class(%File).SubDirectoryName(exportLocation, exportName)
+	i $$$ISOK(sc) s sc=$System.OBJ.Export(.list,exportName,"",.errors)
+	q sc
+]]></Implementation>
+</Method>
+
+<Method name="GetLatest">
+<Description>
+Checks the SourceRoot for newer versions of files</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&list]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	#; see if we can get the latest version
+	s sources=$get(^%SYS("SourceRoot","%SYS"),$get(^%SYS("SourceRoot")))
+	i sources'="" {
+		s code=""
+		f  {
+			s code=$o(list(code),1,src) q:code=""
+			s type=$case($p(code,".",*),"CLS":"cls","MAC":"rtn","CSP":"csp")
+			#; CSP should pull the file directly from Perforce if we've done ^build
+			i type="csp" continue
+			s path=sources_"databases/sys/"_type_"/"_src
+			s sc=$System.OBJ.Load(path,"ck")
+			q:$$$ISERR(sc)
+		}
+	}
+	q sc
+]]></Implementation>
+</Method>
+</Class>
 
 
 <Class name="SYS.Monitor.DashboardSensors">
