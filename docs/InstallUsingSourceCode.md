@@ -59,9 +59,10 @@ The installation of the Dashboard inclues changes and additions to multiple aspe
        - Description: Dashboard REST API
        - Namespace: %SYS
           - Do not select "Namespace Default Application"
-       - Enable only "Application", "CSP/ZEN", and "Inbound Web Services"
+       - Enable only "Application" and "CSP/ZEN"
        - Leave Permitted Classes blank
-       - Do not change Securtiy Settings
+       - Within Securtiy Settings set
+          - Resource Required %Admin_Operate
        - Set Session Settings to
            - Session Timeout: 3600
            - Leave Event Class blank
@@ -77,7 +78,7 @@ The installation of the Dashboard inclues changes and additions to multiple aspe
         - Description: Dashboard
         - Namespace: %SYS
            - Do not select "Namespace Default Application"
-        - Enable only "Application", "CSP/ZEN", and "Inbound Web Services"
+        - Enable only "Application"
         - Leave Permitted Classes blank
         - Set Securtiy Settings to
            - Resource Required %Admin_Operate
@@ -86,7 +87,7 @@ The installation of the Dashboard inclues changes and additions to multiple aspe
         - Set Session Settings to
             - Session Timeout: 28800
             - Leave Event Class blank
-            - Use Cookie for session: "Always"
+            - Use Cookie for session: "Always and cached"  (if you plan to change the front end select "Always" instead)
             - Session Cookie Path: "/csp/sys/dashboard"
         - Leave Dispatch Class blank.
         - Set CSP File Settings to
