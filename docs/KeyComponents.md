@@ -94,7 +94,7 @@ dashboard.getChartData(namespace, sensor, item, startTime, samplePeriod)
     // do something with the data...
 
     // the newest data point is the last one of the returned data array
-    updater.delay(data[resp.length - 1].timestamp);
+    updater.delay(data[data.length - 1].timestamp);
   });
 ```
 
