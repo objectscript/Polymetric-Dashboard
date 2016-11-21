@@ -5,7 +5,7 @@ A more detailed look at some of the key components used by the front end of the 
 
 - [Key Components](#key-components)
 	- [DashboardApi](#dashboardapi)
-		- [Use](#use)
+		- [Include](#include)
 		- [REST API Abstraction](#rest-api-abstraction)
 		- [Data Settings](#data-settings)
 	- [UpdateProvider](#updateprovider)
@@ -17,7 +17,7 @@ A more detailed look at some of the key components used by the front end of the 
 ## DashboardApi
 The DashboardApi is a service that facilitates quick and easy use of the Dashboard's REST API. It contains Javascript functions that make the necessary HTML requests, and handle the responses from the server. It also stores the settings regarding the data to be retrieved.
 
-### Use
+### Include
 As with all AngularJS services, to use the DashboardApi you must include it within a controller to access it s functionality.
 
 ```javascript
