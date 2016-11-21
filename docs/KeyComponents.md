@@ -1,6 +1,19 @@
 # Key Components
 A more detailed look at some of the key components used by the front end of the Dashboard.
 
+<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+
+- [Key Components](#key-components)
+	- [DashboardApi](#dashboardapi)
+		- [Use](#use)
+		- [REST API Abstraction](#rest-api-abstraction)
+		- [Data Settings](#data-settings)
+	- [UpdateProvider](#updateprovider)
+		- [Use](#use)
+		- [Under the Hood](#under-the-hood)
+
+<!-- /TOC -->
+
 ## DashboardApi
 The DashboardApi is a service that facilitates quick and easy use of the Dashboard's REST API. It contains Javascript functions that make the necessary HTML requests, and handle the responses from the server. It also stores the settings regarding the data to be retrieved.
 
