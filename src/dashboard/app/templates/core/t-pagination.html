@@ -42,5 +42,5 @@
 </div>
 <!-- Give total number of items and the indecies of items being shown -->
 <div flex="100" layout="row" layout-align="center center" class="background-fill">
-  <p class="md-caption blend-text no-margin" style="text-align: center;">{{startIndex + 1}} - {{endIndex}} of {{numItems}}</p>
+  <p class="md-caption blend-text no-margin" style="text-align: center;">{{startIndex + (numItems === 0 ? 0 : 1)}} - {{endIndex}} of {{numItems}}</p>
 </div>

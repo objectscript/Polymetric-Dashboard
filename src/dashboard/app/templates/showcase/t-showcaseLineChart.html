@@ -9,7 +9,6 @@
     <div smp-expando-content="showcaseLineDemo">
       <div class="contentContainer">
         <div layout="column" flex="100">
-          <h4 class="md-title chartTitle">Line Chart Title</h4>
           <div>
             <smp-nvd3-chart
               type="lineChart"
@@ -17,8 +16,6 @@
               namespace="{{scLineChart.namespace}}"
               sensor="{{scLineChart.sensor}}"
               item="{{scLineChart.item}}"
-              units="{{scLineChart.unit}}"
-              height="144"
             />
           </div>
         </div>
@@ -27,7 +24,7 @@
           <!-- Namespace Select for Widget -->
           <div flex-xs="100" flex-sm="100" flex-gt-sm="30">
             <md-input-container  flex="100" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
-              <label style="padding-bottom:0">Widget Namespace</label>
+              <label style="padding-bottom:0">Namespace</label>
               <md-select
                 ng-model="scLineChart.namespace"
                 ng-change="scLineChart.sensor = ''; scLineChart.item = ''"
@@ -35,7 +32,7 @@
                 md-whiteframe="1"
                 aria-label="showcase line chart namespace select"
                 style="display: block; padding-top: 0;">
-                <md-option ng-repeat="(namespace, sensors) in scLineChart.sensors" value="{{namespace}}" >
+                <md-option ng-repeat="(namespace, sensors) in sensors" value="{{namespace}}" >
                   {{namespace}}
                 </md-option>
               </md-select>
@@ -45,7 +42,7 @@
           <!-- Sensor Select for Widget -->
           <div flex-xs="100" flex-sm="100" flex-gt-sm="30">
             <md-input-container flex="100" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
-              <label style="padding-bottom:0">Widget Sensor</label>
+              <label style="padding-bottom:0">Sensor</label>
               <md-select
                 ng-disabled="!scLineChart.namespace"
                 ng-model="scLineChart.sensor"
@@ -54,7 +51,7 @@
                 md-whiteframe="1"
                 aria-label="showcase line chart sensor select"
                 style="display: block; padding-top: 0;">
-                <md-option ng-repeat="(sensor, props) in scLineChart.sensors[scLineChart.namespace]" value="{{sensor}}" >
+                <md-option ng-repeat="(sensor, props) in sensors[scLineChart.namespace]" value="{{sensor}}" >
                   {{sensor}}
                 </md-option>
               </md-select>
@@ -64,7 +61,7 @@
           <!-- Item Select for Widget -->
           <div flex-xs="100" flex-sm="100" flex-gt-sm="30">
             <md-input-container  flex="100" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
-              <label style="padding-bottom:0">Widget Item</label>
+              <label style="padding-bottom:0">Item</label>
               <md-select
                 ng-disabled="!scLineChart.sensor || !scLineChart.namespace"
                 ng-model="scLineChart.item"
@@ -72,7 +69,7 @@
                 md-whiteframe="1"
                 aria-label="showcase line chart item select"
                 style="display: block; padding-top: 0;">
-                <md-option ng-repeat="item in scLineChart.sensors[scLineChart.namespace][scLineChart.sensor].items" value="{{item}}">
+                <md-option ng-repeat="item in sensors[scLineChart.namespace][scLineChart.sensor].items" value="{{item}}">
                   {{item}}
                 </md-option>
               </md-select>
@@ -109,8 +106,6 @@
         <span class="smp-attr">namespace</span> <span class="smp-punct">=</span> <span class="smp-str">"{{scLineChart.namespace}}"</span>
         <span class="smp-attr">sensor</span> <span class="smp-punct">=</span> <span class="smp-str">"{{scLineChart.sensor}}"</span>
         <span class="smp-attr">item</span> <span class="smp-punct">=</span> <span class="smp-str">"{{scLineChart.item}}"</span>
-        <span class="smp-attr">units</span> <span class="smp-punct">=</span> <span class="smp-str">"{{scLineChart.unit}}"</span>
-        <span class="smp-attr">height</span> <span class="smp-punct">=</span> <span class="smp-str">"144"</span>
       <span class="smp-punct">&gt; &lt;/</span><span class="smp-elem">smp-nvd3-chart</span><span class="smp-punct">&gt;</span>
     <span class="smp-punct">&lt;/</span><span class="smp-elem">div</span><span class="smp-punct">&gt;</span>
   </code>
@@ -124,7 +119,7 @@
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - USE - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
 <div>
-  <smp-expando open="true" target="showcaseLineUse" elevation="2">
+  <smp-expando open="true" target="showcaseLineUse">
     <div smp-expando-toggle layout="row" layout-align="left center" flex="100" class="white-text primary-hue1-fill md-padding doesAction" md-whiteframe="2">
       <h2 class="md-headline no-margin">Options</h2>
     </div>
@@ -141,7 +136,7 @@
                 <span flex-xs="20" flex-sm="15" flex-gt-sm="10" style="font-weight:bold;text-align:right;" class="md-subhead">Default</span>
               </p>
             </md-list-item>
-            <md-list-item layout="row" class="md-offset" ng-repeat="attr in scLineChart.lineChartAttributes.Required">
+            <md-list-item layout="row" class="md-offset" ng-repeat="attr in scLineChart.attributes.Required">
               <p layout="row" flex="100">
                 <span flex-xs="30" flex-sm="20" flex-gt-sm="15" class="md-body-1">{{attr.attr}}</span>
                 <span flex-xs="20" flex-sm="15" flex-gt-sm="10" class="md-body-1">{{attr.type}}</span>
@@ -160,7 +155,7 @@
                 <span flex-xs="20" flex-sm="15" flex-gt-sm="10" style="font-weight:bold;text-align:right;" class="md-subhead">Default</span>
               </p>
             </md-list-item>
-            <md-list-item layout="row" class="md-offset" ng-repeat="attr in scLineChart.lineChartAttributes.Optional">
+            <md-list-item layout="row" class="md-offset" ng-repeat="attr in scLineChart.attributes.Optional">
               <p layout="row" flex="100">
                 <span flex-xs="30" flex-sm="20" flex-gt-sm="15" class="md-body-1">{{attr.attr}}</span>
                 <span flex-xs="20" flex-sm="15" flex-gt-sm="10" class="md-body-1">{{attr.type}}</span>

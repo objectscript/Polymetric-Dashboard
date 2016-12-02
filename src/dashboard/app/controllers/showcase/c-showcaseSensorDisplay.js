@@ -1,4 +1,7 @@
-/*jshint esnext: true */
+/*
+Author: Carter DeCew Tiernan
+*/
+
 (function() {
   'use strict';
 
@@ -7,28 +10,17 @@
   viz.controller('showcaseSensorDisplayCtrl', ['$scope', '$timeout', 'WidgetProvider', function($scope, $timeout, WidgetProvider) {
     var _this = this;
 
-    _this.update = update;
-    _this.isShown = isShown;
-    _this.toggleMetric = toggleMetric;
-
-    // watch for changes of the sensors stored by the showcase controller (keep them up to day)
-    $scope.$watch('sensors', function(nV, oV) {
-      // only update if the sensors are not an empty arrray (no sensors)
-      if (!_.isEqual(nV, {})) {
-        _this.sensors = $scope.sensors;
-      }
-    });
-
     // default selections for the sensor display
     _this.namespace = $scope.activeSensor.namespace;
     _this.sensor = $scope.activeSensor.sensor;
     _this.item = $scope.activeSensor.item;
-    _this.unit = $scope.activeSensor.unit;
     _this.showSensorDisplay = true;
     _this.showLabels = true;
     _this.labels = true;
     _this.sensorDisplayStyle = {'height': '105px'};
-
+    _this.update = update;
+    _this.isShown = isShown;
+    _this.toggleMetric = toggleMetric;
     _this.metricOptions = WidgetProvider.metrics;
     _this.metrics = 'state,sensor,value,max,min,mean,stdDev';
 
@@ -75,19 +67,17 @@
       $scope.activeSensor.namespace = _this.namespace;
       $scope.activeSensor.sensor = _this.sensor;
       $scope.activeSensor.item = _this.item;
-      $scope.activeSensor.unit = _this.unit;
       // timeout so the call stack will finish removing it before adding it again (so new metrics are represented)
       $timeout(function() {
         _this.showSensorDisplay = true;
       }, 0);
     }
 
-    _this.sensorAttributes = {
+    _this.attributes = {
       'Required': [
-        {attr: 'namespace', type: 'String', desc: 'The Namespace in which the sensor is stored.', default: 'N/A'},
-        {attr: 'sensor', type: 'String', desc: 'The Sensor to display data of.', default: 'N/A'},
-        {attr: 'item', type: 'String', desc: 'The Item to display data of.', default: 'N/A'},
-        {attr: 'units', type: 'String', desc: 'The units that the Sensor\'s readings are measured in.', default: '" "'},
+        {attr: 'namespace', type: 'String', desc: 'The namespace in which the sensor is stored.', default: 'N/A'},
+        {attr: 'sensor', type: 'String', desc: 'The sensor to display.', default: 'N/A'},
+        {attr: 'item', type: 'String', desc: 'The item to display.', default: 'N/A'},
         {attr: 'metrics', type: 'String', desc: 'A comma separated string defining the metrics to be shown.', default: 'N/A'}
       ],
       'Optional': [

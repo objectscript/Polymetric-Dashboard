@@ -32,7 +32,22 @@
 .smpHeader{
   margin-bottom:0;
 }
-
+.widgetHeader{
+  max-height: 50px;
+}
+.one-line {
+  white-space: nowrap;
+  overflow: auto;
+}
+.one-line::-webkit-scrollbar {
+  height: 0;
+  width: 0;
+  display: none;
+}
+.widgetSensorDisplay{
+  padding-left:26px;
+  overflow: auto;
+}
 .hidden {
   opacity: 0;
 }
@@ -377,7 +392,7 @@ md-option[selected="selected"] > div{
   z-index: 10000 !important;
   position:fixed;
   right:1em;
-  bottom:1em;
+  top:1em;
 }
 .showcaseSideNavBtn {
   text-align: left;

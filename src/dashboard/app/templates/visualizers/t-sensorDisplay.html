@@ -1,15 +1,15 @@
-<div layout="row" flex="100" layout-wrap style="height:100%;min-height:100%;" layout-align="center center">
+<div layout="row" flex="100" ng-class="containerClass" style="height:100%;min-height:100%;" layout-align="center center">
   <!-- Meta data directive that is only shown if specified to do so -->
   <smp-metadata ng-if="showMetadata" namespace="{{namespace}}" sensor="{{sensor}}" item="{{item}}"></smp-metadata>
 
   <!-- div defining one cell of the sensor display, repeated over every element to be shown on the display -->
   <div flex="{{elem.width}}" ng-repeat="elem in elems" layout="column" ng-class="elem.class" style="height: 100%">
     <!-- The label of the metric (can be shown or hidden) -->
-    <div flex="{{showLabel === 'true' ? 50 : 0}}" ng-if="showLabel === 'true'" class="md-padding">
-      <p class="no-margin" style="opacity: .5">{{elem.metric}}</p>
+    <div flex="{{showLabel === 'true' ? 50 : 0}}" layout="row" layout-align="start center" ng-if="showLabel === 'true'" class="md-padding">
+      <p class="one-line no-margin" style="opacity: .5;">{{elem.metric}}</p>
     </div>
-    <div ng-if="elem.metric !== 'state'" flex="{{showLabel === 'true' ? 50 : 100}}"  class="md-padding">
-      <p class="md-body-1 no-margin">{{elem.value}}</p>
+    <div ng-if="elem.metric !== 'state'" flex="{{showLabel === 'true' ? 50 : 100}}" layout="row" layout-align="start center" class="md-padding">
+      <p class="md-body-1 one-line no-margin">{{elem.value}}</p>
     </div>
     <div ng-if="elem.metric === 'state'">
       <smp-state-icon layout-padding state="{{elem.value}}" style="height:49px;"/>

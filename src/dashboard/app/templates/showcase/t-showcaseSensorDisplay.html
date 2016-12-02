@@ -15,10 +15,10 @@
               namespace="{{scSensorDisplay.namespace}}"
               sensor="{{scSensorDisplay.sensor}}"
               item="{{scSensorDisplay.item}}"
-              units="{{scSensorDisplay.unit}}"
               metrics="{{scSensorDisplay.metrics}}"
               show-label="{{scSensorDisplay.labels}}"
               icon-class="stateBarContainer"
+              container-class="widgetSensorDisplay"
             ></<smp-sensor-display>
           </div>
 
@@ -26,15 +26,15 @@
             <!-- Namespace Select for Widget -->
             <div flex-xs="100" flex-sm="100" flex-gt-sm="30">
               <md-input-container  flex="100" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
-                <label style="padding-bottom:0">Widget Namespace</label>
+                <label style="padding-bottom:0">Namespace</label>
                 <md-select
                   ng-model="scSensorDisplay.namespace"
                   ng-change="scSensorDisplay.sensor = ''; scSensorDisplay.item = ''"
                   class="white-fill"
                   md-whiteframe="1"
-                  aria-label="showcase line chart namespace select"
+                  aria-label="showcase sensor display namespace select"
                   style="display: block; padding-top: 0;">
-                  <md-option ng-repeat="(namespace, sensors) in scSensorDisplay.sensors" value="{{namespace}}" >
+                  <md-option ng-repeat="(namespace, sensors) in sensors" value="{{namespace}}" >
                     {{namespace}}
                   </md-option>
                 </md-select>
@@ -44,16 +44,16 @@
             <!-- Sensor Select for Widget -->
             <div flex-xs="100" flex-sm="100" flex-gt-sm="30">
               <md-input-container flex="100" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
-                <label style="padding-bottom:0">Widget Sensor</label>
+                <label style="padding-bottom:0">Sensor</label>
                 <md-select
                   ng-disabled="!scSensorDisplay.namespace"
                   ng-model="scSensorDisplay.sensor"
                   ng-change="scSensorDisplay.item = ''"
                   class="white-fill"
                   md-whiteframe="1"
-                  aria-label="showcase line chart sensor select"
+                  aria-label="showcase sensor display sensor select"
                   style="display: block; padding-top: 0;">
-                  <md-option ng-repeat="(sensor, props) in scSensorDisplay.sensors[scSensorDisplay.namespace]" value="{{sensor}}" >
+                  <md-option ng-repeat="(sensor, props) in sensors[scSensorDisplay.namespace]" value="{{sensor}}" >
                     {{sensor}}
                   </md-option>
                 </md-select>
@@ -63,15 +63,15 @@
             <!-- Item Select for Widget -->
             <div flex-xs="100" flex-sm="100" flex-gt-sm="30">
               <md-input-container  flex="100" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
-                <label style="padding-bottom:0">Widget Item</label>
+                <label style="padding-bottom:0">Item</label>
                 <md-select
                   ng-disabled="!scSensorDisplay.sensor || !scSensorDisplay.namespace"
                   ng-model="scSensorDisplay.item"
                   class="white-fill"
                   md-whiteframe="1"
-                  aria-label="showcase line chart item select"
+                  aria-label="showcase sensor display item select"
                   style="display: block; padding-top: 0;">
-                  <md-option ng-repeat="item in scSensorDisplay.sensors[scSensorDisplay.namespace][scSensorDisplay.sensor].items" value="{{item}}">
+                  <md-option ng-repeat="item in sensors[scSensorDisplay.namespace][scSensorDisplay.sensor].items" value="{{item}}">
                     {{item}}
                   </md-option>
                 </md-select>
@@ -129,7 +129,6 @@
       <span class="smp-attr">namespace</span> <span class="smp-punct">=</span> <span class="smp-str">"{{scSensorDisplay.namespace}}"</span>
       <span class="smp-attr">sensor</span> <span class="smp-punct">=</span> <span class="smp-str">"{{scSensorDisplay.sensor}}"</span>
       <span class="smp-attr">item</span> <span class="smp-punct">=</span> <span class="smp-str">"{{scSensorDisplay.item}}"</span>
-      <span class="smp-attr">units</spam> <span class="smp-punct">=</span> <span class="smp-str">"{{scSensorDisplay.unit}}"</span>
       <span class="smp-attr">metrics</span> <span class="smp-punct">=</span> <span class="smp-str">"{{scSensorDisplay.metrics}}"</span>
       <span class="smp-attr">show-label</span> <span class="smp-punct">=</span> <span class="smp-str">"{{scSensorDisplay.showLabels}}"</span>
     <span class="smp-punct">&gt; &lt;/</span><span class="smp-elem">smp-sensor-display</span><span class="smp-punct">&gt;</span>
@@ -162,7 +161,7 @@
                 <span flex-xs="20" flex-sm="15" flex-gt-sm="10" style="font-weight:bold;text-align:right;" class="md-subhead">Default</span>
               </p>
             </md-list-item>
-            <md-list-item layout="row" class="md-offset" ng-repeat="attr in scSensorDisplay.sensorAttributes.Required">
+            <md-list-item layout="row" class="md-offset" ng-repeat="attr in scSensorDisplay.attributes.Required">
               <p layout="row" flex="100">
                 <span flex-xs="30" flex-sm="20" flex-gt-sm="15" class="md-body-1">{{attr.attr}}</span>
                 <span flex-xs="20" flex-sm="15" flex-gt-sm="10" class="md-body-1">{{attr.type}}</span>
@@ -181,7 +180,7 @@
                 <span flex-xs="20" flex-sm="15" flex-gt-sm="10" style="font-weight:bold;text-align:right;" class="md-subhead">Default</span>
               </p>
             </md-list-item>
-            <md-list-item layout="row" class="md-offset" ng-repeat="attr in scSensorDisplay.sensorAttributes.Optional">
+            <md-list-item layout="row" class="md-offset" ng-repeat="attr in scSensorDisplay.attributes.Optional">
               <p layout="row" flex="100">
                 <span flex-xs="30" flex-sm="20" flex-gt-sm="15" class="md-body-1">{{attr.attr}}</span>
                 <span flex-xs="20" flex-sm="15" flex-gt-sm="10" class="md-body-1">{{attr.type}}</span>

@@ -6,42 +6,26 @@
   <md-toolbar class="primary-hue1-fill showcaseSidenavToolbar" layout="row" layout-align="start center" layout-padding>
     <p class="showcaseSidenavHeader no-margin">Showcase Navigation</p>
   </md-toolbar>
-  <md-content>
-    <!-- Dashbaord API -->
+  <md-content layout-margin>
     <div layout="row" layout-align="left center" flex="100">
-      <md-button disabled class="showcaseSideNavBtn" ng-click="">Dashboard Service</md-button>
-    </div>
-    <div layout="row" layout-align="left center" flex="80" flex-offset="10">
-      <md-button class="showcaseSideNavBtn" ng-class="{ 'md-accent': (showcase.curShowcaseSection === 'DashboardMethods') }" ng-click="showcase.goToSection('DashboardMethods')" >REST API Routes</md-button>
-    </div>
-    <div layout="row" layout-align="left center" flex="80" flex-offset="10">
-      <md-button class="showcaseSideNavBtn" ng-class="{ 'md-accent': (showcase.curShowcaseSection === 'DashboardSettings') }" ng-click="showcase.goToSection('DashboardSettings')" >Other Functionality</md-button>
-    </div>
-
-    <!-- Visualization -->
-    <div layout="row" layout-align="left center" flex="100">
-      <md-button disabled class="showcaseSideNavBtn" ng-click="" >Visualization Directives</md-button>
-    </div>
-    <div layout="row" layout-align="left center" flex="80" flex-offset="10">
       <md-button class="showcaseSideNavBtn" ng-class="{ 'md-accent': (showcase.curShowcaseSection === 'Line') }" ng-click="showcase.goToSection('Line')" >Line Chart</md-button>
     </div>
-    <div layout="row" layout-align="left center" flex="80" flex-offset="10">
+    <div layout="row" layout-align="left center" flex="100">
       <md-button class="showcaseSideNavBtn" ng-class="{ 'md-accent': (showcase.curShowcaseSection === 'Sparkline') }" ng-click="showcase.goToSection('Sparkline')" >Sparkline Chart</md-button>
     </div>
-    <div layout="row" layout-align="left center" flex="80" flex-offset="10">
+    <div layout="row" layout-align="left center" flex="100">
+      <md-button class="showcaseSideNavBtn" ng-class="{ 'md-accent': (showcase.curShowcaseSection === 'Icon') }" ng-click="showcase.goToSection('Icon')" >State Icon</md-button>
+    </div>
+    <div layout="row" layout-align="left center" flex="100">
       <md-button class="showcaseSideNavBtn" ng-class="{ 'md-accent': (showcase.curShowcaseSection === 'Sensor') }" ng-click="showcase.goToSection('Sensor')" >Sensor Display</md-button>
     </div>
-
-    <!-- Content -->
     <div layout="row" layout-align="left center" flex="100">
-      <md-button disabled class="showcaseSideNavBtn" ng-click="" >Content Display</md-button>
+      <md-button class="showcaseSideNavBtn" ng-class="{ 'md-accent': (showcase.curShowcaseSection === 'Metadata') }" ng-click="showcase.goToSection('Metadata')" >Metadata Tooltip</md-button>
     </div>
-    <div layout="row" layout-align="left center" flex="80" flex-offset="10">
-      <md-button class="showcaseSideNavBtn" ng-class="{ 'md-accent': (showcase.curShowcaseSection === 'Tab') }" ng-click="showcase.goToSection('Tab')" >Tabs</md-button>
-    </div>
-    <div layout="row" layout-align="left center" flex="80" flex-offset="10">
-      <md-button class="showcaseSideNavBtn" ng-class="{ 'md-accent': (showcase.curShowcaseSection === 'Expando') }" ng-click="showcase.goToSection('Expando')" >Expando</md-button>
-    </div>
+    <!-- <div layout="row" layout-align="left center" flex="100">
+      <md-button class="showcaseSideNavBtn" ng-class="{ 'md-accent': (showcase.curShowcaseSection === 'Widget') }" ng-click="showcase.goToSection('Widget')" >Widgets</md-button>
+    </div> -->
+
   </md-content>
 
 </md-sidenav>

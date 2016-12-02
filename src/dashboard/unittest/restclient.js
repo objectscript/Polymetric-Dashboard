@@ -1,3 +1,7 @@
+/*
+Author: Carter DeCew Tiernan
+*/
+
 // require testing dependencies
 var chai = require('chai');
 var chaiHttp = require('chai-http');
@@ -259,32 +263,61 @@ describe('Dashboard REST API Test Suite\n', function() {
             res.should.have.status(200);
             res.body.should.be.a('array');
             res.body.length.should.be.above(0);
-            // vars used to calculate and store the sensors calculated data
-            var sum = 0;
-            var max;
-            var min;
-            for (var i = 0; i < res.body.length; i++) {
-              res.body[i].should.have.property('value').be.within(0, 100); // CPUusage is a percent so values cannot be below 0 or above 100
-              res.body[i].should.have.property('timestamp').match(/\d{4}-[0-1]\d-[0-3]\d [0-2]\d:[0-5]\d:[0-5]\d/); // the timestamp must be in YYYY-MM-DD HH:mm:ss format
-              if (max === undefined || res.body[i].value > max) max = res.body[i].value;
-              if (min === undefined || res.body[i].value < min) min = res.body[i].value;
-              sum += res.body[i].value;
-            }
 
-            var mean = sum / res.body.length;
-            // if the mean is not an integer (it has decimels), then round it to 2 usits of precision (2.12314 -> 2.12) to match the backends precision
-            if (!Number.isInteger(mean)) mean = Number(mean.toFixed(2));
+            // extract the values from the chartData and calculate its properties
+            var readingValues = res.body.map(function(reading) { return reading.value;});
+            var calcData = getCalculatedData(readingValues);
+
             sensorCalcDataVerification = {
-              'state': calculateSensorState(sensor.operator, sensor.criticalValue, sensor.warningValue, max, min),
-              'max': max,
-              'min': min,
-              'mean': mean,
-              'stdDev': calculateStandardDeviaition(res.body, mean),
+              'state': calculateSensorState(sensor.operator, sensor.criticalValue, sensor.warningValue, calcData.max, calcData.min),
+              'max': calcData.max,
+              'min': calcData.min,
+              'mean': calcData.mean,
+              'stdDev': calcData.stdDev,
               'timestamp': res.body[res.body.length - 1].timestamp
             };
 
             done();
           });
+
+        function getCalculatedData(values) {
+          var cData = {};
+
+          // get the average of the readings
+          var avg = average(values);
+          cData.mean = avg;
+
+          // get the max and min of the readings
+          var max;
+          var min;
+          values.map(function(value) {
+            if (max === undefined || value > max) max = value;
+            if (min === undefined || value < min) min = value;
+          });
+          cData.max = max;
+          cData.min = min;
+
+          // calculate the standard deviation of the readings
+          var squareDiffs = values.map(function(value) {
+            var diff = value - avg;
+            var sqrDiff = diff * diff;
+            return sqrDiff;
+          });
+          var avgSquareDiff = average(squareDiffs);
+          var stdDev = Math.sqrt(avgSquareDiff);
+          cData.stdDev = stdDev;
+
+          return cData;
+
+          function average(data) {
+            var sum = data.reduce(function(sum, value) {
+              return sum + value;
+            }, 0);
+
+            var avg = sum / data.length;
+            return avg;
+          }
+        }
 
         // using the sensors properties and values, calculate what state it should be in
         function calculateSensorState(operator, crit, warn, max, min) {
@@ -299,21 +332,6 @@ describe('Dashboard REST API Test Suite\n', function() {
           }
 
           return state;
-        }
-
-        // standard deviation calculation
-        function calculateStandardDeviaition(body, mean) {
-          // sym the squared distance from the mean each value is
-          var squareDiff = 0;
-          for (var i = 0; i < body.length; i++) {
-            squareDiff += Math.pow(body[i].value - mean, 2);
-          }
-
-          var stdDev = squareDiff / body.length; // compute the average of the squared differences
-          // if the mean is not an integer (it has decimels), then round it to 2 usits of precision (2.12314 -> 2.12) to match the backends precision
-          if (!Number.isInteger(stdDev)) stdDev = Number(stdDev.toFixed(2));
-
-          return stdDev;
         }
       }
     });
@@ -421,12 +439,15 @@ describe('Dashboard REST API Test Suite\n', function() {
           .end(function(err, res) {
             res.should.have.status(200);
             res.body.should.be.a('object');
+            // round mean and stdDev to 2 usits of precision (2.12314 -> 2.12) to match the backends precision
+            var respMean = Number(sensorCalcDataVerification.mean.toFixed(2));
+            var respStdDev = Number(sensorCalcDataVerification.stdDev.toFixed(2));
             // confirm that the returned calculated data is equivelent to the caludated data calculated from the data returned by the GetChartData route using the reading interval as a sample interval
             res.body.should.have.property('state', sensorCalcDataVerification.state);
             res.body.should.have.property('max', sensorCalcDataVerification.max);
             res.body.should.have.property('min', sensorCalcDataVerification.min);
-            res.body.should.have.property('mean', sensorCalcDataVerification.mean);
-            res.body.should.have.property('stdDev', sensorCalcDataVerification.stdDev);
+            res.body.should.have.property('mean', respMean);
+            res.body.should.have.property('stdDev', respStdDev);
             res.body.should.have.property('timestamp', sensorCalcDataVerification.timestamp);
 
             done();

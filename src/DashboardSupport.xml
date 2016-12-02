@@ -2413,21 +2413,21 @@ Get max, min, mean, stdDev for a Sensor.Item.
 <FormalSpec><![CDATA[Sensor:%String,Item:%String,BeginTime:%TimeStamp,&Values:%String]]></FormalSpec>
 <ReturnType>%Boolean</ReturnType>
 <Implementation><![CDATA[
-	s count=0,total=0,max=0,min=-1,ts=""
+	s count=0,total=0,max="",min="",ts=""
 	s rs=##class(%ResultSet).%New("%SYS.Monitor.Reading:ListSensorUTC")
 	s sc=rs.Execute(Sensor,Item,BeginTime,$zdt($zts,3)) i $$$ISERR(sc) quit 0
 	while rs.Next() {
 		s count=count+1,value=rs.Get("Value")
 		s value(count)=value,total=total+value
-		i value>max s max=value
-		i (min=-1)||(value<min) s min=value
+		i (max="")||(value>max) s max=value
+		i (min="")||(value<min) s min=value
 		s ts = rs.Get("ReadTime")
 	}
 	i 'count quit 0
 	s Values("max")=max,Values("min")=min,Values("mean")=$Normalize(total/count,2)
 	s variance=0,mean=Values("mean")
 	f i=1:1:count s variance=variance+((value(i)-mean)**2)
-	s Values("stdDev")=$Normalize(variance/count,2)
+	s Values("stdDev")=$Normalize($ZSQR(variance/count),2)
 	
 	s Values("state") = ##class(%SYS.Monitor.Reading).GetState(Sensor, Item, max, min)
 	
@@ -3678,138 +3678,6 @@ FINDNAME(name)
 ]]></Routine>
 
 
-<CSP name="Dashboard.CSP" application="/csp/sys/dashboard/"><![CDATA[
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Dashboard</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- =========================== CSS INCLUDES =========================== -->
-    <!-- Roboto Font -->
-    <link href="assets\css\font.css" rel="stylesheet" type="text/css">
-
-    <!-- Library CSS -->
-    <link rel="stylesheet" href="node_modules\angular-material\angular-material.min.css">
-    <link rel="stylesheet" href="node_modules\nvd3\build\nv.d3.min.css">
-    <!-- DRAGABLE FUNCTIONALITY -->
-    <link rel="stylesheet" href="node_modules\jquery-ui-dist\jquery-ui.min.css">
-    <link rel="stylesheet" href="node_modules\gridstack\dist\gridstack.min.css">
-
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="assets\css\colorPallete.css">
-    <link rel="stylesheet" href="assets\css\customStyles.css">
-    <link rel="stylesheet" href="assets\css\code.css">
-  </head>
-
-  <body ng-app="Dashboard" ng-cloak>
-  <!-- =========================== CONTENT OF APP =========================== -->
-    <smp-content> </smp-content>
-
-  <!-- =========================== JS INCLUDES =========================== -->
-  <script src="node_modules\jquery\dist\jquery.min.js" type="text/javascript"></script>
-  <script src="node_modules\moment\moment.js" type="text/javascript"></script>
-  <script src="node_modules\moment-timezone\builds\moment-timezone-with-data.min.js" type="text/javascript"></script>
-  <!-- DRAGABLE FUNCTIONALITY -->
-  <script src="node_modules\lodash\lodash.min.js" type="text/javascript"></script>
-  <script src="node_modules\jquery-ui-dist\jquery-ui.min.js" type="text/javascript"></script>
-  <script src="node_modules\gridstack\dist\gridstack.min.js" type="text/javascript"></script>
-
-
-  <!-- Angular Material requires Angular.js Libraries -->
-  <!-- Bind Compile for directives on tabs -->
-  <script src="node_modules\angular\angular.min.js" type="text/javascript"></script>
-  <script src="node_modules\angular-animate\angular-animate.min.js" type="text/javascript"></script>
-  <script src="node_modules\angular-aria\angular-aria.min.js" type="text/javascript"></script>
-  <script src="node_modules\angular-messages\angular-messages.min.js" type="text/javascript"></script>
-  <script src="node_modules\angular-sanitize\angular-sanitize.min.js" type="text/javascript"></script>
-  <script src="node_modules\ngstorage\ngStorage.min.js" type="text/javascript"></script>
-  <!-- Angular Material Library -->
-  <script src="node_modules\angular-bind-html-compile\angular-bind-html-compile.min.js" type="text/javascript"></script>
-
-  <script src="node_modules\angular-material\angular-material.min.js" type="text/javascript"></script>
-
-  <script src="node_modules\d3\d3.min.js" type="text/javascript"></script>
-  <script src="node_modules\nvd3\build\nv.d3.min.js" type="text/javascript"></script>
-
-    <!-- Angular Modules -->
-    <script src="app/app.module.js" type="text/javascript"></script>
-      <!-- SERVICES -->
-      <script src="app/services/s-dashboardApi.js" type="text/javascript"></script>
-      <script src="app/services/s-widgets.js" type="text/javascript"></script>
-      <script src="app/services/s-update.js" type="text/javascript"></script>
-
-      <!-- FILTERS -->
-      <script src="app/filters/f-range.js" type="text/javascript"></script>
-      <script src="app/filters/f-time.js" type="text/javascript"></script>
-
-      <!-- DIRECTIVES -->
-      <script src="app/directives/core/d-content.js" type="text/javascript"></script>
-      <script src="app/directives/core/d-footer.js" type="text/javascript"></script>
-      <script src="app/directives/core/d-pagination.js" type="text/javascript"></script>
-      <script src="app/directives/core/d-expando.js" type="text/javascript"></script>
-      <script src="app/directives/core/d-staticWidget.js" type="text/javascript"></script>
-      <script src="app/directives/core/d-widget.js" type="text/javascript"></script>
-
-      <script src="app/directives/tabs/d-allsensors.js" type="text/javascript"></script>
-      <script src="app/directives/tabs/d-ecp.js" type="text/javascript"></script>
-      <script src="app/directives/tabs/d-ecp-app.js" type="text/javascript"></script>
-      <script src="app/directives/tabs/d-ecp-data.js" type="text/javascript"></script>
-      <script src="app/directives/tabs/d-performance.js" type="text/javascript"></script>
-      <script src="app/directives/tabs/d-summary.js" type="text/javascript"></script>
-      <script src="app/directives/tabs/d-playground.js" type="text/javascript"></script>
-      <script src="app/directives/tabs/d-showcase.js" type="text/javascript"></script>
-
-      <script src="app/directives/showcase/d-showcaseSidenav.js" type="text/javascript"></script>
-      <script src="app/directives/showcase/d-showcaseDashboardMethods.js" type="text/javascript"></script>
-      <script src="app/directives/showcase/d-showcaseDashboardSettings.js" type="text/javascript"></script>
-      <script src="app/directives/showcase/d-showcaseLineChart.js" type="text/javascript"></script>
-      <script src="app/directives/showcase/d-showcaseSparklineChart.js" type="text/javascript"></script>
-      <script src="app/directives/showcase/d-showcaseSensorDisplay.js" type="text/javascript"></script>
-      <script src="app/directives/showcase/d-showcaseTab.js" type="text/javascript"></script>
-      <script src="app/directives/showcase/d-showcaseExpando.js" type="text/javascript"></script>
-
-      <script src="app/directives/visualizers/d-nvd3Chart.js" type="text/javascript"></script>
-      <script src="app/directives/visualizers/d-sensorDisplay.js" type="text/javascript"></script>
-      <script src="app/directives/visualizers/d-metadata.js" type="text/javascript"></script>
-      <script src="app/directives/visualizers/d-stateIcon.js" type="text/javascript"></script>
-      <script src="app/directives/visualizers/d-sensorRow.js" type="text/javascript"></script>
-
-      <!-- CONTROLLERS -->
-      <script src="app/controllers/core/c-content.js" type="text/javascript"></script>
-      <script src="app/controllers/core/c-pagination.js" type="text/javascript"></script>
-      <script src="app/controllers/core/c-staticWidget.js" type="text/javascript"></script>
-      <script src="app/controllers/core/c-widget.js" type="text/javascript"></script>
-      <script src="app/controllers/core/c-widgetMenu.js" type="text/javascript"></script>
-      <script src="app/controllers/core/c-widgetAdvancedMenu.js" type="text/javascript"></script>
-      <script src="app/controllers/core/c-widgetListDialog.js" type="text/javascript"></script>
-      <script src="app/controllers/core/c-widgetIODialog.js" type="text/javascript"></script>
-      <script src="app/controllers/core/c-settingsDialog.js" type="text/javascript"></script>
-
-      <script src="app/controllers/tabs/c-showcase.js" type="text/javascript"></script>
-      <script src="app/controllers/tabs/c-allsensors.js" type="text/javascript"></script>
-      <script src="app/controllers/tabs/c-ecp.js" type="text/javascript"></script>
-      <script src="app/controllers/tabs/c-ecp-app.js" type="text/javascript"></script>
-      <script src="app/controllers/tabs/c-ecp-data.js" type="text/javascript"></script>
-      <script src="app/controllers/tabs/c-performance.js" type="text/javascript"></script>
-      <script src="app/controllers/tabs/c-playground.js" type="text/javascript"></script>
-      <script src="app/controllers/tabs/c-summary.js" type="text/javascript"></script>
-
-      <script src="app/controllers/showcase/c-showcaseDashboardMethods.js" type="text/javascript"></script>
-      <script src="app/controllers/showcase/c-showcaseLineChart.js" type="text/javascript"></script>
-      <script src="app/controllers/showcase/c-showcaseSparklineChart.js" type="text/javascript"></script>
-      <script src="app/controllers/showcase/c-showcaseSensorDisplay.js" type="text/javascript"></script>
-      <script src="app/controllers/showcase/c-showcaseExpando.js" type="text/javascript"></script>
-
-      <script src="app/controllers/visualizers/c-nvd3Chart.js" type="text/javascript"></script>
-      <script src="app/controllers/visualizers/c-sensorDisplay.js" type="text/javascript"></script>
-      <script src="app/controllers/visualizers/c-stateIcon.js" type="text/javascript"></script>
-      <script src="app/controllers/visualizers/c-metadata.js" type="text/javascript"></script>
-      <script src="app/controllers/visualizers/c-sensorRow.js" type="text/javascript"></script>
-  </body>
-</html>
-]]></CSP>
-
-
 <CSP name="UtilDashboard.CSP" application="/csp/sys/op/"><![CDATA[
 <AutoPage pagename="System Dashboard" parentpage="../UtilHome.csp" stylesheet="intersystems.css">
 
@@ -3878,7 +3746,7 @@ This refreshes the globals immediately.
 			<Caption>System Resource Statistics</Caption>
 			<Popup>System Resource Statistics</Popup>
 		</Action>
-		<Action href="/csp/sys/dashboard/Dashboard.csp" condition='##class(Security.Applications).%ExistsId("/csp/sys/dashboard")' >
+		<Action href="/csp/sys/dashboard/Dashboard.html" condition='##class(Security.Applications).%ExistsId("/csp/sys/dashboard")' >
 			<Caption>Polymetric Dashboard</Caption>
 			<Popup>Polymetric Dashboard</Popup>
 		</Action>
@@ -4191,7 +4059,7 @@ This refreshes the globals immediately.
 
 <Method name="GenerateRelease">
 <ClassMethod>1</ClassMethod>
-<FormalSpec><![CDATA[exportLocation:%String,exportName:%String="unversioned-release",dashboardLocation:%String="../CSP/sys",dashboardName:%String="dashboard",&errors:%String]]></FormalSpec>
+<FormalSpec><![CDATA[exportLocation:%String,exportName:%String="unversioned-release",dashboardLocation:%String="../CSP/sys/app",dashboardName:%String="dashboard",&errors:%String]]></FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 	s sc=$$$OK
@@ -4297,8 +4165,6 @@ cleanup
 	d ##class(%File).Delete(toDelete)
 	s toDelete=##class(%File).SubDirectoryName(frontEndLocation, ".jscsrc")
 	d ##class(%File).Delete(toDelete)
-	s toDelete=##class(%File).SubDirectoryName(frontEndLocation, "Dashboard.csp")
-	d ##class(%File).Delete(toDelete)
 	s toDelete=##class(%File).SubDirectoryName(frontEndLocation, "node_modules")
 	
 	goto cleanup
@@ -4367,10 +4233,6 @@ cleanup
 	s toDelete=##class(%File).SubDirectoryName(frontEndLocation, ".htmlhintrc")
 	d ##class(%File).Delete(toDelete)
 	s toDelete=##class(%File).SubDirectoryName(frontEndLocation, ".jscsrc")
-	d ##class(%File).Delete(toDelete)
-	s toDelete=##class(%File).SubDirectoryName(frontEndLocation, "Dashboard.csp")
-	d ##class(%File).Delete(toDelete)
-	s toDelete=##class(%File).SubDirectoryName(frontEndLocation, "node_modules")
 	
 	goto cleanup
 error
@@ -4403,13 +4265,12 @@ Export all necessary support classes, routine and CSP pages for Dashboard add-on
 	s list("%SYS.Monitor.Sensor.CLS")="SYS/Monitor/Sensor.xml"
 	s list("%SYS.Monitor.Reading.CLS")="SYS/Monitor/Reading.xml"
 	s list("SYS.Monitor.DashboardSensors.CLS")="SYS/Monitor/DashboardSensors.xml"
-	s list("SYS.Monitor.DashboardExporter.CLS")="SYS/Monitor/DashboardSensors.xml"
+	s list("SYS.Monitor.DashboardExporter.CLS")="SYS/Monitor/DashboardExporter.xml"
 	s list("%Dashboard.REST.CLS")="Dashboard/REST.xml"
 	s list("%Api.Dashboard.CLS")="Api/Dashboard.xml"
 	s list("%Api.Dashboard.v3.CLS")="Api/Dashboard/v3.xml"
 	s list("%SYSMONMGR.MAC")="sysconfig/_sysmonmgr.mac"
 	s list("/csp/sys/op/UtilDashboard.CSP")=""
-	s list("/csp/sys/dashboard/Dashboard.CSP")=""
 	s sc = ..GetLatest(.list)
 	
 	i (exportLocation '= "") s exportName=##class(%File).SubDirectoryName(exportLocation, exportName)
@@ -5337,48 +5198,6 @@ This should be called if the SYS.Monitor.DashboardSensors class gets registered<
 		s sc=app.%Save()
 	}
 	s ^SYS("Security","CSP","AllowClass","/api/dashboard/","%Api.Dashboard")=1
-	q sc
-]]></Implementation>
-</Method>
-
-<Method name="ExportSupport">
-<Description>
-Export all necessary support classes, routine and CSP pages for Dashboard add-on installation</Description>
-<ClassMethod>1</ClassMethod>
-<FormalSpec><![CDATA[file:%String="DashboardSupport.xml",&errors:%String]]></FormalSpec>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
-	k list
-	#; build list of needed components, and path to sources
-	s list("%SYS.Monitor.AbstractSensor.CLS")="SYS/Monitor/AbstractSensor.xml"
-	s list("%SYS.Monitor.ComponentClass.CLS")="SYS/Monitor/ComponentClass.xml"
-	s list("%SYS.Monitor.Control.CLS")="SYS/Monitor/Control.xml"
-	s list("%SYS.Monitor.CLS")="SYS/Monitor.xml"
-	s list("%SYS.Monitor.AbstractDashboard.CLS")="SYS/Monitor/AbstractDashboard.xml"
-	s list("%SYS.Monitor.Sensor.CLS")="SYS/Monitor/Sensor.xml"
-	s list("%SYS.Monitor.Reading.CLS")="SYS/Monitor/Reading.xml"
-	s list("SYS.Monitor.DashboardSensors.CLS")="SYS/Monitor/DashboardSensors.xml"
-	s list("%Dashboard.REST.CLS")="Dashboard/REST.xml"
-	s list("%Api.Dashboard.CLS")="Api/Dashboard.xml"
-	s list("%Api.Dashboard.v3.CLS")="Api/Dashboard/v3.xml"
-	s list("%SYSMONMGR.MAC")="sysconfig/_sysmonmgr.mac"
-	s list("/csp/sys/op/UtilDashboard.CSP")=""
-	s list("/csp/sys/dashboard/Dashboard.CSP")=""
-	#; see if we can get the latest version
-	s sources=$get(^%SYS("SourceRoot","%SYS"),$get(^%SYS("SourceRoot")))
-	i sources'="" {
-		s code=""
-		f  {
-			s code=$o(list(code),1,src) q:code=""
-			s type=$case($p(code,".",*),"CLS":"cls","MAC":"rtn","CSP":"csp")
-			#; CSP should pull the file directly from Perforce if we've done ^build
-			i type="csp" continue
-			s path=sources_"databases/sys/"_type_"/"_src
-			s sc=$System.OBJ.Load(path,"ck")
-			q:$$$ISERR(sc)
-		}
-	}
-	i $$$ISOK(sc) s sc=$System.OBJ.Export(.list,file,"",.errors)
 	q sc
 ]]></Implementation>
 </Method>

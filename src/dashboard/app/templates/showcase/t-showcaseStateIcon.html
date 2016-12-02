@@ -1,0 +1,206 @@
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - DEMO - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<div>
+  <smp-expando open="true" target="showcaseIconDemo">
+    <div smp-expando-toggle layout="row" layout-align="left center" flex="100" class="white-text primary-hue1-fill md-padding doesAction" md-whiteframe="2">
+      <h2 class="md-headline no-margin">Demo</h2>
+    </div>
+    <div smp-expando-content="showcaseIconDemo">
+      <div class="contentContainer">
+        <div class="md-padding">
+          <div layout="row" flex="100" ng-if="scStateIcon.showStateIcon">
+            <!-- Demo State Icon passing in sensor -->
+            <div layout="row" layout-align="center center" flex="100">
+              <smp-state-icon
+                flex="10"
+                namespace="{{scStateIcon.namespace}}"
+                sensor="{{scStateIcon.sensor}}"
+                item="{{scStateIcon.item}}"
+              ></smp-state-icon>
+              <p flex="70" class="md-body-1">Defining the <b>namespace</b>, <b>sensor</b>, and <b>item</b> attributes allows the State Ion to make REST API calls to get the sensor's state.</p>
+            </div>
+          </div>
+
+          <div layout="row" layout-wrap flex="100" layout-align="center center" layout-margin layout-padding>
+            <!-- Namespace Select for Widget -->
+            <div flex-xs="100" flex-sm="100" flex-gt-sm="30">
+              <md-input-container  flex="100" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
+                <label style="padding-bottom:0">Namespace</label>
+                <md-select
+                  ng-model="scStateIcon.namespace"
+                  ng-change="scStateIcon.sensor = ''; scStateIcon.item = ''"
+                  class="white-fill"
+                  md-whiteframe="1"
+                  aria-label="showcase state icon namespace select"
+                  style="display: block; padding-top: 0;">
+                  <md-option ng-repeat="(namespace, sensors) in sensors" value="{{namespace}}" >
+                    {{namespace}}
+                  </md-option>
+                </md-select>
+              </md-input-container>
+            </div>
+
+            <!-- Sensor Select for Widget -->
+            <div flex-xs="100" flex-sm="100" flex-gt-sm="30">
+              <md-input-container flex="100" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
+                <label style="padding-bottom:0">Sensor</label>
+                <md-select
+                  ng-disabled="!scStateIcon.namespace"
+                  ng-model="scStateIcon.sensor"
+                  ng-change="scStateIcon.item = ''"
+                  class="white-fill"
+                  md-whiteframe="1"
+                  aria-label="showcase state icon sensor select"
+                  style="display: block; padding-top: 0;">
+                  <md-option ng-repeat="(sensor, props) in sensors[scStateIcon.namespace]" value="{{sensor}}" >
+                    {{sensor}}
+                  </md-option>
+                </md-select>
+              </md-input-container>
+            </div>
+
+            <!-- Item Select for Widget -->
+            <div flex-xs="100" flex-sm="100" flex-gt-sm="30">
+              <md-input-container  flex="100" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
+                <label style="padding-bottom:0">Item</label>
+                <md-select
+                  ng-disabled="!scStateIcon.sensor || !scStateIcon.namespace"
+                  ng-model="scStateIcon.item"
+                  class="white-fill"
+                  md-whiteframe="1"
+                  aria-label="showcase state icon item select"
+                  style="display: block; padding-top: 0;">
+                  <md-option ng-repeat="item in sensors[scStateIcon.namespace][scStateIcon.sensor].items" value="{{item}}">
+                    {{item}}
+                  </md-option>
+                </md-select>
+              </md-input-container>
+            </div>
+          </div>
+
+          <md-divider></md-divider>
+
+          <div layout="row" flex="100" ng-if="scStateIcon.showStateIcon">
+            <!-- Demo State Icon passing in sensor -->
+            <div layout="row" layout-align="center center" flex="100">
+              <smp-state-icon
+                flex="10"
+                state="{{scStateIcon.state}}"
+              ></smp-state-icon>
+              <p flex="70" class="md-body-1">Defining the <b>state</b> attribute forces the State Icon to display the defined state, it will not make REST API calls.</p>
+            </div>
+          </div>
+
+          <div layout="row" layout-wrap flex="100" layout-align="center center" layout-margin layout-padding>
+            <md-radio-group ng-model="scStateIcon.selectedState" layout="row" layout-align="center center" flex="100">
+              <md-radio-button flex="none" layout="row" ng-repeat="state in scStateIcon.stateOptions" ng-value="state.value" aria-label="{{state.label}}">
+                {{state.label}}
+              </md-radio-button>
+            </md-radio-group>
+          </div>
+
+          <!-- Apply the Settings -->
+          <div layout="row" layout-align="center center">
+            <md-button aria-label="Apply" ng-click="scStateIcon.update()" class="md-raised primary-fill white-text">Apply</md-button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </smp-expando>
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - HTML - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<div>
+  <smp-expando open="true" target="showcaseIconHtml">
+    <div smp-expando-toggle layout="row" layout-align="left center" flex="100" class="white-text primary-hue1-fill md-padding doesAction" md-whiteframe="2">
+      <h2 class="md-headline no-margin">HTML</h2>
+    </div>
+
+    <div smp-expando-content="showcaseIconHtml" md-whiteframe="2">
+      <div class="contentContainer" layout="row" layout-wrap>
+        <div layout="row" layout-align="left center" flex="100"  class="smp-code">
+<pre>
+  <code class="smp-text">
+    <span class="smp-punct">&lt;</span><span class="smp-elem">smp-state-icon</span>
+      <span class="smp-attr">namespace</span> <span class="smp-punct">=</span> <span class="smp-str">"{{scStateIcon.namespace}}"</span>
+      <span class="smp-attr">sensor</span> <span class="smp-punct">=</span> <span class="smp-str">"{{scStateIcon.sensor}}"</span>
+      <span class="smp-attr">item</span> <span class="smp-punct">=</span> <span class="smp-str">"{{scStateIcon.item}}"</span>
+    <span class="smp-punct">&gt; &lt;/</span><span class="smp-elem">smp-state-icon</span><span class="smp-punct">&gt;</span>
+  </code>
+</pre>
+        </div>
+
+        <div layout="row" layout-align="left center" flex="100"  class="smp-code">
+<pre>
+  <code class="smp-text">
+    <span class="smp-punct">&lt;</span><span class="smp-elem">smp-state-icon</span>
+      <span class="smp-attr">state</span> <span class="smp-punct">=</span> <span class="smp-str">"{{scStateIcon.state}}"</span>
+    <span class="smp-punct">&gt; &lt;/</span><span class="smp-elem">smp-state-icon</span><span class="smp-punct">&gt;</span>
+  </code>
+</pre>
+        </div>
+      </div>
+    </div>
+  </smp-expando>
+</div>
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - Use - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<div>
+  <smp-expando open="true" target="showcaseIconOptions">
+    <div smp-expando-toggle layout="row" layout-align="left center" flex="100" class="white-text primary-hue1-fill md-padding doesAction" md-whiteframe="2">
+      <h2 class="md-headline no-margin">Options</h2>
+    </div>
+    <div smp-expando-content="showcaseIconOptions" class="white-fill" md-whiteframe="2">
+      <div class="contentContainer">
+        <div layout="column" flex="100" class="">
+          <md-list>
+            <md-subheader class="md-no-sticky accent-text">Required</md-subheader>
+            <md-list-item layout="row" class="md-offset">
+              <p layout="row" flex="100">
+                <span flex-xs="30" flex-sm="20" flex-gt-sm="15" style="font-weight:bold;" class="md-subhead">Attribute</span>
+                <span flex-xs="20" flex-sm="15" flex-gt-sm="10" style="font-weight:bold;" class="md-subhead">Type</span>
+                <span flex="" style="font-weight:bold;" class="md-subhead">Description</span>
+                <span flex-xs="20" flex-sm="15" flex-gt-sm="10" style="font-weight:bold;text-align:right;" class="md-subhead">Default</span>
+              </p>
+            </md-list-item>
+            <md-list-item layout="row" class="md-offset" ng-repeat="attr in scStateIcon.attributes.Required">
+              <p ng-if="attr.type !== 'alternative'" layout="row" flex="100">
+                <span flex-xs="30" flex-sm="20" flex-gt-sm="15" class="md-body-1">{{attr.attr}}</span>
+                <span flex-xs="20" flex-sm="15" flex-gt-sm="10" class="md-body-1">{{attr.type}}</span>
+                <span flex="" class="md-body-1">{{attr.desc}}</span>
+                <span flex-xs="20" flex-sm="15" flex-gt-sm="10" class="md-body-1" style="text-align:right;">{{attr.default}}</span>
+              </p>
+              <p ng-if="attr.type === 'alternative'" layout="row" flex="100">
+                <span flex="100" class="md-body-1 accent-text" style="text-align: center;">{{attr.msg}}</span>
+              </p>
+            </md-list-item>
+            <md-divider ng-if="scStateIcon.attributes.Optional.length !== 0"></md-divider>
+
+            <md-subheader class="md-no-sticky" ng-if="scStateIcon.attributes.Optional.length !== 0">Optional</md-subheader>
+            <md-list-item layout="row" class="md-offset" ng-if="scStateIcon.attributes.Optional.length !== 0">
+              <p layout="row" flex="100">
+                <span flex-xs="30" flex-sm="20" flex-gt-sm="15" style="font-weight:bold;" class="md-subhead">Attribute</span>
+                <span flex-xs="20" flex-sm="15" flex-gt-sm="10" style="font-weight:bold;" class="md-subhead">Type</span>
+                <span flex="" style="font-weight:bold;" class="md-subhead">Description</span>
+                <span flex-xs="20" flex-sm="15" flex-gt-sm="10" style="font-weight:bold;text-align:right;" class="md-subhead">Default</span>
+              </p>
+            </md-list-item>
+            <md-list-item layout="row" class="md-offset" ng-if="scStateIcon.attributes.Optional.length !== 0" ng-repeat="attr in scStateIcon.attributes.Optional">
+              <p layout="row" flex="100">
+                <span flex-xs="30" flex-sm="20" flex-gt-sm="15" class="md-body-1">{{attr.attr}}</span>
+                <span flex-xs="20" flex-sm="15" flex-gt-sm="10" class="md-body-1">{{attr.type}}</span>
+                <span flex="" class="md-body-1">{{attr.desc}}</span>
+                <span flex-xs="20" flex-sm="15" flex-gt-sm="10" class="md-body-1" style="text-align:right;">{{attr.default}}</span>
+              </p>
+            </md-list-item>
+
+          </md-list>
+        </div>
+      </div>
+    </div>
+  </smp-expando>
+</div>

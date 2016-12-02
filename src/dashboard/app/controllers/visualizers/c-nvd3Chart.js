@@ -1,3 +1,7 @@
+/*
+Author: Carter DeCew Tiernan
+*/
+
 (function() {
   'use strict';
 
@@ -211,7 +215,7 @@
           }
 
           // splice the data to get return the array without the old data
-          chartData[0].values.splice(0, i - 1);
+          chartData[0].values.splice(0, i);
         // otherwise clear all the data
         } else {
           chartData[0].values = [];
@@ -313,6 +317,7 @@
         // DOM element settings
         chart.margin(params.margin); // Margins applied to the outside of the chart
         chart.height(params.height); // Height of the chart
+        $element.css({'height': params.height}); // Set the height of the svg container of the chart
 
         // chart Y data settings (round to 1 decimel or 0 if value is integer)
         chart.y(function(d) { return Number($filter('number')(d.value, 1).replace('.0', '').replace(',', '')); });

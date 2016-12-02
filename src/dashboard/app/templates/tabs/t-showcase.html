@@ -19,17 +19,10 @@
   </md-button>
 </span>
 
-<div flex="100" layout="row" style="margin-bottom:1em;">
-    <p flex="none" class="md-subhead no-margin">{{showcase.parentCategory}}</p>
-    <md-icon flex="none" class="no-margin" md-svg-src="assets\icons\ic_navigate_next_24px.svg"></md-icon>
-    <p flex="none" class="md-subhead no-margin accent-text"><b>{{showcase.sectionDisplayNames[showcase.curShowcaseSection]}}</b></p>
-</div>
-
 <!-- Templates for all the content shown on the showcase tab -->
-<smp-showcase-dashboard-methods ng-if="showcase.curShowcaseSection === 'DashboardMethods'" layout="column"  flex-xs="100" flex-sm="100" flex-md="80" flex-gt-md="60" flex-offset-md="10"  flex-offset-gt-md="20"> </smp-showcase-dashboard-methods>
-<smp-showcase-dashboard-settings ng-if="showcase.curShowcaseSection === 'DashboardSettings'" layout="column"  flex-xs="100" flex-sm="100" flex-md="80" flex-gt-md="60" flex-offset-md="10"  flex-offset-gt-md="20"> </smp-showcase-dashboard-settings>
 <smp-showcase-line-chart sensors="showcase.sensors" active-sensor="showcase.activeSensor" ng-if="showcase.curShowcaseSection === 'Line'" layout="column" flex-xs="100" flex-sm="100" flex-md="80" flex-gt-md="60" flex-offset-md="10"  flex-offset-gt-md="20"> </smp-showcase-line-chart>
 <smp-showcase-sparkline-chart sensors="showcase.sensors" active-sensor="showcase.activeSensor" ng-if="showcase.curShowcaseSection === 'Sparkline'" layout="column"  flex-xs="100" flex-sm="100" flex-md="80" flex-gt-md="60" flex-offset-md="10"  flex-offset-gt-md="20"> </smp-showcase-sparkline-chart>
+<smp-showcase-state-icon sensors="showcase.sensors" active-sensor="showcase.activeSensor" ng-if="showcase.curShowcaseSection === 'Icon'" layout="column"  flex-xs="100" flex-sm="100" flex-md="80" flex-gt-md="60" flex-offset-md="10"  flex-offset-gt-md="20"> </smp-showcase-state-icon>
 <smp-showcase-sensor-display sensors="showcase.sensors" active-sensor="showcase.activeSensor" ng-if="showcase.curShowcaseSection === 'Sensor'" layout="column"  flex-xs="100" flex-sm="100" flex-md="80" flex-gt-md="60" flex-offset-md="10"  flex-offset-gt-md="20"> </smp-showcase-sensor-display>
-<smp-showcase-tab ng-if="showcase.curShowcaseSection === 'Tab'" layout="column"  flex-xs="100" flex-sm="100" flex-md="80" flex-gt-md="60" flex-offset-md="10"  flex-offset-gt-md="20"> </smp-showcase-tab>
-<smp-showcase-expando ng-if="showcase.curShowcaseSection === 'Expando'" layout="column"  flex-xs="100" flex-sm="100" flex-md="80" flex-gt-md="60" flex-offset-md="10"  flex-offset-gt-md="20"> </smp-showcase-expando>
+<smp-showcase-metadata-tooltip sensors="showcase.sensors" active-sensor="showcase.activeSensor" ng-if="showcase.curShowcaseSection === 'Metadata'" layout="column"  flex-xs="100" flex-sm="100" flex-md="80" flex-gt-md="60" flex-offset-md="10"  flex-offset-gt-md="20"> </smp-showcase-metadata-tooltip>
+<smp-showcase-widget sensors="showcase.sensors" active-sensor="showcase.activeSensor" ng-if="showcase.curShowcaseSection === 'Widget'" layout="column"  flex-xs="100" flex-sm="100" flex-md="80" flex-gt-md="60" flex-offset-md="10"  flex-offset-gt-md="20"> </smp-showcase-widget>

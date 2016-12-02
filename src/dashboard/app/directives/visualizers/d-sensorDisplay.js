@@ -1,3 +1,7 @@
+/*
+Author: Carter DeCew Tiernan
+*/
+
 (function() {
   'use strict';
 
@@ -19,6 +23,7 @@
           widths: '@',
           classes: '@',
           iconClass: '@',
+          containerClass: '@',
           showUnit: '@',
           showMetadata: '@'
         }

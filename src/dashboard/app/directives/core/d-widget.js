@@ -1,3 +1,7 @@
+/*
+Author: Carter DeCew Tiernan
+*/
+
 (function() {
   'use strict';
 

@@ -1,3 +1,7 @@
+/*
+Author: Carter DeCew Tiernan
+*/
+
 (function() {
   'use strict';
 
@@ -39,7 +43,7 @@
     _this.filterChange = filterChange;
 
     // returns the filtered se of all the sensors
-    function querySearch(queryText, queryFuzzy) {
+    function querySearch(queryText) {
       // if no results autcomplete suggestions should return all the sensors
       var noFilter = false;
       // there are two search terms, the sensor and the item.
@@ -112,21 +116,16 @@
       // ignore undefined selections
       if (sensor) {
         if (typeof sensor === 'object') {
+          console.log(sensor);
           var sensorText = _this.getSensorText(sensor);
           _this.querySearch(sensorText, false);
-        } else if (typeof sensor === 'string') {
-          // hides the autocomplete when enter is pressd
-          var autoChild = document.getElementById('allsensorsSearchBar').firstElementChild;
-          var el = angular.element(autoChild);
-          el.scope().$mdAutocompleteCtrl.hidden = true;
         }
+
         // update the displayed sensor rows with the currently filtered sensors
         _this.resultSensors = _this.filteredSensors;
         // save the current searchText (used for pinning searches for unions) if it is unique
         _this.filterChange(_this.searchText, 'add');
 
-        // reset the search box to a blank string
-        _this.searchText = '';
         queryText = '';
       }
     }

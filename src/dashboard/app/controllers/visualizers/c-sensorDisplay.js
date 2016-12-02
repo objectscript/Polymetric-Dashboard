@@ -1,3 +1,7 @@
+/*
+Author: Carter DeCew Tiernan
+*/
+
 (function() {
   'use strict';
 
@@ -101,7 +105,7 @@
 
           // width defaults to auto, but can be overrided by the developer
           width = 'auto';
-          if (!!widthArr[i] && (widthArr[i] !== '')) width = Number(widthArr[i]);
+          if (!!widthArr[i] && (widthArr[i] !== '')) width = widthArr[i];
 
           // class defaults to '' (none), but can be overrided by the developer
           elemClass = '';

@@ -1,3 +1,7 @@
+/*
+Author: Carter DeCew Tiernan
+*/
+
 (function() {
   'use strict';
 
@@ -65,7 +69,7 @@
             height -= 40;
           }
           rString = '<div>' +
-                      '<h4 ng-if="' + _this.widget.settings.advanced.showTitle + '" flex="100" class="md-title no-margin blend-text doesAction" style="text-align:center;" layout-padding>' +
+                      '<h4 ng-if="' + _this.widget.settings.advanced.showTitle + '" flex="100" class="md-title no-margin blend-text doesAction one-line widgetHeader" style="text-align:center;" layout-padding>' +
                         title +
                         '<smp-metadata ' +
                           'namespace="' + _this.widget.settings.namespace + '" ' +
@@ -107,7 +111,7 @@
             height -= 40;
           }
           rString = '<div>' +
-                      '<h4 ng-if="' + _this.widget.settings.advanced.showTitle + '" flex="100" class="md-title no-margin blend-text doesAction" style="text-align:center;" layout-padding>' +
+                      '<h4 ng-if="' + _this.widget.settings.advanced.showTitle + '" flex="100" class="md-title no-margin blend-text doesAction one-line widgetHeader" style="text-align:center;" layout-padding>' +
                         title +
                         '<smp-metadata ' +
                           'namespace="' + _this.widget.settings.namespace + '" ' +
@@ -141,7 +145,8 @@
                         'widths="' + _this.widget.settings.advanced.widths.toString() + '" ' +
                         'classes="' + _this.widget.settings.advanced.fills.toString() + '"  ' +
                         'show-label="' + _this.widget.settings.advanced.showMetricLabel + '" ' +
-                        'icon-class="stateBarContainer">' +
+                        'icon-class="stateBarContainer" ' +
+                        'container-class="widgetSensorDisplay">' +
                       '</smp-sensor-display>' +
                     '</div>';
           break;

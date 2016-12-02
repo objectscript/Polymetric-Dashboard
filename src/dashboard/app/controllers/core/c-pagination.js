@@ -1,11 +1,33 @@
+/*
+Author: Carter DeCew Tiernan
+*/
+
 (function() {
   'use strict';
 
   var core = angular.module('core');
 
-  core.controller('paginationCtrl', ['$scope', '$filter', function($scope, $filter) {
+  core.controller('paginationCtrl', ['$scope', '$filter', '$mdMedia', function($scope, $filter, $mdMedia) {
     // number of numbered buttons to show
     var maxVisibleButtons = 7;
+    $scope.$watch(function() { return $mdMedia('xs'); }, function(xs) {
+      if (xs && maxVisibleButtons !== 0) {
+        maxVisibleButtons = 0;
+        $scope.getBtns();
+      }
+    });
+    $scope.$watch(function() { return $mdMedia('sm'); }, function(sm) {
+      if (sm && maxVisibleButtons !== 2) {
+        maxVisibleButtons = 4;
+        $scope.getBtns();
+      }
+    });
+    $scope.$watch(function() { return $mdMedia('gt-sm'); }, function(gtSm) {
+      if (gtSm && maxVisibleButtons !== 7) {
+        maxVisibleButtons = 7;
+        $scope.getBtns();
+      }
+    });
     // number of items per page (defaults to 10 but can be overriden)
     $scope.numItemsPerPage = parseInt($scope.itemsPerPage) ? parseInt($scope.itemsPerPage) : 10;
     // page to show by default (defaults to the first page but can be overriden)

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Dashboard</title>
+    <meta name="author" content="Carter DeCew Tiernan">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- =========================== CSS INCLUDES =========================== -->
+    <!-- Roboto Font -->
+    <link href="assets\css\font.css" rel="stylesheet" type="text/css">
+
+    <!-- Library CSS -->
+    <link rel="stylesheet" href="node_modules\angular-material\angular-material.min.css">
+    <link rel="stylesheet" href="node_modules\nvd3\build\nv.d3.min.css">
+    <!-- DRAGABLE FUNCTIONALITY -->
+    <link rel="stylesheet" href="node_modules\jquery-ui-dist\jquery-ui.min.css">
+    <link rel="stylesheet" href="node_modules\gridstack\dist\gridstack.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets\css\colorPallete.css">
+    <link rel="stylesheet" href="assets\css\customStyles.css">
+    <link rel="stylesheet" href="assets\css\code.css">
+  </head>
+
+  <body ng-app="Dashboard" ng-cloak>
+  <!-- =========================== CONTENT OF APP =========================== -->
+    <smp-content> </smp-content>
+
+  <!-- =========================== JS INCLUDES =========================== -->
+  <script src="node_modules\jquery\dist\jquery.min.js" type="text/javascript"></script>
+  <script src="node_modules\moment\moment.js" type="text/javascript"></script>
+  <script src="node_modules\moment-timezone\builds\moment-timezone-with-data.min.js" type="text/javascript"></script>
+  <!-- DRAGABLE FUNCTIONALITY -->
+  <script src="node_modules\lodash\lodash.min.js" type="text/javascript"></script>
+  <script src="node_modules\jquery-ui-dist\jquery-ui.min.js" type="text/javascript"></script>
+  <script src="node_modules\gridstack\dist\gridstack.min.js" type="text/javascript"></script>
+
+
+  <!-- Angular Material requires Angular.js Libraries -->
+  <!-- Bind Compile for directives on tabs -->
+  <script src="node_modules\angular\angular.min.js" type="text/javascript"></script>
+  <script src="node_modules\angular-animate\angular-animate.min.js" type="text/javascript"></script>
+  <script src="node_modules\angular-aria\angular-aria.min.js" type="text/javascript"></script>
+  <script src="node_modules\angular-messages\angular-messages.min.js" type="text/javascript"></script>
+  <script src="node_modules\angular-sanitize\angular-sanitize.min.js" type="text/javascript"></script>
+  <script src="node_modules\ngstorage\ngStorage.min.js" type="text/javascript"></script>
+  <!-- Angular Material Library -->
+  <script src="node_modules\angular-bind-html-compile\angular-bind-html-compile.min.js" type="text/javascript"></script>
+
+  <script src="node_modules\angular-material\angular-material.min.js" type="text/javascript"></script>
+
+  <script src="node_modules\d3\d3.min.js" type="text/javascript"></script>
+  <script src="node_modules\nvd3\build\nv.d3.min.js" type="text/javascript"></script>
+
+    <!-- Angular Modules -->
+    <script src="app/app.module.js" type="text/javascript"></script>
+      <!-- SERVICES -->
+      <script src="app/services/s-dashboardApi.js" type="text/javascript"></script>
+      <script src="app/services/s-widgets.js" type="text/javascript"></script>
+      <script src="app/services/s-update.js" type="text/javascript"></script>
+
+      <!-- FILTERS -->
+      <script src="app/filters/f-range.js" type="text/javascript"></script>
+      <script src="app/filters/f-time.js" type="text/javascript"></script>
+
+      <!-- DIRECTIVES -->
+      <script src="app/directives/core/d-content.js" type="text/javascript"></script>
+      <script src="app/directives/core/d-footer.js" type="text/javascript"></script>
+      <script src="app/directives/core/d-pagination.js" type="text/javascript"></script>
+      <script src="app/directives/core/d-expando.js" type="text/javascript"></script>
+      <script src="app/directives/core/d-staticWidget.js" type="text/javascript"></script>
+      <script src="app/directives/core/d-widget.js" type="text/javascript"></script>
+
+      <script src="app/directives/tabs/d-allsensors.js" type="text/javascript"></script>
+      <script src="app/directives/tabs/d-ecp.js" type="text/javascript"></script>
+      <script src="app/directives/tabs/d-ecp-app.js" type="text/javascript"></script>
+      <script src="app/directives/tabs/d-ecp-data.js" type="text/javascript"></script>
+      <script src="app/directives/tabs/d-performance.js" type="text/javascript"></script>
+      <script src="app/directives/tabs/d-summary.js" type="text/javascript"></script>
+      <script src="app/directives/tabs/d-playground.js" type="text/javascript"></script>
+      <script src="app/directives/tabs/d-showcase.js" type="text/javascript"></script>
+
+      <script src="app/directives/showcase/d-showcaseSidenav.js" type="text/javascript"></script>
+      <script src="app/directives/showcase/d-showcaseLineChart.js" type="text/javascript"></script>
+      <script src="app/directives/showcase/d-showcaseSparklineChart.js" type="text/javascript"></script>
+      <script src="app/directives/showcase/d-showcaseSensorDisplay.js" type="text/javascript"></script>
+      <script src="app/directives/showcase/d-showcaseStateIcon.js" type="text/javascript"></script>
+      <script src="app/directives/showcase/d-showcaseMetadataTooltip.js" type="text/javascript"></script>
+      <script src="app/directives/showcase/d-showcaseWidget.js" type="text/javascript"></script>
+
+      <script src="app/directives/visualizers/d-nvd3Chart.js" type="text/javascript"></script>
+      <script src="app/directives/visualizers/d-sensorDisplay.js" type="text/javascript"></script>
+      <script src="app/directives/visualizers/d-metadata.js" type="text/javascript"></script>
+      <script src="app/directives/visualizers/d-stateIcon.js" type="text/javascript"></script>
+      <script src="app/directives/visualizers/d-sensorRow.js" type="text/javascript"></script>
+
+      <!-- CONTROLLERS -->
+      <script src="app/controllers/core/c-content.js" type="text/javascript"></script>
+      <script src="app/controllers/core/c-pagination.js" type="text/javascript"></script>
+      <script src="app/controllers/core/c-staticWidget.js" type="text/javascript"></script>
+      <script src="app/controllers/core/c-widget.js" type="text/javascript"></script>
+      <script src="app/controllers/core/c-widgetMenu.js" type="text/javascript"></script>
+      <script src="app/controllers/core/c-widgetAdvancedMenu.js" type="text/javascript"></script>
+      <script src="app/controllers/core/c-widgetListDialog.js" type="text/javascript"></script>
+      <script src="app/controllers/core/c-widgetIODialog.js" type="text/javascript"></script>
+      <script src="app/controllers/core/c-settingsDialog.js" type="text/javascript"></script>
+
+      <script src="app/controllers/tabs/c-showcase.js" type="text/javascript"></script>
+      <script src="app/controllers/tabs/c-allsensors.js" type="text/javascript"></script>
+      <script src="app/controllers/tabs/c-ecp.js" type="text/javascript"></script>
+      <script src="app/controllers/tabs/c-ecp-app.js" type="text/javascript"></script>
+      <script src="app/controllers/tabs/c-ecp-data.js" type="text/javascript"></script>
+      <script src="app/controllers/tabs/c-performance.js" type="text/javascript"></script>
+      <script src="app/controllers/tabs/c-playground.js" type="text/javascript"></script>
+      <script src="app/controllers/tabs/c-summary.js" type="text/javascript"></script>
+
+      <script src="app/controllers/showcase/c-showcaseLineChart.js" type="text/javascript"></script>
+      <script src="app/controllers/showcase/c-showcaseSparklineChart.js" type="text/javascript"></script>
+      <script src="app/controllers/showcase/c-showcaseSensorDisplay.js" type="text/javascript"></script>
+      <script src="app/controllers/showcase/c-showcaseStateIcon.js" type="text/javascript"></script>
+      <script src="app/controllers/showcase/c-showcaseMetadataTooltip.js" type="text/javascript"></script>
+      <script src="app/controllers/showcase/c-showcaseWidget.js" type="text/javascript"></script>
+
+      <script src="app/controllers/visualizers/c-nvd3Chart.js" type="text/javascript"></script>
+      <script src="app/controllers/visualizers/c-sensorDisplay.js" type="text/javascript"></script>
+      <script src="app/controllers/visualizers/c-stateIcon.js" type="text/javascript"></script>
+      <script src="app/controllers/visualizers/c-metadata.js" type="text/javascript"></script>
+      <script src="app/controllers/visualizers/c-sensorRow.js" type="text/javascript"></script>
+  </body>
+</html>

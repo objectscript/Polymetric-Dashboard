@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2016.2.1 (Build 803U)" ts="2016-11-30 15:44:25">
+<Class name="DashboardTest.TimeTest">
+<Super>%SYS.Monitor.AbstractDashboard</Super>
+<TimeChanged>64252,56647.346249</TimeChanged>
+<TimeCreated>64239,36577.953395</TimeCreated>
+
+<Method name="Start">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+   Try {
+	
+	 d ..CreateSensor("TimeTest","", "", "", 0, "Minutes",">","Minute in the hour")
+	
+     Set ..State="OK"
+   } Catch {
+     Set ..State="ERROR"
+   }
+
+	q $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetSensors">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    do ..SetSensor("TimeTest", $FN($PIECE($ZTIME($PIECE($HOROLOG,",",2)),":",2),"-"))
+	q $$$OK
+]]></Implementation>
+</Method>
+</Class>
+</Export>

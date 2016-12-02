@@ -1,3 +1,7 @@
+/*
+Author: Carter DeCew Tiernan
+*/
+
 (function() {
   'use strict';
 
@@ -9,6 +13,9 @@
     var outListener;
     var visible = false;
     var gotData = false;
+    var namespace;
+    var sensor;
+    var item;
 
     // default position (although it will never been shown in this position)
     $scope.pos = {left: 0, top: 0};
@@ -26,7 +33,7 @@
         // event is triggered (that would be A LOT of useless REST calls)
         overListener = $timeout(function() {
           // Get the meda data, and chain the promises so only after the data was retieved will the data be parsed, and only after that the popup will be shown
-          if (!gotData) {
+          if (needData()) {
             dashboard.getSensor($scope.namespace, $scope.sensor, $scope.item)
               .then(function(data) {
                 populateMetadata(data)
@@ -41,6 +48,10 @@
         }, 1000);
       }
     });
+
+    function needData() {
+      return !gotData || namespace !== $scope.namespace || sensor !== $scope.sensor || item !== $scope.item;
+    }
 
     // when leaving the parent element hide the metadata popup
     $element.parent().on('mouseout', function(event) {
@@ -62,21 +73,17 @@
       // cancel mouseover
       $timeout.cancel(overListener);
       overListener = undefined;
+
       if (visible) {
         // similar functionality to mouseover
         outListener = $timeout(function() {
           if (!$scope.hoverMeta) {
-            // hide the popup
-            $element
-              .removeClass('visible')
-              .addClass('hidden');
-
+            $element.remove();
             visible = false;
           }
         }, 250);
       }
     }
-
     function showMetadata(event) {
       // if the metadata has not been shown it will be a child node of the element it was placed inside
       // in order to make it hover above all elements on the page it must be moved to the bottom of the body of the DOM
@@ -99,10 +106,8 @@
         // ALL MEASURED IN PX
         var winW = $window.innerWidth; // width of the browser window (including scrollbar width)
         var winH = $window.innerHeight; // height of the iframe (toolbar down to bottom of browser window)
-        var scrollW = tabElem.innerWidth() - tabElem.prop('scrollWidth'); // width of the vertical scrollbar
         var scrollX = tabElem.scrollLeft(); // distance the user has scrolled from the absolute left of the page
         var scrollY = tabElem.scrollTop(); // distance the user has scrolled from the absolute top of the iframe
-        //var toolbarHeight = $('md-tabs-wrapper').height(); // height of the toolbar
         var elemW = $element[0].clientWidth; // width of the metadata popup
         var elemH = $element[0].clientHeight; // height of the metadata popup
         var sidePad = 10; // amount of padding I want when placing the metadata popup on the edge of the screen
@@ -112,11 +117,10 @@
         var elemX = event.clientX - 5;
         // position is relative to bottom of toolbar but event is based from top of toolbar, so account for that
         var elemY = event.clientY - 5;
-
         // check to see if the right most of the elemet is off the window's right edge
-        if (elemX + elemW + scrollW > winW) {
+        if (elemX + elemW > winW) {
           // if so move it left so the right most of the elment is 10 pixels to the left of the vertical scrollbar
-          elemX = scrollX + winW - elemW - scrollW - sidePad;
+          elemX = scrollX + winW - elemW - sidePad;
         }
         // check to see if the bottom of the element is off the window's bottom edge
         if (elemY + elemH > winH) {
@@ -157,6 +161,10 @@
           } else {
             $scope.desc = data.description;
           }
+
+          namespace = $scope.namespace;
+          sensor = $scope.sensor;
+          item = $scope.item;
           resolve('got data');
         } else {
           reject('no data');

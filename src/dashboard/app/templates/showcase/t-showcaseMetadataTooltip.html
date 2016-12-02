@@ -1,0 +1,177 @@
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - DEMO - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<div>
+  <smp-expando open="true" target="showcaseMetadataDemo">
+    <div smp-expando-toggle layout="row" layout-align="left center" flex="100" class="white-text primary-hue1-fill md-padding doesAction" md-whiteframe="2">
+      <h2 class="md-headline no-margin">Demo</h2>
+    </div>
+    <div smp-expando-content="showcaseMetadataDemo">
+      <div class="contentContainer">
+        <div layout="row" layout-wrap layout-align="center center" flex="100" class="md-padding">
+          <div flex="30" class="accent-fill white-text doesAction" layout-margin style="border-radius: 3px; text-align: center;" md-whiteframe="1">
+            <p>Hover to show metadata</p>
+
+            <smp-metadata
+              id="showcase-MetadataTooltip"
+              namespace="{{scMetadata.namespace}}"
+              sensor="{{scMetadata.sensor}}"
+              item="{{scMetadata.item}}"
+            />
+          </div>
+
+          <div flex="50" flex-offset="10">
+            <p class="md-body-1">Place the Metadata Tooltip within any html element. Now when a user hovers over its parent element the Metadata Tooltip will become visible.</p>
+          </div>
+        </div>
+
+        <div layout="row" layout-wrap flex="100" layout-align="center center" layout-margin>
+          <!-- Namespace Select -->
+          <div flex-xs="100" flex-sm="100" flex-gt-sm="30">
+            <md-input-container  flex="100" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
+              <label style="padding-bottom:0">Namespace</label>
+              <md-select
+                ng-model="scMetadata.namespace"
+                ng-change="scMetadata.sensor = ''; scMetadata.item = ''"
+                class="white-fill"
+                md-whiteframe="1"
+                aria-label="showcase metadata tooltip namespace select"
+                style="display: block; padding-top: 0;">
+                <md-option ng-repeat="(namespace, sensors) in sensors" value="{{namespace}}" >
+                  {{namespace}}
+                </md-option>
+              </md-select>
+            </md-input-container>
+          </div>
+
+          <!-- Sensor Select -->
+          <div flex-xs="100" flex-sm="100" flex-gt-sm="30">
+            <md-input-container flex="100" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
+              <label style="padding-bottom:0">Sensor</label>
+              <md-select
+                ng-disabled="!scMetadata.namespace"
+                ng-model="scMetadata.sensor"
+                ng-change="scMetadata.item = ''"
+                class="white-fill"
+                md-whiteframe="1"
+                aria-label="showcase metadata tooltip sensor select"
+                style="display: block; padding-top: 0;">
+                <md-option ng-repeat="(sensor, props) in sensors[scMetadata.namespace]" value="{{sensor}}" >
+                  {{sensor}}
+                </md-option>
+              </md-select>
+            </md-input-container>
+          </div>
+
+          <!-- Item Select  -->
+          <div flex-xs="100" flex-sm="100" flex-gt-sm="30">
+            <md-input-container  flex="100" layout-padding class="widgetMenuSelect no-padding no-margin" style="display:block">
+              <label style="padding-bottom:0">Item</label>
+              <md-select
+                ng-disabled="!scMetadata.sensor || !scMetadata.namespace"
+                ng-model="scMetadata.item"
+                class="white-fill"
+                md-whiteframe="1"
+                aria-label="showcase metadata tooltip item select"
+                style="display: block; padding-top: 0;">
+                <md-option ng-repeat="item in sensors[scMetadata.namespace][scMetadata.sensor].items" value="{{item}}">
+                  {{item}}
+                </md-option>
+              </md-select>
+            </md-input-container>
+          </div>
+
+          <div layout="row" layout-align="center center" flex="auto">
+            <md-button aria-label="Apply" ng-click="scMetadata.update()" class="md-raised primary-fill white-text">Apply</md-button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </smp-expando>
+</div>
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - HTML - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<div>
+  <smp-expando open="true" target="showcaseMetadataHtml">
+    <div smp-expando-toggle layout="row" layout-align="left center" flex="100" class="white-text primary-hue1-fill md-padding doesAction" md-whiteframe="2">
+      <h2 class="md-headline no-margin">HTML</h2>
+    </div>
+
+    <div smp-expando-content="showcaseMetadataHtml" md-whiteframe="2">
+      <div class="contentContainer">
+        <div layout="row" layout-align="left center" flex="100"  class="smp-code">
+<pre>
+  <code class="smp-text">
+    <span class="smp-punct">&lt;</span><span class="smp-elem">div</span><span class="smp-punct">&gt;</span>
+      <span class="smp-punct">&lt;</span><span class="smp-elem">p</span><span class="smp-punct">&gt;</span>Hover to show metadata<span class="smp-punct">&lt;/</span><span class="smp-elem">p<span class="smp-punct">&gt;</span>
+
+      <span class="smp-punct">&lt;</span><span class="smp-elem">smp-metadata</span>
+        <span class="smp-attr">namespace</span> <span class="smp-punct">=</span> <span class="smp-str">"{{scMetadata.namespace}}"</span>
+        <span class="smp-attr">sensor</span> <span class="smp-punct">=</span> <span class="smp-str">"{{scMetadata.sensor}}"</span>
+        <span class="smp-attr">item</span> <span class="smp-punct">=</span> <span class="smp-str">"{{scMetadata.item}}"</span>
+      <span class="smp-punct">&gt; &lt;/</span><span class="smp-elem">smp-metadata</span><span class="smp-punct">&gt;</span>
+    <span class="smp-punct">&lt;/</span><span class="smp-elem">div</span><span class="smp-punct">&gt;</span>
+  </code>
+</pre>
+        </div>
+      </div>
+    </div>
+  </smp-expando>
+</div>
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - USE - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --->
+<div>
+  <smp-expando open="true" target="showcaseMetadataUse">
+    <div smp-expando-toggle layout="row" layout-align="left center" flex="100" class="white-text primary-hue1-fill md-padding doesAction" md-whiteframe="2">
+      <h2 class="md-headline no-margin">Options</h2>
+    </div>
+    <div smp-expando-content="showcaseMetadataUse" class="white-fill" md-whiteframe="2">
+      <div class="contentContainer">
+        <div layout="column" flex="100" class="">
+          <md-list>
+            <md-subheader class="md-no-sticky accent-text">Required</md-subheader>
+            <md-list-item layout="row" class="md-offset">
+              <p layout="row" flex="100">
+                <span flex-xs="30" flex-sm="20" flex-gt-sm="15" style="font-weight:bold;" class="md-subhead">Attribute</span>
+                <span flex-xs="20" flex-sm="15" flex-gt-sm="10" style="font-weight:bold;" class="md-subhead">Type</span>
+                <span flex="" style="font-weight:bold;" class="md-subhead">Description</span>
+                <span flex-xs="20" flex-sm="15" flex-gt-sm="10" style="font-weight:bold;text-align:right;" class="md-subhead">Default</span>
+              </p>
+            </md-list-item>
+            <md-list-item layout="row" class="md-offset" ng-repeat="attr in scMetadata.attributes.Required">
+              <p layout="row" flex="100">
+                <span flex-xs="30" flex-sm="20" flex-gt-sm="15" class="md-body-1">{{attr.attr}}</span>
+                <span flex-xs="20" flex-sm="15" flex-gt-sm="10" class="md-body-1">{{attr.type}}</span>
+                <span flex="" class="md-body-1">{{attr.desc}}</span>
+                <span flex-xs="20" flex-sm="15" flex-gt-sm="10" class="md-body-1" style="text-align:right;">{{attr.default}}</span>
+              </p>
+            </md-list-item>
+            <md-divider ng-if="scMetadata.attributes.Optional.length !== 0"></md-divider>
+
+            <md-subheader  ng-if="scMetadata.attributes.Optional.length !== 0"class="md-no-sticky">Optional</md-subheader>
+            <md-list-item  ng-if="scMetadata.attributes.Optional.length !== 0"layout="row" class="md-offset">
+              <p layout="row" flex="100">
+                <span flex-xs="30" flex-sm="20" flex-gt-sm="15" style="font-weight:bold;" class="md-subhead">Attribute</span>
+                <span flex-xs="20" flex-sm="15" flex-gt-sm="10" style="font-weight:bold;" class="md-subhead">Type</span>
+                <span flex="" style="font-weight:bold;" class="md-subhead">Description</span>
+                <span flex-xs="20" flex-sm="15" flex-gt-sm="10" style="font-weight:bold;text-align:right;" class="md-subhead">Default</span>
+              </p>
+            </md-list-item>
+            <md-list-item  ng-if="scMetadata.attributes.Optional.length !== 0"layout="row" class="md-offset" ng-repeat="attr in scMetadata.attributes.Optional">
+              <p layout="row" flex="100">
+                <span flex-xs="30" flex-sm="20" flex-gt-sm="15" class="md-body-1">{{attr.attr}}</span>
+                <span flex-xs="20" flex-sm="15" flex-gt-sm="10" class="md-body-1">{{attr.type}}</span>
+                <span flex="" class="md-body-1">{{attr.desc}}</span>
+                <span flex-xs="20" flex-sm="15" flex-gt-sm="10" class="md-body-1" style="text-align:right;">{{attr.default}}</span>
+              </p>
+            </md-list-item>
+
+          </md-list>
+        </div>
+      </div>
+    </div>
+  </smp-expando>
+</div>

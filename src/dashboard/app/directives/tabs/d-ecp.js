@@ -1,3 +1,7 @@
+/*
+Author: Carter DeCew Tiernan
+*/
+
 (function() {
   'use strict';
 
@@ -7,7 +11,7 @@
       return {
         restrict: 'E',
         templateUrl: 'app/templates/tabs/t-ecp.html',
-        controller: 'ecpCtrl as ecp',
+        controller: 'ecpCtrl as ecp'
       };
     });
 })();

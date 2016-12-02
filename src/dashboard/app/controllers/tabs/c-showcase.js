@@ -1,9 +1,13 @@
+/*
+Author: Carter DeCew Tiernan
+*/
+
 (function() {
   'use strict';
 
   var tab = angular.module('tabs');
 
-  tab.controller('showcaseCtrl', ['$rootScope', '$scope', '$filter', '$timeout', '$localStorage', '$element', '$mdSidenav', 'dashboard', function($rootScope, $scope, $filter, $timeout, $localStorage, $element, $mdSidenav, dashboard) {
+  tab.controller('showcaseCtrl', ['$rootScope', '$scope', '$filter', '$timeout', '$localStorage', '$element', '$mdSidenav', '$mdMedia', 'dashboard', function($rootScope, $scope, $filter, $timeout, $localStorage, $element, $mdSidenav, $mdMedia, dashboard) {
     var _this = this;
 
     // store one sensors data globally for all showcase sections so they will show the user selected sensor automatically
@@ -17,22 +21,6 @@
       });
 
     // takes the returned array of sensor objects and builds a heirachical structure
-    /*SCHEMA
-      sensors = {
-          namespace: {
-            sensor: {
-              units: string,
-              items: [
-                string,
-                ... (more items)
-              ]
-            },
-            ... (more sensors)
-          },
-          ... (more namespaces)
-        }
-      }
-    */
     function respHandler(data) {
       if (data) {
         var sensors = {};
@@ -65,11 +53,13 @@
     // if the localstorage object has not be initialized, do so
     if (!angular.isObject($localStorage.Dashboard)) $localStorage.Dashboard = {};
     // pull data from local storage if exists, otherwise go with defaults
-    _this.curShowcaseSection = $localStorage.Dashboard.showcaseSection ? $localStorage.Dashboard.showcaseSection : 'DashboardMethods';
-    _this.open = true;
+    _this.curShowcaseSection = $localStorage.Dashboard.showcaseSection ? $localStorage.Dashboard.showcaseSection : 'Line';
+    _this.open = $mdMedia('gt-sm');
 
     _this.goToSection = function(section) {
       _this.curShowcaseSection = section;
+
+      _this.toggleSidenav();
 
       // if the localstorage object has not be initialized, do so
       if (!angular.isObject($localStorage.Dashboard)) $localStorage.Dashboard = {};
@@ -78,29 +68,6 @@
 
     _this.isSidenavOpen = function() {
       return _this.open;
-    };
-
-    _this.parentCategory = getParentCategory();
-    function getParentCategory() {
-      var parentCategory = '';
-      if (['DashboardMethods', 'DashboardSettings'].indexOf(_this.curShowcaseSection) !== -1) {
-        parentCategory = 'Dashboard Service';
-      } else if (['Line', 'Sparkline', 'Sensor'].indexOf(_this.curShowcaseSection) !== -1) {
-        parentCategory = 'Visualization Tools';
-      } else if (['Tab', 'Expando'].indexOf(_this.curShowcaseSection) !== -1) {
-        parentCategory = 'Content Display';
-      }
-      return parentCategory;
-    }
-
-    _this.sectionDisplayNames = {
-      'DashboardMethods': 'REST API Routes',
-      'DashboardSettings': 'Other Functionality',
-      'Line': 'Line Chart',
-      'Sparkline': 'Sparkline Chart',
-      'Sensor': 'Sensor Display',
-      'Tab': 'Tabs',
-      'Expando': 'Expando'
     };
 
     _this.toggleSidenav = function() {

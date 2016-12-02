@@ -1,9 +1,13 @@
+/*
+Author: Carter DeCew Tiernan
+*/
+
 (function() {
   'use strict';
 
   var showcase = angular.module('showcase');
 
-  showcase.directive('smpShowcaseSidenav', ['$mdSidenav', function($mdSidenav) {
+  showcase.directive('smpShowcaseSidenav', ['$mdSidenav', '$mdMedia', function($mdSidenav, $mdMedia) {
       return {
         restrict: 'E',
         replace: true,
@@ -22,7 +26,7 @@
 
               scSideNav.appendTo(dash);
 
-              $mdSidenav('showcaseSidenav').toggle();
+              if ($mdMedia('gt-sm')) $mdSidenav('showcaseSidenav').toggle();
             }
           };
         }

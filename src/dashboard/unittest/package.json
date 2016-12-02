@@ -1,7 +1,9 @@
 {
-  "name": "rest-client",
+  "name": "Dashboard-Rest-Api-Tests",
   "version": "0.0.1",
-  "description": "A unit test package for the Dashboard.",
+  "private": true,
+  "description": "A unit test suite for the Dashboard's REST API.",
+  "author": "Carter DeCew Tiernan <cartiernan@gmail.com>",
   "main": "restclient.js",
   "scripts": {
     "test": "mocha restclient.js"
@@ -12,5 +14,6 @@
     "mocha": "=3.1.2",
     "btoa": "=1.1.2",
     "moment": "=2.15.2"
-  }
+  },
+  "license": "MIT"
 }
