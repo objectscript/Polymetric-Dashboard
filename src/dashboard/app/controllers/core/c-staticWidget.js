@@ -7,7 +7,7 @@ Author: Carter DeCew Tiernan
 
   var core = angular.module('core');
 
-  core.controller('staticWidgetCtrl', ['$scope', '$q', '$element', '$compile', '$timeout', 'WidgetProvider', 'dashboard', function($scope, $q, $element, $compile, $timeout, WidgetProvider, dashboard) {
+  core.controller('staticWidgetCtrl', ['$scope', '$q', '$element', '$compile', '$timeout', 'WidgetProvider', function($scope, $q, $element, $compile, $timeout, WidgetProvider) {
     var _this = this;
 
     init();

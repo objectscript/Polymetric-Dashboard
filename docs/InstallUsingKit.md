@@ -1,5 +1,5 @@
 # Quick Start Guide
-Quickly install the System Monitor Dashboard using this kit.
+Quickly install the Polymetric Dashboard using this kit.
 
 **Table Of Contents**
 <!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
@@ -16,7 +16,7 @@ Quickly install the System Monitor Dashboard using this kit.
 The kit is made up of two xml files and one directory.
 
 ##### DashboardInstaller.xml
-  - This xml file is the only file you will need to interact with to install the System Monitor Dashboard. It automatically sets up all necessary functionality for you.
+  - This xml file is the only file you will need to interact with to install the Polymetric Dashboard. It automatically sets up all necessary functionality for you.
 
 ##### DashboardSupport.xml
   - This xml file is an export of all the Caché code needed for monitoring the Caché environment.
@@ -42,12 +42,12 @@ The kit is made up of two xml files and one directory.
  3. Import DashboardInstaller.xml
    - `set status = $System.OBJ.Load(PATH TO DASHBOARDINSTALLER.XML, "ck")`
       - example PATH TO DASHBOARDINSTALLER.XML: *C:/Users/user/Desktop/kit/DashboardInstaller.xml*
- 4. Install the System Monitor Dashboard
+ 4. Install the Polymetric Dashboard
    - `set status = ##class(SYS.Monitor.DashboardInstaller).Install(PATH TO KIT, DEVELOPMENT MODE)`
      - example PATH TO KIT: *C:/Users/user/Desktop/kit/*
 		 - DEVELOPMENT MODE: either 1 or 0.
-		 	- If 1: CSP Gateway caching of dashboard frontend files will be disabled, allowing for new changes to code to be shown immidiately.
- 		 	- If 0: CSP Gateway caching of dashboard frontend files will be enabled, allowing for faster load times, but new changes to code will not be shown.
+		 	- If 1: CSP Gateway caching of front end files will be disabled, allowing for new changes to code to be shown immidiately.
+ 		 	- If 0: CSP Gateway caching of front end files will be enabled, allowing for faster load times, but new changes to code will not be shown.
  5. Wait for the installation to complete.
    - *"Successfully Installed the Dashboard"* will be printed if the installation was successful
    - *"Failed to Install the Dashboard. Check for errors printed above, and returned by the Install Method"* will be printed along with the errors encountered if unsuccessful.
@@ -58,4 +58,4 @@ The kit is made up of two xml files and one directory.
      - PORT is the port the Cache Instance is using
  2. From the main page select "System Operation"
  3. From the "System Operation" menu select "System Dashboard"
- 4. Click the blue "System Monitor Dashboard" button
+ 4. Click the blue "Polymetric Dashboard" button

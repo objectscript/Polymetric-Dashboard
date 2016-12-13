@@ -7,7 +7,7 @@ Author: Carter DeCew Tiernan
 
   var core = angular.module('core');
 
-  core.controller('widgetCtrl', ['$scope', '$element', '$compile', '$timeout', 'WidgetProvider', 'dashboard', function($scope, $element, $compile, $timeout, WidgetProvider, dashboard) {
+  core.controller('widgetCtrl', ['$scope', '$element', '$compile', '$timeout', 'WidgetProvider', function($scope, $element, $compile, $timeout, WidgetProvider) {
     var _this = this;
     // get the correct widget from the widget provider
     _this.widget = $scope.widget = WidgetProvider.widget($scope.widgetId);

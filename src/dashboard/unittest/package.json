@@ -1,8 +1,8 @@
 {
-  "name": "Dashboard-Rest-Api-Tests",
-  "version": "0.0.1",
+  "name": "Polymetric-Dashboard-Rest-Api-Tests",
+  "version": "1.0.0",
   "private": true,
-  "description": "A unit test suite for the Dashboard's REST API.",
+  "description": "A unit test suite for the Polymetric-Dashboard's REST API.",
   "author": "Carter DeCew Tiernan <cartiernan@gmail.com>",
   "main": "restclient.js",
   "scripts": {

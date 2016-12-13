@@ -29,7 +29,7 @@ var sensorCalcDataVerification; // when the sensorToTest's chart data is recieve
 var allPassed = true; // flag used to test if all the tests were passed (if so "SUCCES" will be printed after all of the tests have been run)
 
 // The parent block of all tests
-describe('Dashboard REST API Test Suite\n', function() {
+describe('Polymetric-Dashboard REST API Test Suite\n', function() {
   /*****************************
    * Hooks into Testing Events *
    *****************************/

@@ -7,7 +7,7 @@ Author: Carter DeCew Tiernan
 
   var tab = angular.module('tabs');
 
-  tab.controller('ecpAppCtrl', ['$scope', '$q', '$timeout', '$compile', 'dashboard', function($scope, $q, $timeout, $compile, dashboard) {
+  tab.controller('ecpAppCtrl', ['$scope', '$q', '$timeout', '$compile', function($scope, $q, $timeout, $compile) {
     var _this = this;
 
     _this.widgets = [

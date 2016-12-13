@@ -1,11 +1,11 @@
 # Installation Using the Source Code
-Installation of the Dashboard can be compeleted without the use of the [quick start kit](https://github.com/CDTiernan/SystemMonitorDashboard/tree/master/dist). This approach is more technical but provides an overview of the components and functionality of the Dashboard. It is suggested that users who want to extend and customize the Dashboard follow these instructions so they can get a better idea of how and where metrics are collected and displayed.
+Installation of the Polymetric Dashboard can be compeleted manually. This approach is more technical but provides an overview of the components and functionality of the Polymetric Dashboard. It is suggested that users who want to extend and customize the Polymetric Dashboard follow these instructions so they can get a better idea of how and where metrics are collected and displayed.
 
 ## Download the Source Code
-To download the source code, you can either clone the repository or download the source code a specific version Dashboard by viewing the [realeases](https://github.com/CDTiernan/SystemMonitorDashboard/releases).
+The Polymetric Dashboard can be downloaded from the [realeases](https://github.com/intersystems/Polymetric-Dashboard) section of the GitHub repository.
 
 ## Components of the Source Code
-The source code is found in the [*/src*](https://github.com/CDTiernan/SystemMonitorDashboard/tree/master/src) directory, and is broken into two parts.
+The source code is found in the [*/src*](https://github.com/intersystems/Polymetric-Dashboard/tree/master/src) directory, and is broken into two parts.
 
 ##### DashboardSupport.xml
   - This xml file is an export of all the Caché code needed for monitoring the Caché environment.
@@ -28,7 +28,7 @@ The source code is found in the [*/src*](https://github.com/CDTiernan/SystemMoni
   - This directory contains all the front end code needed to display the metrics collected by the monitoring process.
 
 ## Installation
-The installation of the Dashboard inclues changes and additions to multiple aspects of the Cache environment; however, these changes are isolated and should not cause issues with existing functionality.
+The installation of the Polymetric Dashboard inclues changes and additions to multiple aspects of the Cache environment; however, these changes are isolated and should not cause issues with existing functionality.
 
 ###	Front End
 1. Move the */dashboard* directory from the source code into the */CSP/sys* sub-directory of the Cache install directory.
@@ -48,15 +48,13 @@ The installation of the Dashboard inclues changes and additions to multiple aspe
 2. From the %SYS namespace, import the back end supporting code contained within DashboardSupport.xml.
  - This can be done using Studio's "Import Local" function, or using the Cache Terminal by running the command `set status = $System.OBJ.Load(PATH TO DashboardSupport.xml, "ck")`
 
-3. Compile Dashboard.CSP, found in the *CACHE INSTALL DIRECTORY/CSP/sys/Dashboard* directory.
-
-3. Set up the necessary web applications.
+4. Set up the necessary web applications.
  1. From the System Management Portal select *System Adimistration -> Security -> Applications -> Web Applications*
  2. **/api/dashboard/** - The REST API
     1. Click "Create New Web Application"
     2. Set the appropriate properties.
        - Name: /api/dashboard/
-       - Description: Dashboard REST API
+       - Description: Polymetric Dashboard REST API
        - Namespace: %SYS
           - Do not select "Namespace Default Application"
        - Enable only "Application" and "CSP/ZEN"
@@ -75,7 +73,7 @@ The installation of the Dashboard inclues changes and additions to multiple aspe
      1. Click "Create New Web Application"
      2. Set up the appropriate properties.
         - Name: /csp/sys/dashboard
-        - Description: Dashboard
+        - Description: Polymetric Dashboard
         - Namespace: %SYS
            - Do not select "Namespace Default Application"
         - Enable only "Application"
@@ -101,7 +99,7 @@ The installation of the Dashboard inclues changes and additions to multiple aspe
         - Leave all settings in Custom Pages Blank
      3. Click "Save"
 
-4. Add the Dashboard Sensors to the System Monitor process
+5. Add the Polymetric Dashboard Sensors to the System Monitor process
    1. From the Cache Terminal go to the %SYS namespace
        - `zn "%SYS"`
    2. Run the System Monitor Manager Routine
@@ -115,10 +113,10 @@ The installation of the Dashboard inclues changes and additions to multiple aspe
    6. Class?
        - `SYS.Monitor.DashboardSensors`
    7. Description?
-       - `Default Dashboard Sensors`
+       - `Default Polymetric Dashboard Sensors`
    8. Exit to Main Menu
        - `4` then `3`
-5. Restart the System Monitor
+6. Restart the System Monitor
    1. Start/Stop System Monitor
        - `1`
    2. Stop, then Start the System Monitor
@@ -127,8 +125,6 @@ The installation of the Dashboard inclues changes and additions to multiple aspe
        - `3`
 
 
-## Using the Dashboard
+## Using the Polymetric Dashboard
 1. From the System Mangament Portal select *System Opertation -> System Dashboard*
 2. Click the last blue button labeled "Polymetric Dashboard"
-3. The Dashboard should be visible, and data collected will be displayed automatically.
- - Initially after setting up the Dashboard no data will be avaiblable, wait a minute or so and the charts will begin to show data.

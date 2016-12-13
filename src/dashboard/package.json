@@ -1,8 +1,8 @@
 {
-  "name": "Dashboard",
+  "name": "Polymetric-Dashboard",
   "version": "1.0.0",
   "private": true,
-  "description": "The Dashboard project is an open source extension to the Cache System Monitor. It aims to provide an intuitive and complete API for users to tailor the Cache System monitoring to their specific needs.",
+  "description": "The Polymetric-Dashboard project is an open source extension to the Cache System Monitor. It aims to provide an intuitive and complete API for users to tailor the Cache System monitoring to their specific needs.",
   "author": "Carter DeCew Tiernan <cartiernan@gmail.com>",
   "scripts": {
     "start": "node app.js"

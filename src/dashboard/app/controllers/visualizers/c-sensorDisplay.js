@@ -128,7 +128,6 @@ Author: Carter DeCew Tiernan
         var promises = [];
         // always need to call for chart data so the timestamp is updated
         if (callChartData) promises.push(dashboard.getChartData($scope.namespace, $scope.sensor, $scope.item, updater.lastUpdate, metricValues.readingInterval));
-        // promises.push(dashboard.getChartData($scope.namespace, $scope.sensor, $scope.item, lU, metricValues.readingInterval));
         // if calculated data is needed for the sensor display make that call as well
         if (callCalculatedData) promises.push(dashboard.getCalculatedData($scope.namespace, $scope.sensor, $scope.item, undefined, metricValues.readingInterval));
 

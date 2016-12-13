@@ -7,7 +7,7 @@ Author: Carter DeCew Tiernan
 
   var viz = angular.module('showcase');
 
-  viz.controller('showcaseStateIconCtrl', ['$scope', '$timeout', 'dashboard', function($scope, $timeout, dashboard) {
+  viz.controller('showcaseStateIconCtrl', ['$scope', '$timeout', function($scope, $timeout) {
     var _this = this;
 
     // default selections for the sensor display

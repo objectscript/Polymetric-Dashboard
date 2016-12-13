@@ -7,7 +7,7 @@ Author: Carter DeCew Tiernan
 
   var dialog = angular.module('overlay');
 
-  dialog.controller('widgetMenuCtrl', ['$scope', '$mdToast', '$mdDialog', 'mdPanelRef', 'WidgetProvider', 'dashboard', function($scope, $mdToast, $mdDialog, mdPanelRef, WidgetProvider, dashboard) {
+  dialog.controller('widgetMenuCtrl', ['$scope', '$mdToast', '$mdDialog', 'mdPanelRef', 'WidgetProvider', function($scope, $mdToast, $mdDialog, mdPanelRef, WidgetProvider) {
     var _this = this;
     // get the correct widget from the widget provider
     _this.widget = WidgetProvider.widget(_this.widgetId);

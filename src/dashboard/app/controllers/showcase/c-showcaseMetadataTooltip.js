@@ -7,7 +7,7 @@ Author: Carter DeCew Tiernan
 
   var viz = angular.module('showcase');
 
-  viz.controller('showcaseMetadataTooltipCtrl', ['$scope', 'dashboard', function($scope, dashboard) {
+  viz.controller('showcaseMetadataTooltipCtrl', ['$scope', function($scope) {
     var _this = this;
 
     // default selections for the metadata tooltip
