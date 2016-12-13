@@ -16,7 +16,7 @@ Author: Carter DeCew Tiernan
     _this.item = $scope.activeSensor.item;
     _this.update = update;
 
-    // gupdates the chart by calling the dashbaord broadcast method
+    // gupdates the chart by calling the dashboard broadcast method
     function update() {
       // update the global showcase sensor data
       $scope.activeSensor.namespace = _this.namespace;
