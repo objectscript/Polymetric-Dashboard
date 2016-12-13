@@ -1,10 +1,10 @@
-# The System Monitor Dashboard
+# The Polymetric Dashboard
 Fully customizable Caché system monitoring.
 
 **Table of Contents**
 <!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
 
-- [The System Monitor Dashboard](#the-system-monitor-dashboard)
+- [The Polymetric Dashboard](#the-polymetric-dashboard)
 	- [Overview](#overview)
 	- [Usage](#usage)
 		- [Requirements](#requirements)
@@ -19,7 +19,7 @@ Fully customizable Caché system monitoring.
 ## Overview
 Current Caché system monitoring functionality provides real-time information about a Caché environment. This allows for preventative measures to be taken before system failure by highlighting specific metrics when they are at unusual or dangerous values. Additionally, diagnosis of past or current erroneous events is aided by informative logs that are created by the system monitoring process.
 
-The System Monitor Dashboard project is a successor to the current system monitoring functionality. It combines new technology and modular design to create personalized and precise monitoring of a Caché environment as well as customizable and intuitive visualization of collected monitoring data.
+The Polymetric Dashboard project is a successor to the current system monitoring functionality. It combines new technology and modular design to create personalized and precise monitoring of a Caché environment as well as customizable and intuitive visualization of collected monitoring data.
 
 ## Usage
 
@@ -47,15 +47,15 @@ The System Monitor Dashboard project is a successor to the current system monito
 11. [gridstack](https://github.com/troolee/gridstack.js) v0.2.5
 
 ## Installation
-Head over to the [Releases](https://github.com/CDTiernan/SystemMonitorDashboard/releases) to download a specific version of the Dashboard.
+Head over to the [Releases](https://github.com/intersystems/Polymetric-Dashboard/releases) to download a specific version of the Polymetric Dashboard.
 
 #### Quick Start Kit
-An automated and quick installation process. Use the kit if you are not planning on customizing any of the code but want to use the monitoring capabilities of the System Monitoring Dashboard.
-- [Kit Install Instructions](https://github.com/CDTiernan/SystemMonitorDashboard/blob/master/docs/InstallUsingKit.md)
+An automated and quick installation process. Use the kit if you are not planning on customizing any of the code but want to use the monitoring capabilities of the Polymetric Dashboard.
+- [Kit Install Instructions](https://github.com/intersystems/Polymetric-Dashboard/blob/master/docs/InstallUsingKit.md)
 
 #### Source Code
-A manual and more complex installation process. Download the source code if you want to more fully understand functionality of the System Monitoring Dashboard and be able to contribute.
-- [Source Code Install Instructions](https://github.com/CDTiernan/SystemMonitorDashboard/blob/master/docs/InstallUsingSourceCode.md)
+A manual and more complex installation process. Download the source code if you want to more fully understand functionality of the Polymetric Dashboard and be able to contribute.
+- [Source Code Install Instructions](https://github.com/intersystems/Polymetric-Dashboard/blob/master/docs/InstallUsingSourceCode.md)
 
 ## Documentation
 More detailed documentation can be found on the [InterSystems'](https://docs.intersystems.com/webdocs/GED/GED.html) website.
