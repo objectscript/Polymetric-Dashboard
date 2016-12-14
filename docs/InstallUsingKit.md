@@ -46,7 +46,7 @@ The kit is made up of two xml files and one directory.
    - `set status = ##class(SYS.Monitor.DashboardInstaller).Install(PATH TO KIT, DEVELOPMENT MODE)`
      - example PATH TO KIT: *C:/Users/user/Desktop/kit/*
 		 - DEVELOPMENT MODE: either 1 or 0.
-		 	- If 1: CSP Gateway caching of front end files will be disabled, allowing for new changes to code to be shown immidiately.
+		 	- If 1: CSP Gateway caching of front end files will be disabled, allowing for new changes to code to be shown immediately.
  		 	- If 0: CSP Gateway caching of front end files will be enabled, allowing for faster load times, but new changes to code will not be shown.
  5. Wait for the installation to complete.
    - *"Successfully Installed the Dashboard"* will be printed if the installation was successful

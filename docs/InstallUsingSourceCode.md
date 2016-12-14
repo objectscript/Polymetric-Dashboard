@@ -1,5 +1,5 @@
 # Installation Using the Source Code
-Installation of the Polymetric Dashboard can be compeleted manually. This approach is more technical but provides an overview of the components and functionality of the Polymetric Dashboard. It is suggested that users who want to extend and customize the Polymetric Dashboard follow these instructions so they can get a better idea of how and where metrics are collected and displayed.
+Installation of the Polymetric Dashboard can be completed manually. This approach is more technical but provides an overview of the components and functionality of the Polymetric Dashboard. It is suggested that users who want to extend and customize the Polymetric Dashboard follow these instructions so they can get a better idea of how and where metrics are collected and displayed.
 
 ## Download the Source Code
 The Polymetric Dashboard can be downloaded from the [realeases](https://github.com/intersystems/Polymetric-Dashboard) section of the GitHub repository.
@@ -28,19 +28,21 @@ The source code is found in the [*/src*](https://github.com/intersystems/Polymet
   - This directory contains all the front end code needed to display the metrics collected by the monitoring process.
 
 ## Installation
-The installation of the Polymetric Dashboard inclues changes and additions to multiple aspects of the Cache environment; however, these changes are isolated and should not cause issues with existing functionality.
+The installation of the Polymetric Dashboard includes changes and additions to multiple aspects of the Cache environment; however, these changes are isolated and should not cause issues with existing functionality.
 
 ###	Front End
-1. Move the */dashboard* directory from the source code into the */CSP/sys* sub-directory of the Cache install directory.
- - An example of where to put the front end directory is *C:/InterSystems/Cache/CSP/sys*
- - This directory is suggested, but anywhere on the file system will work, it is important to remember the path to the *dashboard* directory as the bankend will need to be told where to find it.
+1. Some of the dependencies are pulled from GitHun and require that [git](https://git-scm.com/downloads) be installed.
 
 2. Install the dependencies using [node package manager](https://www.npmjs.com/)
  - From the command line navigate to the front end directory (*C:/InterSystems/Cache/CSP/sys/dashboard*) run the command `npm install`
 
+3. Move the */dashboard* directory from the source code into the */CSP/sys* sub-directory of the Cache install directory.
+  - An example of where to put the front end directory is *C:/InterSystems/Cache/CSP/sys*
+  - This directory is suggested, but anywhere on the file system will work, it is important to remember the path to the *dashboard* directory as the back end will need to be told where to find it.
+
 ###	Back End
-1. Add write privledges to CACHELIB
- 1. From the System Management Portal select *System Adimistration -> Configuration -> System Configuration -> Local Databases*
+1. Add write privileges to CACHELIB
+ 1. From the System Management Portal select *System Administration -> Configuration -> System Configuration -> Local Databases*
  2. Select "CACHELIB"
  3. Uncheck "Always Mount Read-Only"
  4. Click "Save"
@@ -49,7 +51,7 @@ The installation of the Polymetric Dashboard inclues changes and additions to mu
  - This can be done using Studio's "Import Local" function, or using the Cache Terminal by running the command `set status = $System.OBJ.Load(PATH TO DashboardSupport.xml, "ck")`
 
 4. Set up the necessary web applications.
- 1. From the System Management Portal select *System Adimistration -> Security -> Applications -> Web Applications*
+ 1. From the System Management Portal select *System Administration -> Security -> Applications -> Web Applications*
  2. **/api/dashboard/** - The REST API
     1. Click "Create New Web Application"
     2. Set the appropriate properties.
@@ -59,14 +61,14 @@ The installation of the Polymetric Dashboard inclues changes and additions to mu
           - Do not select "Namespace Default Application"
        - Enable only "Application" and "CSP/ZEN"
        - Leave Permitted Classes blank
-       - Within Securtiy Settings set
+       - Within Security Settings set
           - Resource Required %Admin_Operate
        - Set Session Settings to
            - Session Timeout: 3600
            - Leave Event Class blank
            - Use Cookie for session: "Always"
            - Session Cookie Path: "/api/dashboard/"
-       - Dispatch Class: "Api.Dashboard"
+       - Dispatch Class: "%Api.Dashboard"
        - All other settings should be left as the default.
     3. Click "Save"
   3. **/csp/sys/dashboard/** - Serves the front end files
@@ -78,7 +80,7 @@ The installation of the Polymetric Dashboard inclues changes and additions to mu
            - Do not select "Namespace Default Application"
         - Enable only "Application"
         - Leave Permitted Classes blank
-        - Set Securtiy Settings to
+        - Within Security Settings set
            - Resource Required %Admin_Operate
            - Group By ID: %ISCMgtPortal
            - Do not change Allowed Authentication Methods
@@ -92,7 +94,7 @@ The installation of the Polymetric Dashboard inclues changes and additions to mu
             - Serve Files: Always
             - Serve Files Timeout: 3600
             - CSP Files Physical Path: The path to the front end code, the *dashboard/* directory referenced in the Front End section
-                - Example: `C:/Users/example/Desktop/SystemMonitorDashboard/src/`
+                - Example: `C:/InterSystems/Cache/CSP/sys/dashboard`
             - Leave Package Name blank
             - Leave Default Superclass blank
             - CSP Settings only check "Recurse" and "Lock CSP Name"
@@ -126,5 +128,5 @@ The installation of the Polymetric Dashboard inclues changes and additions to mu
 
 
 ## Using the Polymetric Dashboard
-1. From the System Mangament Portal select *System Opertation -> System Dashboard*
+1. From the System Management Portal select *System Operation -> System Dashboard*
 2. Click the last blue button labeled "Polymetric Dashboard"
