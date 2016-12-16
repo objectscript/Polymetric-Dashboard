@@ -31,16 +31,16 @@ The source code is found in the [*/src*](https://github.com/intersystems/Polymet
 The installation of the Polymetric Dashboard includes changes and additions to multiple aspects of the Cache environment; however, these changes are isolated and should not cause issues with existing functionality.
 
 ###	Front End
-1. Some of the dependencies are pulled from GitHun and require that [git](https://git-scm.com/downloads) be installed.
+1. Some of the dependencies are pulled from GitHub and require that [git](https://git-scm.com/downloads) be installed.
 
-2. From the command line navigate to the front end directory (*C:/InterSystems/Cache/CSP/sys/dashboard*)
-
-3. Install the dependencies using [node package manager](https://www.npmjs.com/)
- -  run the command `npm install`
-
-4. Move the */dashboard* directory from the source code into the */CSP/sys* sub-directory of the Cache install directory.
+2. Move the */dashboard* directory from the source code into the */CSP/sys* sub-directory of the Cache install directory.
   - An example of where to put the front end directory is *C:/InterSystems/Cache/CSP/sys*
   - This directory is suggested, but anywhere on the file system will work, it is important to remember the path to the *dashboard* directory as the back end will need to be told where to find it.
+
+3. From the command line navigate to the front end directory (*C:/InterSystems/Cache/CSP/sys/dashboard*)
+
+4. Install the dependencies using [node package manager](https://www.npmjs.com/)
+ -  run the command `npm install`
 
 ###	Back End
 1. Add write privileges to CACHELIB
