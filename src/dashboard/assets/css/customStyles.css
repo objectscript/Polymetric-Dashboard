@@ -32,20 +32,11 @@
 .smpHeader{
   margin-bottom:0;
 }
-.widgetHeader{
-  max-height: 50px;
-}
 .one-line {
   white-space: nowrap;
   overflow: auto;
 }
-.one-line::-webkit-scrollbar {
-  height: 0;
-  width: 0;
-  display: none;
-}
 .widgetSensorDisplay{
-  padding-left:26px;
   overflow: auto;
 }
 .hidden {

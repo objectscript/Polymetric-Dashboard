@@ -122,14 +122,16 @@ Author: Carter DeCew Tiernan
             height -= 40;
           }
           rString = '<div>' +
-                      '<h4 ng-if="' + _this.widget.settings.advanced.showTitle + '" flex="100" class="md-title no-margin blend-text doesAction one-line widgetHeader" style="text-align:center;" layout-padding>' +
-                        title +
-                        '<smp-metadata ' +
-                          'namespace="' + _this.widget.settings.namespace + '" ' +
-                          'sensor="' + _this.widget.settings.sensor + '" ' +
-                          'item="' + _this.widget.settings.item + '" ' +
-                        '</smp-metadata>' +
-                      '</h4>' +
+                      '<div style="overflow:hidden;max-height:40px;">' +
+                        '<h4 ng-if="' + _this.widget.settings.advanced.showTitle + '" flex="100" class="md-title no-margin blend-text one-line" style="text-align:center;height:200%;" layout-padding>' +
+                          title +
+                          '<smp-metadata ' +
+                            'namespace="' + _this.widget.settings.namespace + '" ' +
+                            'sensor="' + _this.widget.settings.sensor + '" ' +
+                            'item="' + _this.widget.settings.item + '" ' +
+                          '</smp-metadata>' +
+                        '</h4>' +
+                      '</div>' +
                       '<smp-nvd3-chart ' +
                         'id="LineChart' + _this.widget.id + '" ' +
                         'type="lineChart" ' +
@@ -164,14 +166,16 @@ Author: Carter DeCew Tiernan
             height -= 40;
           }
           rString = '<div>' +
-                      '<h4 ng-if="' + _this.widget.settings.advanced.showTitle + '" flex="100" class="md-title no-margin blend-text doesAction one-line widgetHeader" style="text-align:center;" layout-padding>' +
-                        title +
-                        '<smp-metadata ' +
-                          'namespace="' + _this.widget.settings.namespace + '" ' +
-                          'sensor="' + _this.widget.settings.sensor + '" ' +
-                          'item="' + _this.widget.settings.item + '" ' +
-                        '</smp-metadata>' +
-                      '</h4>' +
+                      '<div style="overflow:hidden;max-height:40px;">' +
+                        '<h4 ng-if="' + _this.widget.settings.advanced.showTitle + '" flex="100" class="md-title no-margin blend-text one-line" style="text-align:center;height:200%;" layout-padding>' +
+                          title +
+                          '<smp-metadata ' +
+                            'namespace="' + _this.widget.settings.namespace + '" ' +
+                            'sensor="' + _this.widget.settings.sensor + '" ' +
+                            'item="' + _this.widget.settings.item + '" ' +
+                          '</smp-metadata>' +
+                        '</h4>' +
+                      '</div>' +
                       '<smp-nvd3-chart ' +
                         'id="SparklineChart' + _this.widget.id + '" ' +
                         'type="sparklineChart" ' +

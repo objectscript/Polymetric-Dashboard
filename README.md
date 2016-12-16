@@ -58,4 +58,4 @@ A manual and more complex installation process. Download the source code if you 
 - [Source Code Install Instructions](https://github.com/intersystems/Polymetric-Dashboard/blob/master/docs/InstallUsingSourceCode.md)
 
 ## Documentation
-More detailed documentation can be found on the [InterSystems'](https://docs.intersystems.com/webdocs/GED/GED.html) website.
+More detailed documentation can be found on the [InterSystems'](https://docs.intersystems.com/webdocs/GPD/GPD.html) website.

@@ -4729,12 +4729,12 @@ Latency and Reads/Writes</Description>
 		try {
 			#; DB latency. Throws PROTECT error if DB not mounted.
 			s stat = $zu(76,dir)
-			d ..SetSensor("DBLatency",stat,dir)
+			d ..SetSensor("DBLatency",stat,db)
 			#; DB Reads / Writes
 			s stat = $zu(190,6,3,sfn)
 			s reads = $p(stat,",",1), writes = $p(stat,",",2)
-			d ..SetPerSec("DBReads",reads,dir)
-			d ..SetPerSec("DBWrites",writes,dir)
+			d ..SetPerSec("DBReads",reads,db)
+			d ..SetPerSec("DBWrites",writes,db)
 		} catch {
 			i ($ze["<DIRECTORY>") || ($ze["<PROTECT>")
 			continue
