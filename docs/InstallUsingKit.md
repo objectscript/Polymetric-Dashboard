@@ -53,7 +53,7 @@ The kit is made up of two xml files and one directory.
    - *"Failed to Install the Dashboard. Check for errors printed above, and returned by the Install Method"* will be printed along with the errors encountered if unsuccessful.
 
 ### Use
- 1. Go to the System Management Portal using a web browser (preferably Google Chrome)
+ 1. Go to the System Management Portal using a web browser (performance is best using Google Chrome, or Firefox)
    - http://localhost:PORT/csp/sys/UtilHome.csp
      - PORT is the port the Cache Instance is using
  2. From the main page select "System Operation"
