@@ -65,17 +65,19 @@
 
   <!-- Lock/Unlock Widget -->
   <md-list-item class="">
-    <div flex="90" flex-offset="5" class="">
-      <md-button ng-click="widgetMenu.locked = !widgetMenu.locked" class="widgetMenuBtn">
-        {{widgetMenu.locked ? 'Unl' : 'L'}}ock Widget
-      </md-button>
+    <div layout="row" layout-align="center center" flex="90" flex-offset="5" class="">
+      <md-checkbox layout="row" layout-align="center center" ng-model="widgetMenu.locked" aria-label="Lock Widget?" class="md-primary" style="margin-bottom:0;">
+        Lock Widget
+      </md-checkbox>
     </div>
   </md-list-item>
 
   <!-- Remove Widget -->
   <md-list-item class="">
-    <div flex="90" flex-offset="5" class="">
-      <md-button ng-click="widgetMenu.remove = !widgetMenu.remove" class="widgetMenuBtn warn-text">{{widgetMenu.remove ? 'Keep' : 'Remove'}} Widget</md-button>
+    <div layout="row" layout-align="center center" flex="90" flex-offset="5">
+      <md-checkbox layout="row" layout-align="center center" ng-model="widgetMenu.remove" aria-label="Remove Widget?" class="md-warn" style="margin-bottom:0;">
+        Remove Widget
+      </md-checkbox>
     </div>
   </md-list-item>
 </md-list>

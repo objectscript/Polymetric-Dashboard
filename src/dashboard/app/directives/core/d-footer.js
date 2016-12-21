@@ -10,7 +10,8 @@ Author: Carter DeCew Tiernan
   core.directive('smpFooter', function() {
       return {
         restrict: 'E',
-        templateUrl: 'app/templates/core/t-footer.html'
+        templateUrl: 'app/templates/core/t-footer.html',
+        controller: 'footerCtrl as footer'
       };
     });
 })();

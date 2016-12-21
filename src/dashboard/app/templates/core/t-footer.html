@@ -3,36 +3,16 @@
   <div layout="row" flex-sm="100" flex-gt-sm="none" layout-align-sm="center center" layout-align-gt-sm="left center" layout-padding><h4 class="md-headline blend-text no-margin">Polymetric Dashboard</h4></div>
   <div flex="" hide-sm></div>
   <div layout="row" flex-sm="100" flex-gt-sm="none" layout-align-sm="center center" layout-align-gt-sm="end center" layout-padding>
-    <div flex="none" layout="row" layout-align="center center">
-      <a href="https://github.com/intersystems/Polymetric-Dashboard" target="_blank"
+    <div ng-repeat-start="link in footer.links" flex="none" layout="row" layout-align="center center">
+      <a href="{{link.url}}" target="_blank"
         layout="row"
         class="footer-link"
       >
-        <p class="md-body-1 blend-text">GitHub</p>
+        <p class="md-body-1 blend-text">{{link.display}}</p>
       </a>
     </div>
 
-    <div flex="none" layout="row" layout-align="center center"><p class="md-body-1 blend-text">|</p></div>
-
-    <div flex="none" layout="row" layout-align="center center">
-      <a href="https://docs.intersystems.com/webdocs/GPD/GPD.html" target="_blank"
-        layout="row"
-        class="footer-link"
-      >
-        <p class="md-body-1 blend-text">Documentation</p>
-      </a>
-    </div>
-
-    <div flex="none" layout="row" layout-align="center center"><p class="md-body-1 blend-text">|</p></div>
-
-    <div flex="none" layout="row" layout-align="center center">
-      <a href="/csp/sys/%25CSP.Portal.Home.zen"
-        layout="row"
-        class="footer-link"
-      >
-        <p class="md-body-1 blend-text">Management Portal</p>
-      </a>
-    </div>
+    <div ng-repeat-end ng-if="$index < footer.links.length - 1" flex="none" layout="row" layout-align="center center"><p class="md-body-1 blend-text">|</p></div>
   </div>
   <div flex="10" hide-sm></div>
 </md-content>

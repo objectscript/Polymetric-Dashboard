@@ -190,6 +190,10 @@ svg.nvd3-svg {
           transition: height .2s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
+.dialogBodySmall{
+  border-radius:0;
+}
+
 .IODialogTextArea {
   max-height: 200px;
   height: 200px;

@@ -1,0 +1,24 @@
+<md-dialog class="dialogBodySmall" aria-label="Remove all widgets from the Playground tab?">
+  <!-- Header -->
+  <md-toolbar>
+      <div layout="row" class="primary-hue1-fill white-text">
+        <div flex="100" align="left" layout-padding>
+          <p class="md-headline no-margin">Remove all Widgets?</p>
+        </div>
+      </div>
+  </md-toolbar>
+
+  <!-- Settings -->
+  <md-dialog-content class="background-fill">
+    <div flex="auto" layout="row" layout-wrap class="md-padding">
+      <p class="md-body-1">By confirming, all of the widgets on the Playground Tab will be removed.</p>
+    </div>
+  </md-dialog-content>
+
+  <!-- Buttons -->
+  <md-dialog-actions flex="100" layout="row" class="white-fill">
+    <span flex></span>
+    <md-button class="primary-text" ng-click="closeDialog()">Cancel</md-button>
+    <md-button class="md-raised md-primary" ng-click="clearWidgets()">Clear</md-button>
+  </md-dialog-actions>
+</md-dialog>

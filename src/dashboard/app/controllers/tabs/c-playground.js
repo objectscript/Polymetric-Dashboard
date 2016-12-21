@@ -7,7 +7,7 @@ Author: Carter DeCew Tiernan
 
   var tab = angular.module('tabs');
 
-  tab.controller('playgroundCtrl', ['$rootScope', '$scope', '$timeout', '$interval', '$compile', 'dashboard', 'WidgetProvider', function($rootScope, $scope, $timeout, $interval, $compile, dashboard, WidgetProvider) {
+  tab.controller('playgroundCtrl', ['$rootScope', '$scope', '$timeout', '$interval', '$compile', '$mdDialog', 'dashboard', 'WidgetProvider', function($rootScope, $scope, $timeout, $interval, $compile, $mdDialog, dashboard, WidgetProvider) {
     var _this = this;
 
     _this.widgets = WidgetProvider.widgets();
@@ -55,7 +55,7 @@ Author: Carter DeCew Tiernan
           addWidget();
           break;
         case 'startClear':
-          startClearTimer();
+          startClearTimer($event);
           break;
         case 'cancelClear':
           cancelClearTimer();
@@ -103,7 +103,7 @@ Author: Carter DeCew Tiernan
 
     // var to hold the interval ref
     var clearTimer;
-    function startClearTimer() {
+    function startClearTimer(event) {
       // cancel any clear timer active (up or down)
       $interval.cancel(clearTimer);
       // cancel the timeout for delaying the reset
@@ -119,9 +119,30 @@ Author: Carter DeCew Tiernan
         // when the timer reaches 100 clear the grid, reset the timer, and cancel the interaval
         if (_this.clearGridPercent >= 100) {
           cancelClearTimer();
-          removeWidgets();
+          confirmClear(event);
         }
       }, 100);
+    }
+
+    function confirmClear(event) {
+      var confirm = $mdDialog.show({
+        templateUrl: 'app/templates/core/t-widgetConfirmClear.html',
+        ariaLabel: 'Remove all widgets from the Playground tab?',
+        parent: angular.element(document.body),
+        targetEvent: event,
+        clickOutsideToClose: false,
+        controller: clearWidgetsController
+      });
+
+      function clearWidgetsController($scope, $mdDialog) {
+        $scope.closeDialog = function() {
+          $mdDialog.cancel();
+        };
+        $scope.clearWidgets = function() {
+          removeWidgets();
+          $scope.closeDialog();
+        };
+      }
     }
 
     var resetTimeout;
