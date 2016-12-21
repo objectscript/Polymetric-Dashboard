@@ -62,7 +62,6 @@ seconds.]]></Description>
 <XMLNamespace>http://www.intersystems.com/urlmap</XMLNamespace>
 <Data><![CDATA[
 <Routes>
-<Map Prefix="/v2" Forward="%Api.Dashboard.v2"/>
 <Map Prefix="/v3" Forward="%Api.Dashboard.v3"/>
 </Routes>
 ]]></Data>
