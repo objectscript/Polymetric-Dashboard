@@ -10,8 +10,8 @@ Fully customizable Caché system monitoring.
 		- [Requirements](#requirements)
 		- [Dependencies](#dependencies)
 	- [Installation](#installation)
-			- [Quick Start Kit](#quick-start-kit)
-			- [Source Code](#source-code)
+		- [Quick Start Kit](#quick-start-kit)
+		- [Source Code](#source-code)
 	- [Documentation](#documentation)
 
 <!-- /TOC -->
